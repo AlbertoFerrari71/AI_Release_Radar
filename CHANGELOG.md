@@ -1,5 +1,16 @@
 # Changelog
 
+## 0120) Controlled Live URL Check Review and Source Registry Hardening
+
+- [F] Rafforzato source registry. Fonte: `radar/source_registry.py`, `config/sources/openai_sources.json`.
+- [F] Rafforzata verifica URL live/read-only. Fonte: `radar/url_verifier.py`.
+- [F] Aggiunti casi redirect/timeout/unreachable. Fonte: `examples/fixtures/0120_url_verification_cases.json`, `tests/test_url_verifier.py`.
+- [F] Aggiunta review dei risultati live. Fonte: `radar/live_url_check.py`.
+- [F] Eseguito live smoke controllato fuori repo. Fonte: output comando `python -m radar.cli check-urls`.
+- [F] Nessun parsing live introdotto. Fonte: `radar/url_verifier.py`, `radar/live_url_check.py`.
+- [F] Nessuno snapshot live introdotto. Fonte: `radar/url_verifier.py`, `radar/live_url_check.py`, `radar/cli.py`.
+- [F] Auto-merge non consentito per step L2. Fonte: `AGENTS.md`, prompt `0120-A) AI Release Radar - Controlled Live URL Check Review and Source Registry Hardening`.
+
 ## 0110) First Controlled Live URL Check
 
 - [F] Aggiunto live URL checker controllato. Fonte: `radar/live_url_check.py`.

@@ -31,7 +31,7 @@ CHECK_URLS_RESULTS_FILENAME = "0110_live_url_check_results.json"
 CHECK_URLS_SUMMARY_FILENAME = "0110_live_url_check_summary.txt"
 NEXT_STEP_RECOMMENDATION = "0100) OpenAI Source Registry and URL Verification"
 CHECK_URLS_NEXT_STEP_RECOMMENDATION = (
-    "0120) Controlled Live URL Check Review and Source Registry Hardening"
+    "0130) Source Fetcher Skeleton Without Parsing"
 )
 
 
@@ -144,6 +144,12 @@ def build_check_urls_summary(
         f"Total: {summary_data.get('total')}",
         f"OK: {summary_data.get('ok')}",
         f"Failed: {summary_data.get('failed')}",
+        f"Redirected: {summary_data.get('redirected')}",
+        f"Timeout: {summary_data.get('timeout')}",
+        f"Unreachable: {summary_data.get('unreachable')}",
+        f"Unexpected status: {summary_data.get('unexpected_status')}",
+        f"Disabled: {summary_data.get('disabled')}",
+        f"Recommendation: {summary_data.get('recommendation')}",
         f"Results JSON: {results_json}",
         f"Summary: {summary}",
         f"Next step: {CHECK_URLS_NEXT_STEP_RECOMMENDATION}",

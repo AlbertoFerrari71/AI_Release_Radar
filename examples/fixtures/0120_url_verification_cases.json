@@ -1,0 +1,89 @@
+{
+  "results": [
+    {
+      "disabled": false,
+      "error": null,
+      "final_url": "https://developers.openai.com/codex/changelog",
+      "invalid_url": false,
+      "ok": true,
+      "redirected": false,
+      "source_id": "source_ok",
+      "status_code": 200,
+      "timeout": false,
+      "unexpected_status": false,
+      "unreachable": false,
+      "url": "https://developers.openai.com/codex/changelog"
+    },
+    {
+      "disabled": false,
+      "error": null,
+      "final_url": "https://developers.openai.com/codex/changelog",
+      "invalid_url": false,
+      "ok": true,
+      "redirected": true,
+      "source_id": "source_redirect",
+      "status_code": 200,
+      "timeout": false,
+      "unexpected_status": false,
+      "unreachable": false,
+      "url": "https://developers.openai.com/codex"
+    },
+    {
+      "disabled": false,
+      "error": "TimeoutError: simulated timeout",
+      "final_url": null,
+      "invalid_url": false,
+      "ok": false,
+      "redirected": false,
+      "source_id": "source_timeout",
+      "status_code": null,
+      "timeout": true,
+      "unexpected_status": false,
+      "unreachable": false,
+      "url": "https://example.invalid/timeout"
+    },
+    {
+      "disabled": false,
+      "error": "URLError: simulated unreachable",
+      "final_url": null,
+      "invalid_url": false,
+      "ok": false,
+      "redirected": false,
+      "source_id": "source_unreachable",
+      "status_code": null,
+      "timeout": false,
+      "unexpected_status": false,
+      "unreachable": true,
+      "url": "https://example.invalid/unreachable"
+    },
+    {
+      "disabled": false,
+      "error": "http_error:500",
+      "final_url": "https://example.invalid/server-error",
+      "invalid_url": false,
+      "ok": false,
+      "redirected": false,
+      "source_id": "source_unexpected_status",
+      "status_code": 500,
+      "timeout": false,
+      "unexpected_status": true,
+      "unreachable": false,
+      "url": "https://example.invalid/server-error"
+    },
+    {
+      "disabled": true,
+      "error": "live_check_disabled",
+      "final_url": null,
+      "invalid_url": false,
+      "ok": false,
+      "redirected": false,
+      "source_id": "source_disabled",
+      "status_code": null,
+      "timeout": false,
+      "unexpected_status": false,
+      "unreachable": false,
+      "url": "https://example.invalid/disabled"
+    }
+  ],
+  "schema_version": 1
+}
