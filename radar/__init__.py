@@ -27,6 +27,13 @@ from radar.project_impact import (
     impact_scores_for_projects,
     load_project_map,
 )
+from radar.report_engine import (
+    ReportInput,
+    load_report_input,
+    render_compact_markdown_report,
+    render_full_markdown_report,
+    render_report_status,
+)
 from radar.scoring import RelevanceScore, score_diff_items, score_item
 from radar.snapshot_builder import build_source_snapshot_from_items
 
@@ -35,6 +42,7 @@ __all__ = [
     "Item",
     "ItemClassification",
     "ProjectImpact",
+    "ReportInput",
     "RelevanceScore",
     "RunIndexEntry",
     "SourceSnapshot",
@@ -46,6 +54,7 @@ __all__ = [
     "classify_severity_from_text",
     "impact_item_for_projects",
     "impact_scores_for_projects",
+    "load_report_input",
     "load_project_map",
     "load_items_fixture_snapshot",
     "parse_json_items_fixture",
@@ -53,6 +62,9 @@ __all__ = [
     "parse_simple_text_release_fixture",
     "read_diff_result",
     "read_snapshot",
+    "render_compact_markdown_report",
+    "render_full_markdown_report",
+    "render_report_status",
     "score_diff_items",
     "score_item",
     "write_diff_result",
