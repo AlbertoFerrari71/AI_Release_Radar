@@ -1,0 +1,183 @@
+{
+  "provider": "openai",
+  "schema_version": 1,
+  "sources": [
+    {
+      "category_hints": [
+        "codex_cli",
+        "codex_app",
+        "codex_windows"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI Codex Changelog",
+      "notes": "Official Codex changelog page. Live content parsing is out of scope for 0100.",
+      "priority": 1,
+      "provider": "openai",
+      "reliability": "primary",
+      "source_id": "openai_codex_changelog",
+      "source_type": "official_changelog",
+      "url": "https://developers.openai.com/codex/changelog",
+      "verification_status": "verified_url_format"
+    },
+    {
+      "category_hints": [
+        "codex_cli",
+        "codex_reference"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI Codex CLI Reference",
+      "notes": "Official Codex CLI reference. This step validates registry metadata only.",
+      "priority": 2,
+      "provider": "openai",
+      "reliability": "primary",
+      "source_id": "openai_codex_cli_reference",
+      "source_type": "official_docs",
+      "url": "https://developers.openai.com/codex/cli/reference",
+      "verification_status": "verified_url_format"
+    },
+    {
+      "category_hints": [
+        "codex_agents_md",
+        "codex_guides"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI Codex AGENTS.md Guide",
+      "notes": "Official Codex AGENTS.md guide. Content parsing is deferred to a later step.",
+      "priority": 3,
+      "provider": "openai",
+      "reliability": "primary",
+      "source_id": "openai_codex_agents_md",
+      "source_type": "official_docs",
+      "url": "https://developers.openai.com/codex/guides/agents-md",
+      "verification_status": "verified_url_format"
+    },
+    {
+      "category_hints": [
+        "codex_skills",
+        "codex_app"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI Codex Skills",
+      "notes": "Official Codex skills documentation. Live parsing is out of scope for 0100.",
+      "priority": 4,
+      "provider": "openai",
+      "reliability": "primary",
+      "source_id": "openai_codex_skills",
+      "source_type": "official_docs",
+      "url": "https://developers.openai.com/codex/skills",
+      "verification_status": "verified_url_format"
+    },
+    {
+      "category_hints": [
+        "api_platform",
+        "api_changelog"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI API Changelog",
+      "notes": "Official OpenAI API changelog page. This registry does not fetch page content.",
+      "priority": 5,
+      "provider": "openai",
+      "reliability": "primary",
+      "source_id": "openai_api_changelog",
+      "source_type": "official_changelog",
+      "url": "https://developers.openai.com/api/docs/changelog",
+      "verification_status": "verified_url_format"
+    },
+    {
+      "category_hints": [
+        "api_platform",
+        "deprecation"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI API Deprecations",
+      "notes": "Official OpenAI API deprecations page. 0100 validates source metadata only.",
+      "priority": 6,
+      "provider": "openai",
+      "reliability": "primary",
+      "source_id": "openai_api_deprecations",
+      "source_type": "official_docs",
+      "url": "https://developers.openai.com/api/docs/deprecations",
+      "verification_status": "verified_url_format"
+    },
+    {
+      "category_hints": [
+        "openai_release_notes",
+        "candidate"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI Release Notes Hub",
+      "notes": "Candidate release-notes hub. Manual review remains pending in 0100.",
+      "priority": 7,
+      "provider": "openai",
+      "reliability": "candidate",
+      "source_id": "openai_release_notes_hub",
+      "source_type": "official_release_notes",
+      "url": "https://openai.com/products/release-notes/",
+      "verification_status": "pending_manual_review"
+    },
+    {
+      "category_hints": [
+        "chatgpt_release_notes",
+        "candidate"
+      ],
+      "machine_readable": false,
+      "name": "ChatGPT Release Notes",
+      "notes": "Candidate Help Center release notes source. Manual review remains pending in 0100.",
+      "priority": 8,
+      "provider": "openai",
+      "reliability": "candidate",
+      "source_id": "openai_chatgpt_release_notes",
+      "source_type": "official_release_notes",
+      "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
+      "verification_status": "pending_manual_review"
+    },
+    {
+      "category_hints": [
+        "model_release_notes",
+        "candidate"
+      ],
+      "machine_readable": false,
+      "name": "OpenAI Model Release Notes",
+      "notes": "Candidate Help Center model release notes source. Manual review remains pending in 0100.",
+      "priority": 9,
+      "provider": "openai",
+      "reliability": "candidate",
+      "source_id": "openai_model_release_notes",
+      "source_type": "official_release_notes",
+      "url": "https://help.openai.com/en/articles/9624314-model-release-notes",
+      "verification_status": "pending_manual_review"
+    },
+    {
+      "category_hints": [
+        "codex_cli",
+        "github_releases"
+      ],
+      "machine_readable": false,
+      "name": "GitHub OpenAI Codex Releases",
+      "notes": "OpenAI Codex GitHub releases page. Registry only; no GitHub fetch or parsing in 0100.",
+      "priority": 10,
+      "provider": "github",
+      "reliability": "secondary",
+      "source_id": "github_openai_codex_releases",
+      "source_type": "github_releases",
+      "url": "https://github.com/openai/codex/releases",
+      "verification_status": "verified_url_format"
+    },
+    {
+      "category_hints": [
+        "codex_cli",
+        "github_api"
+      ],
+      "machine_readable": true,
+      "name": "GitHub API OpenAI Codex Releases",
+      "notes": "GitHub API endpoint for OpenAI Codex releases. No live API call is made by offline tests.",
+      "priority": 11,
+      "provider": "github",
+      "reliability": "secondary",
+      "source_id": "github_api_openai_codex_releases",
+      "source_type": "github_api",
+      "url": "https://api.github.com/repos/openai/codex/releases?per_page=10",
+      "verification_status": "verified_url_format"
+    }
+  ]
+}
