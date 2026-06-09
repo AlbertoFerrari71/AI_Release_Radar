@@ -1,0 +1,44 @@
+{
+  "examples": [
+    {
+      "case_id": "valid_url_format",
+      "expected": {
+        "error": null,
+        "final_url": "https://developers.openai.com/codex/changelog",
+        "ok": true,
+        "source_id": "openai_codex_changelog",
+        "status_code": 200,
+        "url": "https://developers.openai.com/codex/changelog"
+      },
+      "format_ok": true,
+      "url": "https://developers.openai.com/codex/changelog"
+    },
+    {
+      "case_id": "invalid_url_format",
+      "expected": {
+        "error": "invalid_url_format",
+        "final_url": null,
+        "ok": false,
+        "source_id": "invalid_url",
+        "status_code": null,
+        "url": "not-a-url"
+      },
+      "format_ok": false,
+      "url": "not-a-url"
+    },
+    {
+      "case_id": "simulated_unreachable",
+      "expected": {
+        "error": "URLError: simulated unreachable",
+        "final_url": null,
+        "ok": false,
+        "source_id": "simulated_unreachable",
+        "status_code": null,
+        "url": "https://example.invalid/unreachable"
+      },
+      "format_ok": true,
+      "url": "https://example.invalid/unreachable"
+    }
+  ],
+  "schema_version": 1
+}

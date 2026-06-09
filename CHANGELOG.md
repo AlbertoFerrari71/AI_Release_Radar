@@ -1,5 +1,16 @@
 # Changelog
 
+## 0100) OpenAI Source Registry and URL Verification
+
+- [F] Aggiunto registry fonti OpenAI/Codex. Fonte: `config/sources/openai_sources.json`.
+- [F] Aggiunto modello `SourceDefinition`. Fonte: `radar/source_registry.py`.
+- [F] Aggiunto URL verifier read-only. Fonte: `radar/url_verifier.py`.
+- [F] Aggiunti test offline. Fonte: `tests/test_source_registry.py`, `tests/test_url_verifier.py`.
+- [F] Aggiunte fixture registry e URL verification. Fonte: `examples/fixtures/0100_openai_sources_valid.json`, `examples/fixtures/0100_openai_sources_invalid.json`, `examples/fixtures/0100_url_verification_expected.json`.
+- [F] Nessun parsing live introdotto. Fonte: `radar/url_verifier.py`.
+- [F] Nessuno scheduler introdotto. Fonte: `radar/source_registry.py`, `radar/url_verifier.py`.
+- [F] Auto-merge non consentito per step L2. Fonte: `AGENTS.md`, prompt `0100-A) AI Release Radar - OpenAI Source Registry and URL Verification`.
+
 ## 0090) CLI Dry Run
 
 - [F] Aggiunta CLI `python -m radar.cli dry-run`. Fonte: `radar/cli.py`.

@@ -35,7 +35,15 @@ from radar.report_engine import (
     render_report_status,
 )
 from radar.scoring import RelevanceScore, score_diff_items, score_item
+from radar.source_registry import (
+    SourceDefinition,
+    load_source_registry,
+    load_source_registry_file,
+    source_registry_to_dict,
+    validate_source_definition,
+)
 from radar.snapshot_builder import build_source_snapshot_from_items
+from radar.url_verifier import UrlVerificationResult, verify_url_format, verify_url_live
 
 __all__ = [
     "DiffResult",
@@ -45,7 +53,9 @@ __all__ = [
     "ReportInput",
     "RelevanceScore",
     "RunIndexEntry",
+    "SourceDefinition",
     "SourceSnapshot",
+    "UrlVerificationResult",
     "build_diff_from_snapshot_files",
     "build_snapshot_and_diff_from_item_fixtures",
     "build_source_snapshot_from_items",
@@ -54,6 +64,8 @@ __all__ = [
     "classify_severity_from_text",
     "impact_item_for_projects",
     "impact_scores_for_projects",
+    "load_source_registry",
+    "load_source_registry_file",
     "load_report_input",
     "load_project_map",
     "load_items_fixture_snapshot",
@@ -67,6 +79,10 @@ __all__ = [
     "render_report_status",
     "score_diff_items",
     "score_item",
+    "source_registry_to_dict",
+    "validate_source_definition",
+    "verify_url_format",
+    "verify_url_live",
     "write_diff_result",
     "write_snapshot",
 ]

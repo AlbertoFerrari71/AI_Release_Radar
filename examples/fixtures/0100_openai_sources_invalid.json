@@ -1,0 +1,114 @@
+{
+  "cases": [
+    {
+      "case_id": "invalid_source_id",
+      "source": {
+        "category_hints": [
+          "codex_cli"
+        ],
+        "machine_readable": false,
+        "name": "Invalid Source Id",
+        "notes": "Fixture with invalid source_id.",
+        "priority": 1,
+        "provider": "openai",
+        "reliability": "primary",
+        "source_id": "Invalid-Source",
+        "source_type": "official_docs",
+        "url": "https://example.invalid/source",
+        "verification_status": "verified_url_format"
+      }
+    },
+    {
+      "case_id": "non_https_url",
+      "source": {
+        "category_hints": [
+          "codex_cli"
+        ],
+        "machine_readable": false,
+        "name": "Non HTTPS URL",
+        "notes": "Fixture with non-https URL.",
+        "priority": 1,
+        "provider": "openai",
+        "reliability": "primary",
+        "source_id": "non_https_url",
+        "source_type": "official_docs",
+        "url": "http://example.invalid/source",
+        "verification_status": "verified_url_format"
+      }
+    },
+    {
+      "case_id": "priority_less_than_one",
+      "source": {
+        "category_hints": [
+          "codex_cli"
+        ],
+        "machine_readable": false,
+        "name": "Priority Less Than One",
+        "notes": "Fixture with invalid priority.",
+        "priority": 0,
+        "provider": "openai",
+        "reliability": "primary",
+        "source_id": "priority_less_than_one",
+        "source_type": "official_docs",
+        "url": "https://example.invalid/source",
+        "verification_status": "verified_url_format"
+      }
+    },
+    {
+      "case_id": "invalid_source_type",
+      "source": {
+        "category_hints": [
+          "codex_cli"
+        ],
+        "machine_readable": false,
+        "name": "Invalid Source Type",
+        "notes": "Fixture with invalid source type.",
+        "priority": 1,
+        "provider": "openai",
+        "reliability": "primary",
+        "source_id": "invalid_source_type",
+        "source_type": "blog",
+        "url": "https://example.invalid/source",
+        "verification_status": "verified_url_format"
+      }
+    },
+    {
+      "case_id": "invalid_reliability",
+      "source": {
+        "category_hints": [
+          "codex_cli"
+        ],
+        "machine_readable": false,
+        "name": "Invalid Reliability",
+        "notes": "Fixture with invalid reliability.",
+        "priority": 1,
+        "provider": "openai",
+        "reliability": "trusted",
+        "source_id": "invalid_reliability",
+        "source_type": "official_docs",
+        "url": "https://example.invalid/source",
+        "verification_status": "verified_url_format"
+      }
+    },
+    {
+      "case_id": "invalid_verification_status",
+      "source": {
+        "category_hints": [
+          "codex_cli"
+        ],
+        "machine_readable": false,
+        "name": "Invalid Verification Status",
+        "notes": "Fixture with invalid verification status.",
+        "priority": 1,
+        "provider": "openai",
+        "reliability": "primary",
+        "source_id": "invalid_verification_status",
+        "source_type": "official_docs",
+        "url": "https://example.invalid/source",
+        "verification_status": "maybe"
+      }
+    }
+  ],
+  "provider": "openai",
+  "schema_version": 1
+}
