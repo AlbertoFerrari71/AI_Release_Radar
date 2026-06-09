@@ -1,0 +1,14 @@
+{
+  "changed_items": [
+    "item_2c800d06c1d9a76b777756965a8f2c792e19ebac79cbc338fb73f2132bebf8ec"
+  ],
+  "new_items": [
+    "item_f38dfa4e291df5bcf5e3fdc8116bf1f227106a1b95af5d12e201eb8e861915a0"
+  ],
+  "removed_items": [
+    "item_f547eedbfe314a0c253392b646b8490b454b0e63ed49f2767fb2ffc05c5a0257"
+  ],
+  "schema_version": 1,
+  "source_id": "offline-openai-docs-fixture",
+  "unchanged_count": 1
+}

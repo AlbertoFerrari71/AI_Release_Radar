@@ -13,6 +13,8 @@ bridge/
 outputs/
 reports/
 snapshots/
+!examples/snapshots/
+!examples/snapshots/*.json
 logs/
 candidate_prompts/
 *.log
