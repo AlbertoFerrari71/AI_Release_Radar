@@ -1,0 +1,37 @@
+{
+  "results": [
+    {
+      "error": null,
+      "final_url": "https://developers.openai.com/codex/changelog",
+      "ok": true,
+      "source_id": "source_ok",
+      "status_code": 200,
+      "url": "https://developers.openai.com/codex/changelog"
+    },
+    {
+      "error": "http_error:404",
+      "final_url": "https://example.invalid/missing",
+      "ok": false,
+      "source_id": "source_failed_http",
+      "status_code": 404,
+      "url": "https://example.invalid/missing"
+    },
+    {
+      "error": null,
+      "final_url": "https://developers.openai.com/codex/changelog",
+      "ok": true,
+      "source_id": "source_redirect",
+      "status_code": 200,
+      "url": "https://developers.openai.com/codex"
+    },
+    {
+      "error": "TimeoutError: simulated timeout",
+      "final_url": null,
+      "ok": false,
+      "source_id": "source_timeout",
+      "status_code": null,
+      "url": "https://example.invalid/timeout"
+    }
+  ],
+  "schema_version": 1
+}

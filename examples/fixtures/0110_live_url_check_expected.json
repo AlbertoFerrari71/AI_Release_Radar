@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "summary": {
+    "failed": 2,
+    "failed_source_ids": [
+      "source_failed_http",
+      "source_timeout"
+    ],
+    "ok": 2,
+    "ok_source_ids": [
+      "source_ok",
+      "source_redirect"
+    ],
+    "status_code_counts": {
+      "200": 2,
+      "404": 1,
+      "none": 1
+    },
+    "total": 4
+  }
+}

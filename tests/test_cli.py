@@ -6,6 +6,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 import radar.cli as cli
+from radar.url_verifier import UrlVerificationResult
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,7 @@ class CliTests(unittest.TestCase):
     def test_build_arg_parser_help_does_not_crash(self):
         parser = cli.build_arg_parser()
         self.assertIn("dry-run", parser.format_help())
+        self.assertIn("check-urls", parser.format_help())
         stdout = io.StringIO()
         with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
             parser.parse_args(["dry-run", "--help"])
@@ -33,6 +35,29 @@ class CliTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn("AI Release Radar dry-run completed", stdout.getvalue())
 
+    def test_main_check_urls_with_mock_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stdout = io.StringIO()
+            with unittest.mock.patch.object(
+                cli,
+                "check_sources_live",
+                return_value=[self.sample_url_result()],
+            ):
+                with redirect_stdout(stdout):
+                    code = cli.main(
+                        [
+                            "check-urls",
+                            "--registry",
+                            str(REPO_ROOT / "config" / "sources" / "openai_sources.json"),
+                            "--output-dir",
+                            tmp,
+                            "--max-sources",
+                            "1",
+                        ]
+                    )
+            self.assertEqual(code, 0)
+            self.assertIn("AI Release Radar live URL check completed", stdout.getvalue())
+
     def test_dry_run_creates_full_compact_and_summary(self):
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
@@ -44,6 +69,28 @@ class CliTests(unittest.TestCase):
             self.assertTrue((output_dir / cli.FULL_REPORT_FILENAME).is_file())
             self.assertTrue((output_dir / cli.COMPACT_REPORT_FILENAME).is_file())
             self.assertTrue((output_dir / cli.SUMMARY_FILENAME).is_file())
+
+    def test_check_urls_with_mock_writes_results_and_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            with unittest.mock.patch.object(
+                cli,
+                "check_sources_live",
+                return_value=[self.sample_url_result()],
+            ):
+                result = cli.run_check_urls(
+                    str(REPO_ROOT / "config" / "sources" / "openai_sources.json"),
+                    str(output_dir),
+                    timeout_seconds=1.0,
+                    max_sources=1,
+                )
+            self.assertEqual(set(result), {"results_json", "summary"})
+            self.assertTrue((output_dir / cli.CHECK_URLS_RESULTS_FILENAME).is_file())
+            self.assertTrue((output_dir / cli.CHECK_URLS_SUMMARY_FILENAME).is_file())
+            summary = (output_dir / cli.CHECK_URLS_SUMMARY_FILENAME).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("Total: 1", summary)
 
     def test_full_report_matches_expected_fixture(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -192,6 +239,16 @@ class CliTests(unittest.TestCase):
             and ".git" not in path.parts
             and "__pycache__" not in path.parts
         }
+
+    def sample_url_result(self) -> UrlVerificationResult:
+        return UrlVerificationResult(
+            source_id="openai_codex_changelog",
+            url="https://developers.openai.com/codex/changelog",
+            ok=True,
+            status_code=200,
+            final_url="https://developers.openai.com/codex/changelog",
+            error=None,
+        )
 
 
 if __name__ == "__main__":
