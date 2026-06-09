@@ -1,0 +1,48 @@
+{
+  "items": [
+    {
+      "natural_key": "api-platform-stable-2026-06",
+      "category": "api_platform",
+      "severity": "medium",
+      "title": "API platform stable fixture item",
+      "published_at": "2026-06-08T10:00:00Z",
+      "url": "https://example.invalid/0050/api-platform-stable",
+      "evidence": "Offline fixture: stable API platform compatibility note.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.84
+    },
+    {
+      "natural_key": "codex-cli-new-2026-06",
+      "category": "codex_cli",
+      "severity": "medium",
+      "title": "New Codex CLI fixture item",
+      "published_at": "2026-06-10T10:00:00Z",
+      "url": "https://example.invalid/0050/codex-cli-new",
+      "evidence": "Offline fixture: new Codex CLI note present only in current snapshot.",
+      "first_seen": "2026-06-10",
+      "confidence": 0.88
+    },
+    {
+      "natural_key": "codex-cli-stable-2026-06",
+      "category": "codex_cli",
+      "severity": "info",
+      "title": "Codex CLI stable fixture item",
+      "published_at": "2026-06-06T10:00:00Z",
+      "url": "https://example.invalid/0050/codex-cli-stable",
+      "evidence": "Offline fixture: stable Codex CLI note for snapshot diff workflow.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.9
+    },
+    {
+      "natural_key": "codex-agents-md-changing-2026-06",
+      "category": "codex_agents_md",
+      "severity": "high",
+      "title": "AGENTS.md fixture guidance finalized",
+      "published_at": "2026-06-07T10:00:00Z",
+      "url": "https://example.invalid/0050/agents-md-changing",
+      "evidence": "Offline fixture: current guidance adds explicit duplicate item handling.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.86
+    }
+  ]
+}
