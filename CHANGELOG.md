@@ -1,5 +1,14 @@
 # Changelog
 
+## 0060) Classification and Relevance Scoring
+
+- [F] Aggiunta classificazione deterministica keyword-based. Fonte: `radar/classification.py`.
+- [F] Aggiunto scoring di rilevanza con componenti auditabili. Fonte: `radar/scoring.py`.
+- [F] Aggiunte fixture scoring artificiali offline. Fonte: `examples/fixtures/0060_scoring_*.json`.
+- [F] Aggiunti test offline per classificazione e scoring. Fonte: `tests/test_classification.py`, `tests/test_scoring.py`.
+- [F] Nessun fetch live introdotto. Fonte: `radar/classification.py`, `radar/scoring.py`.
+- [F] Primo trial auto-review/auto-merge low-risk documentato. Fonte: `docs/decisions/0060_DECISIONS.md`.
+
 ## 0050) Snapshot and Diff Engine
 
 - [F] Aggiunto workflow offline snapshot/diff. Fonte: `radar/offline_workflow.py`.

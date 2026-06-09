@@ -1,0 +1,88 @@
+{
+  "items": [
+    {
+      "category": "security",
+      "item_id": "0060_security_sandbox",
+      "reasons": [
+        "severity critical: 50",
+        "keywords 7: 20",
+        "confidence 0.95: 10",
+        "novelty new: 15",
+        "category security: 10",
+        "total: 105"
+      ],
+      "score": 105,
+      "severity": "critical"
+    },
+    {
+      "category": "deprecation",
+      "item_id": "0060_api_deprecation",
+      "reasons": [
+        "severity high: 40",
+        "keywords 7: 20",
+        "confidence 0.87: 9",
+        "novelty changed: 10",
+        "category deprecation: 10",
+        "total: 89"
+      ],
+      "score": 89,
+      "severity": "high"
+    },
+    {
+      "category": "codex_agents_md",
+      "item_id": "0060_agents_breaking",
+      "reasons": [
+        "severity high: 40",
+        "keywords 3: 12",
+        "confidence 0.92: 9",
+        "novelty changed: 10",
+        "category codex_agents_md: 10",
+        "total: 81"
+      ],
+      "score": 81,
+      "severity": "high"
+    },
+    {
+      "category": "codex_cli",
+      "item_id": "0060_codex_cli_new_command",
+      "reasons": [
+        "severity medium: 25",
+        "keywords 8: 20",
+        "confidence 0.88: 9",
+        "novelty new: 15",
+        "category codex_cli: 10",
+        "total: 79"
+      ],
+      "score": 79,
+      "severity": "medium"
+    },
+    {
+      "category": "image_vision",
+      "item_id": "0060_image_vision_improvement",
+      "reasons": [
+        "severity medium: 25",
+        "keywords 5: 20",
+        "confidence 0.76: 8",
+        "novelty removed: 12",
+        "category image_vision: 7",
+        "total: 72"
+      ],
+      "score": 72,
+      "severity": "medium"
+    },
+    {
+      "category": "unknown",
+      "item_id": "0060_docs_typo_cosmetic",
+      "reasons": [
+        "severity ignored: 0",
+        "keywords 6: 20",
+        "confidence 0.66: 7",
+        "novelty unchanged: 0",
+        "category unknown: 0",
+        "total: 27"
+      ],
+      "score": 27,
+      "severity": "ignored"
+    }
+  ]
+}
