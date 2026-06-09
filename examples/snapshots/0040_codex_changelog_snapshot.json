@@ -1,0 +1,56 @@
+{
+  "fetch_status": "offline_fixture",
+  "fetched_at": "2026-06-09T12:00:00Z",
+  "http_status": null,
+  "items": [
+    {
+      "category": "codex_agents_md",
+      "confidence": 0.84,
+      "content_hash": "4f1768a64e40a01ddf4d9cc5956a48d997b367f1e1ffdc8df1e250888da81b2b",
+      "evidence": "Offline fixture: repository instructions are loaded before step execution.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_b9826329206bf00047c78e98664e082021c7354532909317f1e18aaba13ad059",
+      "provider": "openai_codex",
+      "published_at": "2026-06-06T09:00:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-codex-changelog-fixture",
+      "title": "Codex AGENTS.md fixture guidance",
+      "url": "https://example.invalid/codex/changelog#agents-md"
+    },
+    {
+      "category": "codex_cli",
+      "confidence": 0.9,
+      "content_hash": "eba51ea510b2d0f5837109ad3c74ae93f25e30ce21fa9588ac4e104f69018646",
+      "evidence": "Offline fixture: added app handoff and local image path handling.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_3c6243309f10d3eb9e66f057a3200d48772eab9408ce6687e7445b25e0c18223",
+      "provider": "openai_codex",
+      "published_at": "2026-06-07T09:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-codex-changelog-fixture",
+      "title": "Codex CLI 0.138.0 fixture release",
+      "url": "https://example.invalid/codex/changelog#cli-0-138-0"
+    },
+    {
+      "category": "codex_windows",
+      "confidence": 0.88,
+      "content_hash": "577ab250f2a4bc7761fe0e0214e819b1cd11f0e26dfa9ff3dd69bbd8d431c155",
+      "evidence": "Offline fixture: Windows terminal handoff handling changed for local agent runs.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_c83a72f2e14e3e8010a92e5e765403be2202a2363960be86b3afa33e3ec49479",
+      "provider": "openai_codex",
+      "published_at": "2026-06-08T09:00:00Z",
+      "schema_version": 1,
+      "severity": "high",
+      "source_id": "offline-codex-changelog-fixture",
+      "title": "Codex Windows PTY fixture update",
+      "url": "https://example.invalid/codex/changelog#windows-pty"
+    }
+  ],
+  "page_hash": "2f5ccb23d04dece8893d7bef1cff4309a42a8deac5da0489e5b3772e72c69d3a",
+  "provider": "openai_codex",
+  "schema_version": 1,
+  "source_id": "offline-codex-changelog-fixture"
+}

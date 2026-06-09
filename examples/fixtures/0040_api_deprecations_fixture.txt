@@ -1,0 +1,21 @@
+--- item ---
+natural_key: api-platform-preview-2026-06
+category: api_platform
+severity: medium
+title: API platform fixture compatibility note
+published_at: 2026-06-06T08:00:00Z
+url: https://example.invalid/api/platform/compatibility
+first_seen: 2026-06-09
+confidence: 0.86
+evidence: Offline fixture: simulated compatibility notice for a controlled API platform source.
+
+--- item ---
+natural_key: api-deprecation-2026-06
+category: deprecation
+severity: high
+title: API deprecation fixture notice
+published_at: 2026-06-09T08:00:00Z
+url: https://example.invalid/api/deprecations/2026-06
+first_seen: 2026-06-09
+confidence: 0.95
+evidence: Offline fixture: simulated API deprecation notice for deterministic diff tests.
