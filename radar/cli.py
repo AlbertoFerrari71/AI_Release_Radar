@@ -1,4 +1,4 @@
-"""Command line interface for offline AI Release Radar dry-runs."""
+"""Command line interface for AI Release Radar local workflows."""
 
 from __future__ import annotations
 
@@ -6,7 +6,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from radar.json_utils import read_json
+from radar.json_utils import read_json, write_json
+from radar.live_url_check import (
+    check_sources_live,
+    verification_results_to_dict,
+)
 from radar.report_engine import (
     ReportInput,
     load_report_input,
@@ -14,14 +18,21 @@ from radar.report_engine import (
     render_full_markdown_report,
     render_report_status,
 )
+from radar.source_registry import load_source_registry_file
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DRY_RUN_INPUT_PATH = REPO_ROOT / "examples" / "fixtures" / "0080_report_input.json"
+DEFAULT_SOURCE_REGISTRY_PATH = REPO_ROOT / "config" / "sources" / "openai_sources.json"
 FULL_REPORT_FILENAME = "0090_dry_run_report_full.md"
 COMPACT_REPORT_FILENAME = "0090_dry_run_report_compact.md"
 SUMMARY_FILENAME = "0090_dry_run_summary.txt"
+CHECK_URLS_RESULTS_FILENAME = "0110_live_url_check_results.json"
+CHECK_URLS_SUMMARY_FILENAME = "0110_live_url_check_summary.txt"
 NEXT_STEP_RECOMMENDATION = "0100) OpenAI Source Registry and URL Verification"
+CHECK_URLS_NEXT_STEP_RECOMMENDATION = (
+    "0120) Controlled Live URL Check Review and Source Registry Hardening"
+)
 
 
 def build_dry_run_report_input() -> ReportInput:
@@ -65,6 +76,41 @@ def run_dry_run(output_dir: str, full: bool = True, compact: bool = True) -> dic
     }
 
 
+def run_check_urls(
+    registry: str,
+    output_dir: str,
+    timeout_seconds: float = 10.0,
+    max_sources: int | None = None,
+) -> dict[str, str]:
+    """Run the explicit live URL check and write results to output_dir."""
+    target_dir = Path(output_dir).expanduser().resolve()
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    sources = load_source_registry_file(registry)
+    results = check_sources_live(
+        sources,
+        timeout_seconds=timeout_seconds,
+        max_sources=max_sources,
+    )
+    results_data = verification_results_to_dict(results)
+
+    results_path = target_dir / CHECK_URLS_RESULTS_FILENAME
+    summary_path = target_dir / CHECK_URLS_SUMMARY_FILENAME
+    write_json(results_path, results_data)
+    _write_text(
+        summary_path,
+        build_check_urls_summary(
+            results_data["summary"],
+            results_json=str(results_path),
+            summary=str(summary_path),
+        ),
+    )
+    return {
+        "results_json": str(results_path),
+        "summary": str(summary_path),
+    }
+
+
 def build_summary(
     *,
     status: str,
@@ -80,6 +126,27 @@ def build_summary(
         f"Compact report: {compact_report}",
         f"Summary: {summary}",
         f"Next step: {NEXT_STEP_RECOMMENDATION}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_check_urls_summary(
+    summary_data: object,
+    *,
+    results_json: str,
+    summary: str,
+) -> str:
+    """Build the console and file summary for check-urls."""
+    if not isinstance(summary_data, dict):
+        raise ValueError("summary_data must be a dict.")
+    lines = [
+        "AI Release Radar live URL check completed",
+        f"Total: {summary_data.get('total')}",
+        f"OK: {summary_data.get('ok')}",
+        f"Failed: {summary_data.get('failed')}",
+        f"Results JSON: {results_json}",
+        f"Summary: {summary}",
+        f"Next step: {CHECK_URLS_NEXT_STEP_RECOMMENDATION}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -111,6 +178,32 @@ def build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Write only full report and summary.",
     )
+    check_urls = subparsers.add_parser(
+        "check-urls",
+        help="Run the explicit live read-only URL check from a source registry.",
+    )
+    check_urls.add_argument(
+        "--registry",
+        required=True,
+        help=f"Source registry JSON path. Default project registry: {DEFAULT_SOURCE_REGISTRY_PATH}",
+    )
+    check_urls.add_argument(
+        "--output-dir",
+        required=True,
+        help="Explicit directory where URL check outputs are written.",
+    )
+    check_urls.add_argument(
+        "--max-sources",
+        type=int,
+        default=None,
+        help="Optional maximum number of registry sources to check.",
+    )
+    check_urls.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=10.0,
+        help="Per-source timeout in seconds.",
+    )
     return parser
 
 
@@ -126,6 +219,16 @@ def main(argv: list[str] | None = None) -> int:
                 args.output_dir,
                 full=not args.compact_only,
                 compact=not args.full_only,
+            )
+            summary = Path(result["summary"]).read_text(encoding="utf-8")
+            sys.stdout.write(summary)
+            return 0
+        if args.command == "check-urls":
+            result = run_check_urls(
+                args.registry,
+                args.output_dir,
+                timeout_seconds=args.timeout_seconds,
+                max_sources=args.max_sources,
             )
             summary = Path(result["summary"]).read_text(encoding="utf-8")
             sys.stdout.write(summary)

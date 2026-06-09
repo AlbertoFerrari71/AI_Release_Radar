@@ -1,5 +1,16 @@
 # Changelog
 
+## 0110) First Controlled Live URL Check
+
+- [F] Aggiunto live URL checker controllato. Fonte: `radar/live_url_check.py`.
+- [F] Aggiunto summary risultati URL. Fonte: `radar/live_url_check.py`.
+- [F] Aggiunto test offline con mock. Fonte: `tests/test_live_url_check.py`.
+- [F] Aggiunta CLI `check-urls`. Fonte: `radar/cli.py`.
+- [F] Aggiunto live test opt-in. Fonte: `tests/test_live_url_check.py`.
+- [F] Nessun parsing live introdotto. Fonte: `radar/live_url_check.py`.
+- [F] Nessuno snapshot live introdotto. Fonte: `radar/live_url_check.py`, `radar/cli.py`.
+- [F] Auto-merge non consentito per step L2. Fonte: `AGENTS.md`, prompt `0110-A) AI Release Radar - First Controlled Live URL Check`.
+
 ## 0100) OpenAI Source Registry and URL Verification
 
 - [F] Aggiunto registry fonti OpenAI/Codex. Fonte: `config/sources/openai_sources.json`.

@@ -7,6 +7,11 @@ from radar.classification import (
     classify_severity_from_text,
 )
 from radar.models import DiffResult, Item, RunIndexEntry, SourceSnapshot
+from radar.live_url_check import (
+    check_sources_live,
+    summarize_url_verification_results,
+    verification_results_to_dict,
+)
 from radar.offline_workflow import (
     build_diff_from_snapshot_files,
     build_snapshot_and_diff_from_item_fixtures,
@@ -59,6 +64,7 @@ __all__ = [
     "build_diff_from_snapshot_files",
     "build_snapshot_and_diff_from_item_fixtures",
     "build_source_snapshot_from_items",
+    "check_sources_live",
     "classify_category_from_text",
     "classify_item",
     "classify_severity_from_text",
@@ -80,7 +86,9 @@ __all__ = [
     "score_diff_items",
     "score_item",
     "source_registry_to_dict",
+    "summarize_url_verification_results",
     "validate_source_definition",
+    "verification_results_to_dict",
     "verify_url_format",
     "verify_url_live",
     "write_diff_result",
