@@ -1,0 +1,17 @@
+#!/bin/sh
+# AI Release Radar local guardrail.
+# Blocks direct pushes to main.
+# Codex may push step branches and open draft PRs, but must not push directly to main.
+
+protected_branch="refs/heads/main"
+
+while read local_ref local_sha remote_ref remote_sha
+do
+    if [ "$remote_ref" = "$protected_branch" ]; then
+        echo "ERROR: direct push to main is blocked by local ASF Pilot guardrail."
+        echo "Use a step branch and draft PR instead."
+        exit 1
+    fi
+done
+
+exit 0

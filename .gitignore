@@ -15,6 +15,12 @@ reports/
 snapshots/
 logs/
 candidate_prompts/
+*.log
+*.tmp
+*.bak
+*.BAK
+
+# Non ignorare .githooks/: il pre-push hook ASF Pilot e' versionato.
 
 # IDE
 .vscode/
