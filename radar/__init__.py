@@ -21,6 +21,12 @@ from radar.parsers import (
     parse_simple_html_release_fixture,
     parse_simple_text_release_fixture,
 )
+from radar.project_impact import (
+    ProjectImpact,
+    impact_item_for_projects,
+    impact_scores_for_projects,
+    load_project_map,
+)
 from radar.scoring import RelevanceScore, score_diff_items, score_item
 from radar.snapshot_builder import build_source_snapshot_from_items
 
@@ -28,6 +34,7 @@ __all__ = [
     "DiffResult",
     "Item",
     "ItemClassification",
+    "ProjectImpact",
     "RelevanceScore",
     "RunIndexEntry",
     "SourceSnapshot",
@@ -37,6 +44,9 @@ __all__ = [
     "classify_category_from_text",
     "classify_item",
     "classify_severity_from_text",
+    "impact_item_for_projects",
+    "impact_scores_for_projects",
+    "load_project_map",
     "load_items_fixture_snapshot",
     "parse_json_items_fixture",
     "parse_simple_html_release_fixture",

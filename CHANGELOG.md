@@ -1,5 +1,15 @@
 # Changelog
 
+## 0070) Project Impact Mapping
+
+- [F] Aggiunto mapping impatto progetti. Fonte: `radar/project_impact.py`.
+- [F] Aggiunto `ProjectImpact`. Fonte: `radar/project_impact.py`.
+- [F] Aggiunta project map offline. Fonte: `examples/fixtures/0070_project_map.json`.
+- [F] Aggiunte fixture impatti. Fonte: `examples/fixtures/0070_impact_*.json`.
+- [F] Aggiunti test offline. Fonte: `tests/test_project_impact.py`.
+- [F] Nessun fetch live introdotto. Fonte: `radar/project_impact.py`.
+- [F] Auto-merge trial L1 documentato. Fonte: `docs/decisions/0070_DECISIONS.md`.
+
 ## 0065) ASF Auto-Merge Policy Clarification
 
 - [F] Chiarita policy auto-merge ASF. Fonte: `AGENTS.md`.

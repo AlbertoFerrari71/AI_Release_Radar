@@ -1,0 +1,123 @@
+{
+  "scores": [
+    {
+      "category_score": 10,
+      "confidence_score": 9,
+      "item_id": "0070_codex_cli_command",
+      "keyword_score": 12,
+      "novelty_score": 15,
+      "reasons": [
+        "severity medium: 25",
+        "keywords 3: 12",
+        "confidence 0.88: 9",
+        "novelty new: 15",
+        "category codex_cli: 10",
+        "total: 71"
+      ],
+      "score": 71,
+      "severity_score": 25
+    },
+    {
+      "category_score": 10,
+      "confidence_score": 9,
+      "item_id": "0070_agents_md_loading",
+      "keyword_score": 8,
+      "novelty_score": 10,
+      "reasons": [
+        "severity high: 40",
+        "keywords 2: 8",
+        "confidence 0.92: 9",
+        "novelty changed: 10",
+        "category codex_agents_md: 10",
+        "total: 77"
+      ],
+      "score": 77,
+      "severity_score": 40
+    },
+    {
+      "category_score": 10,
+      "confidence_score": 9,
+      "item_id": "0070_api_deprecation",
+      "keyword_score": 16,
+      "novelty_score": 10,
+      "reasons": [
+        "severity high: 40",
+        "keywords 4: 16",
+        "confidence 0.90: 9",
+        "novelty changed: 10",
+        "category deprecation: 10",
+        "total: 85"
+      ],
+      "score": 85,
+      "severity_score": 40
+    },
+    {
+      "category_score": 10,
+      "confidence_score": 10,
+      "item_id": "0070_security_sandbox",
+      "keyword_score": 20,
+      "novelty_score": 15,
+      "reasons": [
+        "severity critical: 50",
+        "keywords 5: 20",
+        "confidence 0.95: 10",
+        "novelty new: 15",
+        "category security: 10",
+        "total: 105"
+      ],
+      "score": 105,
+      "severity_score": 50
+    },
+    {
+      "category_score": 7,
+      "confidence_score": 8,
+      "item_id": "0070_image_vision",
+      "keyword_score": 16,
+      "novelty_score": 15,
+      "reasons": [
+        "severity medium: 25",
+        "keywords 4: 16",
+        "confidence 0.84: 8",
+        "novelty new: 15",
+        "category image_vision: 7",
+        "total: 71"
+      ],
+      "score": 71,
+      "severity_score": 25
+    },
+    {
+      "category_score": 7,
+      "confidence_score": 8,
+      "item_id": "0070_data_analysis",
+      "keyword_score": 20,
+      "novelty_score": 10,
+      "reasons": [
+        "severity medium: 25",
+        "keywords 5: 20",
+        "confidence 0.82: 8",
+        "novelty changed: 10",
+        "category data_analysis: 7",
+        "total: 70"
+      ],
+      "score": 70,
+      "severity_score": 25
+    },
+    {
+      "category_score": 5,
+      "confidence_score": 8,
+      "item_id": "0070_codex_skills_catalog",
+      "keyword_score": 8,
+      "novelty_score": 0,
+      "reasons": [
+        "severity info: 5",
+        "keywords 2: 8",
+        "confidence 0.78: 8",
+        "novelty unchanged: 0",
+        "category codex_skills: 5",
+        "total: 26"
+      ],
+      "score": 26,
+      "severity_score": 5
+    }
+  ]
+}
