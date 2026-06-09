@@ -1,0 +1,56 @@
+{
+  "fetched_at": "2026-06-09T09:00:00Z",
+  "fetch_status": "offline_fixture",
+  "http_status": null,
+  "items": [
+    {
+      "category": "codex_cli",
+      "confidence": 0.86,
+      "content_hash": "da1d24fbff586cf19b437dd5350e70514bedfc6e21be314828d2df327c58faf4",
+      "evidence": "Artificial offline fixture describing a deterministic Codex CLI release note.",
+      "first_seen": "2026-06-09T09:00:00Z",
+      "item_id": "item_e0ddbb5fef46f349a6f92b9f975eab2f602c2870b2fe3b16ff393a08c213efad",
+      "provider": "openai",
+      "published_at": "2026-06-01T09:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-openai-docs-fixture",
+      "title": "Codex CLI offline fixture release note",
+      "url": "https://example.invalid/offline/codex-cli-release-note"
+    },
+    {
+      "category": "repository_guidance",
+      "confidence": 0.82,
+      "content_hash": "01f42ccac12a62ab311e285133b993015bc85777c0d4a5c4b16f6a47c875d69c",
+      "evidence": "Artificial offline fixture noting that AGENTS.md carries repository instructions.",
+      "first_seen": "2026-06-09T09:00:00Z",
+      "item_id": "item_2c800d06c1d9a76b777756965a8f2c792e19ebac79cbc338fb73f2132bebf8ec",
+      "provider": "openai",
+      "published_at": "2026-06-02T10:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-openai-docs-fixture",
+      "title": "AGENTS.md offline fixture guidance",
+      "url": "https://example.invalid/offline/agents-md-guidance"
+    },
+    {
+      "category": "deprecation_api",
+      "confidence": 0.88,
+      "content_hash": "70249c9400ab82e229cce14eb80b99963ad776de1be13e670a5978bacb88909d",
+      "evidence": "Artificial offline fixture for a deprecation notice that is removed in the current snapshot.",
+      "first_seen": "2026-06-09T09:00:00Z",
+      "item_id": "item_f547eedbfe314a0c253392b646b8490b454b0e63ed49f2767fb2ffc05c5a0257",
+      "provider": "openai",
+      "published_at": "2026-05-30T08:00:00Z",
+      "schema_version": 1,
+      "severity": "high",
+      "source_id": "offline-openai-docs-fixture",
+      "title": "Legacy API offline fixture deprecation",
+      "url": "https://example.invalid/offline/legacy-api-deprecation"
+    }
+  ],
+  "page_hash": "21172230a49068b32457315e725cd98dec100089480be0ccceb7a7444bcec3e5",
+  "provider": "openai",
+  "schema_version": 1,
+  "source_id": "offline-openai-docs-fixture"
+}
