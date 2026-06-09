@@ -1,0 +1,392 @@
+{
+  "classifications": [
+    {
+      "category": "security",
+      "item_id": "0080_security_sandbox",
+      "matched_keywords": [
+        "credential",
+        "critical",
+        "permission",
+        "sandbox",
+        "security"
+      ],
+      "reasons": [
+        "category security: matched credential, permission, sandbox, security",
+        "severity critical: matched critical"
+      ],
+      "severity": "critical"
+    },
+    {
+      "category": "deprecation",
+      "item_id": "0080_api_deprecation",
+      "matched_keywords": [
+        "api",
+        "deprecat",
+        "endpoint",
+        "retirement"
+      ],
+      "reasons": [
+        "category deprecation: matched deprecat, retirement",
+        "severity high: matched deprecat, retirement"
+      ],
+      "severity": "high"
+    },
+    {
+      "category": "codex_cli",
+      "item_id": "0080_codex_cli_removed",
+      "matched_keywords": [
+        "codex cli",
+        "command",
+        "terminal"
+      ],
+      "reasons": [
+        "category codex_cli: matched codex cli, command, terminal",
+        "severity medium: matched new command"
+      ],
+      "severity": "medium"
+    },
+    {
+      "category": "image_vision",
+      "item_id": "0080_image_vision_unchanged",
+      "matched_keywords": [
+        "image",
+        "improved",
+        "local file path",
+        "vision"
+      ],
+      "reasons": [
+        "category image_vision: matched image, local file path, vision",
+        "severity medium: matched improved"
+      ],
+      "severity": "medium"
+    },
+    {
+      "category": "codex_skills",
+      "item_id": "0080_codex_skills_unchanged",
+      "matched_keywords": [
+        "skill",
+        "skills"
+      ],
+      "reasons": [
+        "category codex_skills: matched skill, skills",
+        "severity info: no severity keyword matched"
+      ],
+      "severity": "info"
+    }
+  ],
+  "diff_result": {
+    "changed_items": [
+      "0080_api_deprecation"
+    ],
+    "new_items": [
+      "0080_security_sandbox"
+    ],
+    "removed_items": [
+      "0080_codex_cli_removed"
+    ],
+    "schema_version": 1,
+    "source_id": "offline-0080-report-fixture",
+    "unchanged_count": 2
+  },
+  "generated_at": "2026-06-09T19:30:00Z",
+  "items": [
+    {
+      "category": "unknown",
+      "confidence": 0.95,
+      "content_hash": "0080-hash-security-sandbox",
+      "evidence": "Offline fixture: critical security sandbox permission issue could expose credential handling.",
+      "first_seen": "2026-06-09",
+      "item_id": "0080_security_sandbox",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-09T18:00:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-0080-report-fixture",
+      "title": "Security sandbox permission issue",
+      "url": "https://example.invalid/0080/security-sandbox"
+    },
+    {
+      "category": "unknown",
+      "confidence": 0.9,
+      "content_hash": "0080-hash-api-deprecation",
+      "evidence": "Offline fixture: Responses API endpoint deprecation and retirement path for platform clients.",
+      "first_seen": "2026-06-09",
+      "item_id": "0080_api_deprecation",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-09T18:05:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-0080-report-fixture",
+      "title": "API deprecation notice",
+      "url": "https://example.invalid/0080/api-deprecation"
+    },
+    {
+      "category": "unknown",
+      "confidence": 0.88,
+      "content_hash": "0080-hash-codex-cli-removed",
+      "evidence": "Offline fixture: removed Codex CLI terminal command previously used in local workflows.",
+      "first_seen": "2026-06-08",
+      "item_id": "0080_codex_cli_removed",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-08T17:45:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-0080-report-fixture",
+      "title": "Removed Codex CLI terminal command",
+      "url": "https://example.invalid/0080/codex-cli-removed"
+    },
+    {
+      "category": "unknown",
+      "confidence": 0.84,
+      "content_hash": "0080-hash-image-vision-unchanged",
+      "evidence": "Offline fixture: image vision local file path support improved for inspection workflows.",
+      "first_seen": "2026-06-08",
+      "item_id": "0080_image_vision_unchanged",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-08T17:50:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-0080-report-fixture",
+      "title": "Image vision inspection unchanged",
+      "url": "https://example.invalid/0080/image-vision-unchanged"
+    },
+    {
+      "category": "unknown",
+      "confidence": 0.78,
+      "content_hash": "0080-hash-codex-skills-unchanged",
+      "evidence": "Offline fixture: Codex skills catalog validation note for skill trigger review.",
+      "first_seen": "2026-06-08",
+      "item_id": "0080_codex_skills_unchanged",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-08T17:55:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-0080-report-fixture",
+      "title": "Codex skills catalog unchanged",
+      "url": "https://example.invalid/0080/codex-skills-unchanged"
+    }
+  ],
+  "notes": [
+    "Fixture covers one new, one changed, one removed and two unchanged items.",
+    "Report renderer must not fetch live data or call an LLM."
+  ],
+  "project_impacts": [
+    {
+      "impact_level": "critical",
+      "item_id": "0080_security_sandbox",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category security relevant to project",
+        "matched project keywords: sandbox, security",
+        "critical severity on relevant project",
+        "score 105",
+        "severity critical"
+      ],
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0080_security_sandbox",
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "reasons": [
+        "category security relevant to project",
+        "matched project keywords: security",
+        "critical severity on relevant project",
+        "score 105",
+        "severity critical"
+      ],
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test",
+        "update review checklist"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0080_api_deprecation",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category deprecation relevant to project",
+        "deprecation relevant to API/platform project",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0080_api_deprecation",
+      "project_key": "mansionario_vivo",
+      "project_name": "Mansionario_Vivo",
+      "reasons": [
+        "category deprecation relevant to project",
+        "deprecation relevant to API/platform project",
+        "matched project keywords: api, deprecat",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review FastAPI workflow",
+        "run regression tests",
+        "update deployment notes"
+      ]
+    },
+    {
+      "impact_level": "medium",
+      "item_id": "0080_codex_cli_removed",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "matched project keywords: codex cli",
+        "medium severity on relevant project",
+        "score 68",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review CLI workflow",
+        "update runner documentation"
+      ]
+    },
+    {
+      "impact_level": "medium",
+      "item_id": "0080_image_vision_unchanged",
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "reasons": [
+        "category image_vision relevant to project",
+        "matched project keywords: image, local file path, vision",
+        "medium severity on relevant project",
+        "score 56",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test"
+      ]
+    },
+    {
+      "impact_level": "low",
+      "item_id": "0080_codex_skills_unchanged",
+      "project_key": "codex_skills",
+      "project_name": "Codex_Skills",
+      "reasons": [
+        "category codex_skills relevant to project",
+        "matched project keywords: skill, skills",
+        "relevant category with low score",
+        "score 26",
+        "severity info"
+      ],
+      "suggested_actions": [
+        "update skill",
+        "review skill trigger",
+        "update catalog"
+      ]
+    }
+  ],
+  "provider": "openai_fixture",
+  "run_id": "0080-offline-report-fixture",
+  "scores": [
+    {
+      "category_score": 10,
+      "confidence_score": 10,
+      "item_id": "0080_security_sandbox",
+      "keyword_score": 20,
+      "novelty_score": 15,
+      "reasons": [
+        "severity critical: 50",
+        "keywords 5: 20",
+        "confidence 0.95: 10",
+        "novelty new: 15",
+        "category security: 10",
+        "total: 105"
+      ],
+      "score": 105,
+      "severity_score": 50
+    },
+    {
+      "category_score": 10,
+      "confidence_score": 9,
+      "item_id": "0080_api_deprecation",
+      "keyword_score": 16,
+      "novelty_score": 10,
+      "reasons": [
+        "severity high: 40",
+        "keywords 4: 16",
+        "confidence 0.90: 9",
+        "novelty changed: 10",
+        "category deprecation: 10",
+        "total: 85"
+      ],
+      "score": 85,
+      "severity_score": 40
+    },
+    {
+      "category_score": 10,
+      "confidence_score": 9,
+      "item_id": "0080_codex_cli_removed",
+      "keyword_score": 12,
+      "novelty_score": 12,
+      "reasons": [
+        "severity medium: 25",
+        "keywords 3: 12",
+        "confidence 0.88: 9",
+        "novelty removed: 12",
+        "category codex_cli: 10",
+        "total: 68"
+      ],
+      "score": 68,
+      "severity_score": 25
+    },
+    {
+      "category_score": 7,
+      "confidence_score": 8,
+      "item_id": "0080_image_vision_unchanged",
+      "keyword_score": 16,
+      "novelty_score": 0,
+      "reasons": [
+        "severity medium: 25",
+        "keywords 4: 16",
+        "confidence 0.84: 8",
+        "novelty unchanged: 0",
+        "category image_vision: 7",
+        "total: 56"
+      ],
+      "score": 56,
+      "severity_score": 25
+    },
+    {
+      "category_score": 5,
+      "confidence_score": 8,
+      "item_id": "0080_codex_skills_unchanged",
+      "keyword_score": 8,
+      "novelty_score": 0,
+      "reasons": [
+        "severity info: 5",
+        "keywords 2: 8",
+        "confidence 0.78: 8",
+        "novelty unchanged: 0",
+        "category codex_skills: 5",
+        "total: 26"
+      ],
+      "score": 26,
+      "severity_score": 5
+    }
+  ],
+  "source_id": "offline-0080-report-fixture"
+}

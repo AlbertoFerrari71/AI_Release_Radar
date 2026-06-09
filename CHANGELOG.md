@@ -1,5 +1,15 @@
 # Changelog
 
+## 0080) Report Engine
+
+- [F] Aggiunto report engine Markdown. Fonte: `radar/report_engine.py`.
+- [F] Aggiunto report full. Fonte: `radar/report_engine.py`, `examples/fixtures/0080_report_expected_full.md`.
+- [F] Aggiunto report compact. Fonte: `radar/report_engine.py`, `examples/fixtures/0080_report_expected_compact.md`.
+- [F] Aggiunto status report. Fonte: `radar/report_engine.py`.
+- [F] Aggiunti golden test. Fonte: `tests/test_report_engine.py`, `examples/fixtures/0080_report_expected_full.md`, `examples/fixtures/0080_report_expected_compact.md`.
+- [F] Nessun fetch live introdotto. Fonte: `radar/report_engine.py`.
+- [F] Auto-merge trial L1 documentato. Fonte: `docs/decisions/0080_DECISIONS.md`.
+
 ## 0070) Project Impact Mapping
 
 - [F] Aggiunto mapping impatto progetti. Fonte: `radar/project_impact.py`.
