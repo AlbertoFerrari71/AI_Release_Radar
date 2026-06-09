@@ -1,0 +1,71 @@
+{
+  "fetch_status": "offline_fixture",
+  "fetched_at": "2026-06-09T13:00:00Z",
+  "http_status": null,
+  "items": [
+    {
+      "category": "codex_cli",
+      "confidence": 0.9,
+      "content_hash": "fa5a4bef907e3a79387bd7f4dce4a2d02faf232b76a0593ee138c276373bf09d",
+      "evidence": "Offline fixture: stable Codex CLI note for snapshot diff workflow.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_01f3115c7c5a42a1d858d2e1d3ca38d8bce5e6c787b8b3517210b9d77ddc0075",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-06T10:00:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "Codex CLI stable fixture item",
+      "url": "https://example.invalid/0050/codex-cli-stable"
+    },
+    {
+      "category": "codex_agents_md",
+      "confidence": 0.86,
+      "content_hash": "fff65dc3ef4eae183059bf4bdb0d0c136bfe9f5bb025eca3f2f5297ff836ed9f",
+      "evidence": "Offline fixture: previous guidance mentions repository instruction loading.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_494a1368d99f856a04f43b48580acbd0e510c9879c1f2f332a9b5c481a01f0d8",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-07T10:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "AGENTS.md fixture guidance draft",
+      "url": "https://example.invalid/0050/agents-md-changing"
+    },
+    {
+      "category": "api_platform",
+      "confidence": 0.84,
+      "content_hash": "f4e1e9f59b6e1138088e74f78513ff3b6c217e6b36b25d6d2caf5f77a8493a62",
+      "evidence": "Offline fixture: stable API platform compatibility note.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_7f5e1e734ddd5e6670c36ee77f1e0225bb913bd4690232930ee612a134994996",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-08T10:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "API platform stable fixture item",
+      "url": "https://example.invalid/0050/api-platform-stable"
+    },
+    {
+      "category": "deprecation",
+      "confidence": 0.93,
+      "content_hash": "f91bf4c8a5e38e8fd3159d3d089d27aa62b003add50cd55fdce74dafa1854e4b",
+      "evidence": "Offline fixture: deprecation notice present only in previous snapshot.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_28d92bcff7038c9ef1cedb7339044262f7fb5a3e6948d6a29a2edc61379fe1e5",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-09T10:00:00Z",
+      "schema_version": 1,
+      "severity": "high",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "Removed deprecation fixture item",
+      "url": "https://example.invalid/0050/deprecation-removed"
+    }
+  ],
+  "page_hash": "f7c0b1867f6b6e56d54429ed9ac02baed5231464b96ea712a4811db886a5f099",
+  "provider": "openai_fixture",
+  "schema_version": 1,
+  "source_id": "offline-0050-diff-workflow-fixture"
+}

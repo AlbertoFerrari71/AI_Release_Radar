@@ -1,0 +1,14 @@
+{
+  "changed_items": [
+    "item_494a1368d99f856a04f43b48580acbd0e510c9879c1f2f332a9b5c481a01f0d8"
+  ],
+  "new_items": [
+    "item_87bd00ce08e448812d58fa2bf11434205a5adfcf6752b92fd1789215092d510f"
+  ],
+  "removed_items": [
+    "item_28d92bcff7038c9ef1cedb7339044262f7fb5a3e6948d6a29a2edc61379fe1e5"
+  ],
+  "schema_version": 1,
+  "source_id": "offline-0050-diff-workflow-fixture",
+  "unchanged_count": 2
+}

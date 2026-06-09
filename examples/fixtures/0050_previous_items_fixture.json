@@ -1,0 +1,48 @@
+{
+  "items": [
+    {
+      "natural_key": "codex-agents-md-changing-2026-06",
+      "category": "codex_agents_md",
+      "severity": "medium",
+      "title": "AGENTS.md fixture guidance draft",
+      "published_at": "2026-06-07T10:00:00Z",
+      "url": "https://example.invalid/0050/agents-md-changing",
+      "evidence": "Offline fixture: previous guidance mentions repository instruction loading.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.86
+    },
+    {
+      "natural_key": "codex-cli-stable-2026-06",
+      "category": "codex_cli",
+      "severity": "info",
+      "title": "Codex CLI stable fixture item",
+      "published_at": "2026-06-06T10:00:00Z",
+      "url": "https://example.invalid/0050/codex-cli-stable",
+      "evidence": "Offline fixture: stable Codex CLI note for snapshot diff workflow.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.9
+    },
+    {
+      "natural_key": "api-platform-stable-2026-06",
+      "category": "api_platform",
+      "severity": "medium",
+      "title": "API platform stable fixture item",
+      "published_at": "2026-06-08T10:00:00Z",
+      "url": "https://example.invalid/0050/api-platform-stable",
+      "evidence": "Offline fixture: stable API platform compatibility note.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.84
+    },
+    {
+      "natural_key": "deprecation-removed-2026-06",
+      "category": "deprecation",
+      "severity": "high",
+      "title": "Removed deprecation fixture item",
+      "published_at": "2026-06-09T10:00:00Z",
+      "url": "https://example.invalid/0050/deprecation-removed",
+      "evidence": "Offline fixture: deprecation notice present only in previous snapshot.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.93
+    }
+  ]
+}

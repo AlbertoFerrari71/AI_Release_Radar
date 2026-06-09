@@ -1,5 +1,14 @@
 # Changelog
 
+## 0050) Snapshot and Diff Engine
+
+- [F] Aggiunto workflow offline snapshot/diff. Fonte: `radar/offline_workflow.py`.
+- [F] Aggiunte fixture previous/current. Fonte: `examples/fixtures/0050_*`.
+- [F] Aggiunti snapshot e diff attesi. Fonte: `examples/snapshots/0050_*`.
+- [F] Rafforzato il workflow diff con test su `page_hash`, ordine input, previous assente e duplicati. Fonte: `tests/test_offline_workflow.py`.
+- [F] Aggiunti test end-to-end offline. Fonte: `tests/test_offline_workflow.py`.
+- [F] Nessun fetch live introdotto. Fonte: prompt 0050-A e `radar/offline_workflow.py`.
+
 ## 0040) Offline Fixture Parser
 
 - [F] Aggiunti parser fixture offline JSON/HTML/text. Fonte: `radar/parsers.py`.

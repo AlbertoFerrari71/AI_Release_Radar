@@ -1,0 +1,71 @@
+{
+  "fetch_status": "offline_fixture",
+  "fetched_at": "2026-06-09T13:05:00Z",
+  "http_status": null,
+  "items": [
+    {
+      "category": "codex_cli",
+      "confidence": 0.9,
+      "content_hash": "fa5a4bef907e3a79387bd7f4dce4a2d02faf232b76a0593ee138c276373bf09d",
+      "evidence": "Offline fixture: stable Codex CLI note for snapshot diff workflow.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_01f3115c7c5a42a1d858d2e1d3ca38d8bce5e6c787b8b3517210b9d77ddc0075",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-06T10:00:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "Codex CLI stable fixture item",
+      "url": "https://example.invalid/0050/codex-cli-stable"
+    },
+    {
+      "category": "codex_agents_md",
+      "confidence": 0.86,
+      "content_hash": "fca20f9ddf3e185c1ac24331e3bcd49546f3e97a7f024fb61605476f481f5d97",
+      "evidence": "Offline fixture: current guidance adds explicit duplicate item handling.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_494a1368d99f856a04f43b48580acbd0e510c9879c1f2f332a9b5c481a01f0d8",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-07T10:00:00Z",
+      "schema_version": 1,
+      "severity": "high",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "AGENTS.md fixture guidance finalized",
+      "url": "https://example.invalid/0050/agents-md-changing"
+    },
+    {
+      "category": "api_platform",
+      "confidence": 0.84,
+      "content_hash": "f4e1e9f59b6e1138088e74f78513ff3b6c217e6b36b25d6d2caf5f77a8493a62",
+      "evidence": "Offline fixture: stable API platform compatibility note.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_7f5e1e734ddd5e6670c36ee77f1e0225bb913bd4690232930ee612a134994996",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-08T10:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "API platform stable fixture item",
+      "url": "https://example.invalid/0050/api-platform-stable"
+    },
+    {
+      "category": "codex_cli",
+      "confidence": 0.88,
+      "content_hash": "0fac7fa6b65057b418b76d1b7c674e1f239e3b94aca1171bb02ff71bbc3df688",
+      "evidence": "Offline fixture: new Codex CLI note present only in current snapshot.",
+      "first_seen": "2026-06-10",
+      "item_id": "item_87bd00ce08e448812d58fa2bf11434205a5adfcf6752b92fd1789215092d510f",
+      "provider": "openai_fixture",
+      "published_at": "2026-06-10T10:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-0050-diff-workflow-fixture",
+      "title": "New Codex CLI fixture item",
+      "url": "https://example.invalid/0050/codex-cli-new"
+    }
+  ],
+  "page_hash": "4c3f1e4425d30be3fdb1e8b162ca28df2de0c9440dc791abfc8807d1978f21c6",
+  "provider": "openai_fixture",
+  "schema_version": 1,
+  "source_id": "offline-0050-diff-workflow-fixture"
+}
