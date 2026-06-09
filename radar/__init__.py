@@ -9,6 +9,7 @@ from radar.classification import (
 from radar.models import DiffResult, Item, RunIndexEntry, SourceSnapshot
 from radar.live_url_check import (
     check_sources_live,
+    review_live_check_results,
     summarize_url_verification_results,
     verification_results_to_dict,
 )
@@ -83,6 +84,7 @@ __all__ = [
     "render_compact_markdown_report",
     "render_full_markdown_report",
     "render_report_status",
+    "review_live_check_results",
     "score_diff_items",
     "score_item",
     "source_registry_to_dict",

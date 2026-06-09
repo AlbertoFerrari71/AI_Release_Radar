@@ -51,6 +51,11 @@ def summarize_url_verification_results(
     results: list[UrlVerificationResult],
 ) -> dict[str, object]:
     """Summarize URL verification results deterministically."""
+    return review_live_check_results(results)
+
+
+def review_live_check_results(results: list[UrlVerificationResult]) -> dict[str, object]:
+    """Review URL verification results and recommend registry follow-up."""
     ordered = _ordered_results(_validate_results(results))
     status_code_counts: dict[str, int] = {}
     for result in ordered:
@@ -59,12 +64,38 @@ def summarize_url_verification_results(
 
     ok_source_ids = [result.source_id for result in ordered if result.ok]
     failed_source_ids = [result.source_id for result in ordered if not result.ok]
+    redirected_source_ids = [result.source_id for result in ordered if result.redirected]
+    timeout_source_ids = [result.source_id for result in ordered if result.timeout]
+    unreachable_source_ids = [result.source_id for result in ordered if result.unreachable]
+    unexpected_status_source_ids = [
+        result.source_id for result in ordered if result.unexpected_status
+    ]
+    disabled_source_ids = [result.source_id for result in ordered if result.disabled]
+    invalid_url_source_ids = [result.source_id for result in ordered if result.invalid_url]
     return {
         "total": len(ordered),
         "ok": len(ok_source_ids),
         "failed": len(failed_source_ids),
+        "redirected": len(redirected_source_ids),
+        "timeout": len(timeout_source_ids),
+        "unreachable": len(unreachable_source_ids),
+        "unexpected_status": len(unexpected_status_source_ids),
+        "disabled": len(disabled_source_ids),
+        "invalid_url": len(invalid_url_source_ids),
+        "recommendation": _build_recommendation(
+            timeout_source_ids=timeout_source_ids,
+            unreachable_source_ids=unreachable_source_ids,
+            unexpected_status_source_ids=unexpected_status_source_ids,
+            invalid_url_source_ids=invalid_url_source_ids,
+        ),
         "ok_source_ids": ok_source_ids,
         "failed_source_ids": failed_source_ids,
+        "redirected_source_ids": redirected_source_ids,
+        "timeout_source_ids": timeout_source_ids,
+        "unreachable_source_ids": unreachable_source_ids,
+        "unexpected_status_source_ids": unexpected_status_source_ids,
+        "disabled_source_ids": disabled_source_ids,
+        "invalid_url_source_ids": invalid_url_source_ids,
         "status_code_counts": dict(sorted(status_code_counts.items())),
     }
 
@@ -110,3 +141,17 @@ def _validate_results(results: list[UrlVerificationResult]) -> list[UrlVerificat
 
 def _ordered_results(results: list[UrlVerificationResult]) -> list[UrlVerificationResult]:
     return sorted(results, key=lambda result: result.source_id)
+
+
+def _build_recommendation(
+    *,
+    timeout_source_ids: list[str],
+    unreachable_source_ids: list[str],
+    unexpected_status_source_ids: list[str],
+    invalid_url_source_ids: list[str],
+) -> str:
+    if invalid_url_source_ids or unexpected_status_source_ids or unreachable_source_ids:
+        return "registry_needs_review"
+    if timeout_source_ids:
+        return "network_unstable_retry"
+    return "registry_ok"

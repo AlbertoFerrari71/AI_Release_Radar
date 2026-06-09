@@ -1,0 +1,52 @@
+{
+  "new_format_registry": {
+    "provider": "openai",
+    "schema_version": 1,
+    "sources": [
+      {
+        "allow_redirects": true,
+        "category_hints": [
+          "codex_cli"
+        ],
+        "expected_status_codes": [
+          200
+        ],
+        "live_check_enabled": true,
+        "machine_readable": false,
+        "manual_review_required": false,
+        "name": "OpenAI Codex Changelog",
+        "notes": "New-format fixture with explicit live URL check policy.",
+        "priority": 1,
+        "provider": "openai",
+        "reliability": "primary",
+        "source_id": "openai_codex_changelog",
+        "source_type": "official_changelog",
+        "timeout_seconds": 8.0,
+        "url": "https://developers.openai.com/codex/changelog",
+        "verification_status": "verified_url_format"
+      }
+    ]
+  },
+  "old_format_registry": {
+    "provider": "openai",
+    "schema_version": 1,
+    "sources": [
+      {
+        "category_hints": [
+          "codex_cli"
+        ],
+        "machine_readable": false,
+        "name": "OpenAI Codex Changelog",
+        "notes": "Old-format fixture without optional hardening fields.",
+        "priority": 1,
+        "provider": "openai",
+        "reliability": "primary",
+        "source_id": "openai_codex_changelog",
+        "source_type": "official_changelog",
+        "url": "https://developers.openai.com/codex/changelog",
+        "verification_status": "verified_url_format"
+      }
+    ]
+  },
+  "schema_version": 1
+}

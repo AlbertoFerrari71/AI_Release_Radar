@@ -4,6 +4,7 @@ from pathlib import Path
 from radar.json_utils import read_json
 from radar.source_registry import (
     MANDATORY_SOURCE_FIELDS,
+    OPTIONAL_SOURCE_FIELDS,
     SourceDefinition,
     load_source_registry,
     load_source_registry_file,
@@ -15,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURES_DIR = REPO_ROOT / "examples" / "fixtures"
 VALID_FIXTURE_PATH = FIXTURES_DIR / "0100_openai_sources_valid.json"
 INVALID_FIXTURE_PATH = FIXTURES_DIR / "0100_openai_sources_invalid.json"
+HARDENING_FIXTURE_PATH = FIXTURES_DIR / "0120_registry_hardening_cases.json"
 CONFIG_PATH = REPO_ROOT / "config" / "sources" / "openai_sources.json"
 
 
@@ -28,9 +30,36 @@ class SourceRegistryTests(unittest.TestCase):
         sources = load_source_registry(read_json(VALID_FIXTURE_PATH))
         for source in sources:
             data = source.to_dict()
-            self.assertEqual(set(data), set(MANDATORY_SOURCE_FIELDS))
             for field_name in MANDATORY_SOURCE_FIELDS:
                 self.assertIn(field_name, data)
+            for field_name in OPTIONAL_SOURCE_FIELDS:
+                self.assertIn(field_name, data)
+
+    def test_old_format_registry_still_valid(self):
+        fixture = read_json(HARDENING_FIXTURE_PATH)["old_format_registry"]
+        source = load_source_registry(fixture)[0]
+        self.assertIsNone(source.expected_status_codes)
+        self.assertTrue(source.allow_redirects)
+        self.assertIsNone(source.timeout_seconds)
+        self.assertTrue(source.live_check_enabled)
+        self.assertFalse(source.manual_review_required)
+
+    def test_new_format_registry_valid(self):
+        fixture = read_json(HARDENING_FIXTURE_PATH)["new_format_registry"]
+        source = load_source_registry(fixture)[0]
+        self.assertEqual(source.expected_status_codes, [200])
+        self.assertTrue(source.allow_redirects)
+        self.assertEqual(source.timeout_seconds, 8.0)
+        self.assertTrue(source.live_check_enabled)
+        self.assertFalse(source.manual_review_required)
+
+    def test_optional_fields_have_sensible_defaults(self):
+        source = SourceDefinition.from_dict(self.valid_source_dict())
+        self.assertIsNone(source.expected_status_codes)
+        self.assertTrue(source.allow_redirects)
+        self.assertIsNone(source.timeout_seconds)
+        self.assertTrue(source.live_check_enabled)
+        self.assertFalse(source.manual_review_required)
 
     def test_missing_mandatory_field_fails(self):
         source = self.valid_source_dict()
@@ -63,6 +92,18 @@ class SourceRegistryTests(unittest.TestCase):
             load_source_registry(
                 self.registry_for(self.invalid_source("invalid_verification_status"))
             )
+
+    def test_invalid_expected_status_code_fails(self):
+        source = dict(self.valid_source_dict())
+        source["expected_status_codes"] = [99]
+        with self.assertRaisesRegex(ValueError, "expected_status_codes"):
+            load_source_registry(self.registry_for(source))
+
+    def test_invalid_timeout_seconds_fails(self):
+        source = dict(self.valid_source_dict())
+        source["timeout_seconds"] = 0
+        with self.assertRaisesRegex(ValueError, "timeout_seconds"):
+            load_source_registry(self.registry_for(source))
 
     def test_registry_is_sorted_deterministically(self):
         valid = read_json(VALID_FIXTURE_PATH)

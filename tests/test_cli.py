@@ -91,6 +91,7 @@ class CliTests(unittest.TestCase):
                 encoding="utf-8"
             )
             self.assertIn("Total: 1", summary)
+            self.assertIn("Recommendation: registry_ok", summary)
 
     def test_full_report_matches_expected_fixture(self):
         with tempfile.TemporaryDirectory() as tmp:

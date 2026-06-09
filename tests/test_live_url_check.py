@@ -6,6 +6,7 @@ from unittest.mock import patch
 from radar.json_utils import read_json
 from radar.live_url_check import (
     check_sources_live,
+    review_live_check_results,
     summarize_url_verification_results,
     verification_results_to_dict,
 )
@@ -18,6 +19,8 @@ FIXTURES_DIR = REPO_ROOT / "examples" / "fixtures"
 CONFIG_PATH = REPO_ROOT / "config" / "sources" / "openai_sources.json"
 SAMPLE_RESULTS_PATH = FIXTURES_DIR / "0110_live_url_check_sample_results.json"
 EXPECTED_PATH = FIXTURES_DIR / "0110_live_url_check_expected.json"
+URL_CASES_PATH = FIXTURES_DIR / "0120_url_verification_cases.json"
+REVIEW_EXPECTED_PATH = FIXTURES_DIR / "0120_live_check_review_expected.json"
 
 
 class LiveUrlCheckTests(unittest.TestCase):
@@ -111,7 +114,60 @@ class LiveUrlCheckTests(unittest.TestCase):
     def test_fixture_sample_results_match_expected_summary(self):
         expected = read_json(EXPECTED_PATH)
         serialized = verification_results_to_dict(self.sample_results())
-        self.assertEqual(serialized["summary"], expected["summary"])
+        for key, value in expected["summary"].items():
+            self.assertEqual(serialized["summary"][key], value)
+
+    def test_review_live_check_results_counts_hardened_cases(self):
+        expected = read_json(REVIEW_EXPECTED_PATH)
+        review = review_live_check_results(self.hardened_results())
+        self.assertEqual(review, expected["summary"])
+
+    def test_recommendation_registry_ok_with_all_ok(self):
+        results = [
+            UrlVerificationResult(
+                source_id="source_ok",
+                url="https://example.invalid/source",
+                ok=True,
+                status_code=200,
+                final_url="https://example.invalid/source",
+                error=None,
+            )
+        ]
+        self.assertEqual(review_live_check_results(results)["recommendation"], "registry_ok")
+
+    def test_recommendation_registry_needs_review_with_unreachable(self):
+        results = [
+            UrlVerificationResult(
+                source_id="source_unreachable",
+                url="https://example.invalid/source",
+                ok=False,
+                status_code=None,
+                final_url=None,
+                error="URLError: simulated unreachable",
+                unreachable=True,
+            )
+        ]
+        self.assertEqual(
+            review_live_check_results(results)["recommendation"],
+            "registry_needs_review",
+        )
+
+    def test_recommendation_network_unstable_retry_with_timeout_only(self):
+        results = [
+            UrlVerificationResult(
+                source_id="source_timeout",
+                url="https://example.invalid/source",
+                ok=False,
+                status_code=None,
+                final_url=None,
+                error="TimeoutError: simulated timeout",
+                timeout=True,
+            )
+        ]
+        self.assertEqual(
+            review_live_check_results(results)["recommendation"],
+            "network_unstable_retry",
+        )
 
     def test_no_last_or_latest_files_exist(self):
         forbidden = [
@@ -138,6 +194,10 @@ class LiveUrlCheckTests(unittest.TestCase):
 
     def sample_results(self):
         fixture = read_json(SAMPLE_RESULTS_PATH)
+        return [UrlVerificationResult(**result) for result in fixture["results"]]
+
+    def hardened_results(self):
+        fixture = read_json(URL_CASES_PATH)
         return [UrlVerificationResult(**result) for result in fixture["results"]]
 
     def source(self, source_id: str) -> SourceDefinition:
