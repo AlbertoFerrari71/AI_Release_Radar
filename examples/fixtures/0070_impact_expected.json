@@ -1,0 +1,549 @@
+{
+  "impacts": [
+    {
+      "impact_level": "high",
+      "item_id": "0070_agents_md_loading",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category codex_agents_md relevant to project",
+        "matched project keywords: agents.md",
+        "high severity on relevant project",
+        "score 77",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update runner",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_agents_md_loading",
+      "project_key": "codex_skills",
+      "project_name": "Codex_Skills",
+      "reasons": [
+        "category codex_agents_md relevant to project",
+        "matched project keywords: agents.md",
+        "high severity on relevant project",
+        "score 77",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "update skill",
+        "review skill trigger",
+        "update validator",
+        "update catalog"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_api_deprecation",
+      "project_key": "agglodetect",
+      "project_name": "AggloDetect",
+      "reasons": [
+        "deprecation relevant to API/platform project",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review image pipeline",
+        "run fixture image test",
+        "update analysis report"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_api_deprecation",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category deprecation relevant to project",
+        "deprecation relevant to API/platform project",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update runner",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_api_deprecation",
+      "project_key": "codex_skills",
+      "project_name": "Codex_Skills",
+      "reasons": [
+        "category deprecation relevant to project",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "update skill",
+        "review skill trigger",
+        "update validator",
+        "update catalog"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_api_deprecation",
+      "project_key": "controllo_gestione_esolver",
+      "project_name": "ControlloGestioneExcel / eSolver",
+      "reasons": [
+        "category deprecation relevant to project",
+        "deprecation relevant to API/platform project",
+        "matched project keywords: api",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review VBA workflow",
+        "review SQL read-only workflow",
+        "run export regression test"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_api_deprecation",
+      "project_key": "diamsign",
+      "project_name": "DiamSign",
+      "reasons": [
+        "deprecation relevant to API/platform project",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review anti-spoofing pipeline",
+        "test image path handling",
+        "review security assumptions"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_api_deprecation",
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "reasons": [
+        "deprecation relevant to API/platform project",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test",
+        "update review checklist"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_api_deprecation",
+      "project_key": "mansionario_vivo",
+      "project_name": "Mansionario_Vivo",
+      "reasons": [
+        "category deprecation relevant to project",
+        "deprecation relevant to API/platform project",
+        "matched project keywords: api, deprecat",
+        "deprecation score 85 >= 80",
+        "score 85",
+        "severity high"
+      ],
+      "suggested_actions": [
+        "review FastAPI workflow",
+        "run regression tests",
+        "update deployment notes"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_codex_cli_command",
+      "project_key": "agglodetect",
+      "project_name": "AggloDetect",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review image pipeline",
+        "run fixture image test",
+        "update analysis report"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_codex_cli_command",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "matched project keywords: codex cli",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update runner",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_codex_cli_command",
+      "project_key": "codex_skills",
+      "project_name": "Codex_Skills",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "matched project keywords: codex cli",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "update skill",
+        "review skill trigger",
+        "update validator",
+        "update catalog"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_codex_cli_command",
+      "project_key": "controllo_gestione_esolver",
+      "project_name": "ControlloGestioneExcel / eSolver",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review VBA workflow",
+        "review SQL read-only workflow",
+        "run export regression test"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_codex_cli_command",
+      "project_key": "diamsign",
+      "project_name": "DiamSign",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review anti-spoofing pipeline",
+        "test image path handling",
+        "review security assumptions"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_codex_cli_command",
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test",
+        "update review checklist"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_codex_cli_command",
+      "project_key": "mansionario_vivo",
+      "project_name": "Mansionario_Vivo",
+      "reasons": [
+        "category codex_cli relevant to project",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review FastAPI workflow",
+        "run regression tests",
+        "update deployment notes"
+      ]
+    },
+    {
+      "impact_level": "low",
+      "item_id": "0070_codex_skills_catalog",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category codex_skills relevant to project",
+        "matched project keywords: skill",
+        "relevant category with low score",
+        "score 26",
+        "severity info"
+      ],
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update runner",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "impact_level": "low",
+      "item_id": "0070_codex_skills_catalog",
+      "project_key": "codex_skills",
+      "project_name": "Codex_Skills",
+      "reasons": [
+        "category codex_skills relevant to project",
+        "matched project keywords: skill, skills",
+        "relevant category with low score",
+        "score 26",
+        "severity info"
+      ],
+      "suggested_actions": [
+        "update skill",
+        "review skill trigger",
+        "update validator",
+        "update catalog"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_data_analysis",
+      "project_key": "agglodetect",
+      "project_name": "AggloDetect",
+      "reasons": [
+        "category data_analysis relevant to project",
+        "matched project keywords: csv, data analysis",
+        "score 70 >= 70",
+        "score 70",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review image pipeline",
+        "run fixture image test",
+        "update analysis report"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_data_analysis",
+      "project_key": "controllo_gestione_esolver",
+      "project_name": "ControlloGestioneExcel / eSolver",
+      "reasons": [
+        "category data_analysis relevant to project",
+        "matched project keywords: csv, spreadsheet",
+        "score 70 >= 70",
+        "score 70",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review VBA workflow",
+        "review SQL read-only workflow",
+        "run export regression test"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_data_analysis",
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "reasons": [
+        "category data_analysis relevant to project",
+        "score 70 >= 70",
+        "score 70",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test",
+        "update review checklist"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_data_analysis",
+      "project_key": "mansionario_vivo",
+      "project_name": "Mansionario_Vivo",
+      "reasons": [
+        "category data_analysis relevant to project",
+        "score 70 >= 70",
+        "score 70",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review FastAPI workflow",
+        "run regression tests",
+        "update deployment notes"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_image_vision",
+      "project_key": "agglodetect",
+      "project_name": "AggloDetect",
+      "reasons": [
+        "category image_vision relevant to project",
+        "matched project keywords: image, vision",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review image pipeline",
+        "run fixture image test",
+        "update analysis report"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_image_vision",
+      "project_key": "diamsign",
+      "project_name": "DiamSign",
+      "reasons": [
+        "category image_vision relevant to project",
+        "matched project keywords: image, vision",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review anti-spoofing pipeline",
+        "test image path handling",
+        "review security assumptions"
+      ]
+    },
+    {
+      "impact_level": "high",
+      "item_id": "0070_image_vision",
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "reasons": [
+        "category image_vision relevant to project",
+        "matched project keywords: image, local file path, vision",
+        "score 71 >= 70",
+        "score 71",
+        "severity medium"
+      ],
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test",
+        "update review checklist"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_security_sandbox",
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "reasons": [
+        "category security relevant to project",
+        "matched project keywords: sandbox, security",
+        "critical severity on relevant project",
+        "score 105",
+        "severity critical"
+      ],
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update runner",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_security_sandbox",
+      "project_key": "controllo_gestione_esolver",
+      "project_name": "ControlloGestioneExcel / eSolver",
+      "reasons": [
+        "category security relevant to project",
+        "matched project keywords: security",
+        "critical severity on relevant project",
+        "score 105",
+        "severity critical"
+      ],
+      "suggested_actions": [
+        "review VBA workflow",
+        "review SQL read-only workflow",
+        "run export regression test"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_security_sandbox",
+      "project_key": "diamsign",
+      "project_name": "DiamSign",
+      "reasons": [
+        "category security relevant to project",
+        "matched project keywords: security",
+        "critical severity on relevant project",
+        "score 105",
+        "severity critical"
+      ],
+      "suggested_actions": [
+        "review anti-spoofing pipeline",
+        "test image path handling",
+        "review security assumptions"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_security_sandbox",
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "reasons": [
+        "category security relevant to project",
+        "matched project keywords: security",
+        "critical severity on relevant project",
+        "score 105",
+        "severity critical"
+      ],
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test",
+        "update review checklist"
+      ]
+    },
+    {
+      "impact_level": "critical",
+      "item_id": "0070_security_sandbox",
+      "project_key": "mansionario_vivo",
+      "project_name": "Mansionario_Vivo",
+      "reasons": [
+        "category security relevant to project",
+        "matched project keywords: security",
+        "critical severity on relevant project",
+        "score 105",
+        "severity critical"
+      ],
+      "suggested_actions": [
+        "review FastAPI workflow",
+        "run regression tests",
+        "update deployment notes"
+      ]
+    }
+  ]
+}

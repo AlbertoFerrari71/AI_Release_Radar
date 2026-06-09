@@ -1,0 +1,106 @@
+{
+  "classifications": [
+    {
+      "category": "codex_cli",
+      "item_id": "0070_codex_cli_command",
+      "matched_keywords": [
+        "codex cli",
+        "command",
+        "terminal"
+      ],
+      "reasons": [
+        "category codex_cli: matched codex cli, command, terminal",
+        "severity medium: matched new command"
+      ],
+      "severity": "medium"
+    },
+    {
+      "category": "codex_agents_md",
+      "item_id": "0070_agents_md_loading",
+      "matched_keywords": [
+        "agents.md",
+        "workspace instructions"
+      ],
+      "reasons": [
+        "category codex_agents_md: matched agents.md, workspace instructions",
+        "severity high: matched breaking"
+      ],
+      "severity": "high"
+    },
+    {
+      "category": "deprecation",
+      "item_id": "0070_api_deprecation",
+      "matched_keywords": [
+        "api",
+        "deprecat",
+        "endpoint",
+        "retirement"
+      ],
+      "reasons": [
+        "category deprecation: matched deprecat, retirement",
+        "severity high: matched deprecat, retirement"
+      ],
+      "severity": "high"
+    },
+    {
+      "category": "security",
+      "item_id": "0070_security_sandbox",
+      "matched_keywords": [
+        "credential",
+        "critical",
+        "permission",
+        "sandbox",
+        "security"
+      ],
+      "reasons": [
+        "category security: matched credential, permission, sandbox, security",
+        "severity critical: matched critical"
+      ],
+      "severity": "critical"
+    },
+    {
+      "category": "image_vision",
+      "item_id": "0070_image_vision",
+      "matched_keywords": [
+        "image",
+        "improved",
+        "local file path",
+        "vision"
+      ],
+      "reasons": [
+        "category image_vision: matched image, local file path, vision",
+        "severity medium: matched support for"
+      ],
+      "severity": "medium"
+    },
+    {
+      "category": "data_analysis",
+      "item_id": "0070_data_analysis",
+      "matched_keywords": [
+        "csv",
+        "data analysis",
+        "introduced",
+        "python",
+        "spreadsheet"
+      ],
+      "reasons": [
+        "category data_analysis: matched csv, data analysis, python, spreadsheet",
+        "severity medium: matched introduced"
+      ],
+      "severity": "medium"
+    },
+    {
+      "category": "codex_skills",
+      "item_id": "0070_codex_skills_catalog",
+      "matched_keywords": [
+        "skill",
+        "skills"
+      ],
+      "reasons": [
+        "category codex_skills: matched skill, skills",
+        "severity info: no severity keyword matched"
+      ],
+      "severity": "info"
+    }
+  ]
+}

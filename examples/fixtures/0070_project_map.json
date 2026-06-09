@@ -1,0 +1,179 @@
+{
+  "projects": [
+    {
+      "categories": [
+        "codex_cli",
+        "codex_app",
+        "codex_cloud",
+        "codex_review",
+        "codex_agents_md",
+        "codex_skills",
+        "codex_windows",
+        "codex_plugins",
+        "codex_mcp",
+        "api_platform",
+        "deprecation",
+        "billing",
+        "security"
+      ],
+      "keywords": [
+        "codex cli",
+        "agents.md",
+        "security",
+        "sandbox",
+        "skill"
+      ],
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "sensitive": true,
+      "suggested_actions": [
+        "review AGENTS.md",
+        "update workflow",
+        "update runner",
+        "update verification gate",
+        "create Codex step"
+      ]
+    },
+    {
+      "categories": [
+        "codex_skills",
+        "codex_agents_md",
+        "codex_cli",
+        "codex_plugins",
+        "codex_windows",
+        "codex_mcp",
+        "deprecation"
+      ],
+      "keywords": [
+        "agents.md",
+        "codex cli",
+        "skill",
+        "skills"
+      ],
+      "project_key": "codex_skills",
+      "project_name": "Codex_Skills",
+      "sensitive": false,
+      "suggested_actions": [
+        "update skill",
+        "review skill trigger",
+        "update validator",
+        "update catalog"
+      ]
+    },
+    {
+      "categories": [
+        "image_vision",
+        "data_analysis",
+        "codex_review",
+        "codex_cli",
+        "api_platform",
+        "security"
+      ],
+      "keywords": [
+        "image",
+        "vision",
+        "local file path",
+        "security"
+      ],
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "sensitive": true,
+      "suggested_actions": [
+        "review image workflow",
+        "run read-only safety test",
+        "update review checklist"
+      ]
+    },
+    {
+      "categories": [
+        "codex_review",
+        "codex_cli",
+        "api_platform",
+        "deprecation",
+        "data_analysis",
+        "security"
+      ],
+      "keywords": [
+        "api",
+        "deprecat",
+        "security"
+      ],
+      "project_key": "mansionario_vivo",
+      "project_name": "Mansionario_Vivo",
+      "sensitive": true,
+      "suggested_actions": [
+        "review FastAPI workflow",
+        "run regression tests",
+        "update deployment notes"
+      ]
+    },
+    {
+      "categories": [
+        "image_vision",
+        "data_analysis",
+        "codex_cli",
+        "api_platform",
+        "gpt_models"
+      ],
+      "keywords": [
+        "image",
+        "vision",
+        "data analysis",
+        "csv"
+      ],
+      "project_key": "agglodetect",
+      "project_name": "AggloDetect",
+      "sensitive": false,
+      "suggested_actions": [
+        "review image pipeline",
+        "run fixture image test",
+        "update analysis report"
+      ]
+    },
+    {
+      "categories": [
+        "image_vision",
+        "codex_cli",
+        "api_platform",
+        "security",
+        "gpt_models"
+      ],
+      "keywords": [
+        "image",
+        "vision",
+        "security"
+      ],
+      "project_key": "diamsign",
+      "project_name": "DiamSign",
+      "sensitive": true,
+      "suggested_actions": [
+        "review anti-spoofing pipeline",
+        "test image path handling",
+        "review security assumptions"
+      ]
+    },
+    {
+      "categories": [
+        "data_analysis",
+        "api_platform",
+        "codex_cli",
+        "deprecation",
+        "security"
+      ],
+      "keywords": [
+        "spreadsheet",
+        "csv",
+        "api",
+        "security"
+      ],
+      "project_key": "controllo_gestione_esolver",
+      "project_name": "ControlloGestioneExcel / eSolver",
+      "sensitive": true,
+      "suggested_actions": [
+        "review VBA workflow",
+        "review SQL read-only workflow",
+        "run export regression test"
+      ]
+    }
+  ]
+}
