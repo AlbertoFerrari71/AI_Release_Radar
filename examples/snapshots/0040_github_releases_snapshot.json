@@ -1,0 +1,41 @@
+{
+  "fetch_status": "offline_fixture",
+  "fetched_at": "2026-06-09T12:05:00Z",
+  "http_status": null,
+  "items": [
+    {
+      "category": "codex_cli",
+      "confidence": 0.89,
+      "content_hash": "b709ecf0c3e182a19c79c99bc0d872b4c6b5560509994d344eacdbb350b712f4",
+      "evidence": "Offline fixture: simulated GitHub release notes mention app handoff handling.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_05e1bddd749f0892e4a6d7498859a183bead4aead5102513d22d292f4c06b000",
+      "provider": "github",
+      "published_at": "2026-06-07T11:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-github-releases-fixture",
+      "title": "Codex CLI v0.138.0 fixture release",
+      "url": "https://example.invalid/github/releases/codex-cli/v0.138.0"
+    },
+    {
+      "category": "codex_cli",
+      "confidence": 0.87,
+      "content_hash": "3e23f6bee11f4dfd7ab9a8ebf101851c78047046c95b56f21c1c72af1af81dd4",
+      "evidence": "Offline fixture: simulated GitHub release notes mention deterministic fixture parsing.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_0a3666067cc4ffbe3f481aa8142acdf0ec70996b056173871565f3c9cdd60aae",
+      "provider": "github",
+      "published_at": "2026-06-08T11:00:00Z",
+      "schema_version": 1,
+      "severity": "info",
+      "source_id": "offline-github-releases-fixture",
+      "title": "Codex CLI v0.139.0 fixture release",
+      "url": "https://example.invalid/github/releases/codex-cli/v0.139.0"
+    }
+  ],
+  "page_hash": "af73be26faa34bb0ceabe22070e8fd9c0146099d44a36751b868919a0ac7d23b",
+  "provider": "github",
+  "schema_version": 1,
+  "source_id": "offline-github-releases-fixture"
+}

@@ -1,0 +1,41 @@
+{
+  "fetch_status": "offline_fixture",
+  "fetched_at": "2026-06-09T12:10:00Z",
+  "http_status": null,
+  "items": [
+    {
+      "category": "api_platform",
+      "confidence": 0.86,
+      "content_hash": "42d5d7949027c144aafe4d645f3d35510c13bbf0e799c4b84f791a0c27f7bbbb",
+      "evidence": "Offline fixture: simulated compatibility notice for a controlled API platform source.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_7ba6538384d25731b06cec128adf940c26a2ddc30b8b0cb821c58eb5b744ae67",
+      "provider": "openai_api",
+      "published_at": "2026-06-06T08:00:00Z",
+      "schema_version": 1,
+      "severity": "medium",
+      "source_id": "offline-api-deprecations-fixture",
+      "title": "API platform fixture compatibility note",
+      "url": "https://example.invalid/api/platform/compatibility"
+    },
+    {
+      "category": "deprecation",
+      "confidence": 0.95,
+      "content_hash": "76d028cf34e4f2afd0d91a1136f2deaca5f3b4c4e4d6d30ccc87b36373e44733",
+      "evidence": "Offline fixture: simulated API deprecation notice for deterministic diff tests.",
+      "first_seen": "2026-06-09",
+      "item_id": "item_50758ab042daea8787cfbdad2a816aba5b66a1ac51d44b1692fdee98db1bb48a",
+      "provider": "openai_api",
+      "published_at": "2026-06-09T08:00:00Z",
+      "schema_version": 1,
+      "severity": "high",
+      "source_id": "offline-api-deprecations-fixture",
+      "title": "API deprecation fixture notice",
+      "url": "https://example.invalid/api/deprecations/2026-06"
+    }
+  ],
+  "page_hash": "2c73b52fd709f15fc64a2815dd7f7046c7215b0b576f5e5c1d0a1f8000cb4f45",
+  "provider": "openai_api",
+  "schema_version": 1,
+  "source_id": "offline-api-deprecations-fixture"
+}

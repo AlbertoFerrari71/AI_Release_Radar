@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "natural_key": "codex-cli-v0.139.0",
+      "category": "codex_cli",
+      "severity": "info",
+      "title": "Codex CLI v0.139.0 fixture release",
+      "published_at": "2026-06-08T11:00:00Z",
+      "url": "https://example.invalid/github/releases/codex-cli/v0.139.0",
+      "evidence": "Offline fixture: simulated GitHub release notes mention deterministic fixture parsing.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.87
+    },
+    {
+      "natural_key": "codex-cli-v0.138.0",
+      "category": "codex_cli",
+      "severity": "medium",
+      "title": "Codex CLI v0.138.0 fixture release",
+      "published_at": "2026-06-07T11:00:00Z",
+      "url": "https://example.invalid/github/releases/codex-cli/v0.138.0",
+      "evidence": "Offline fixture: simulated GitHub release notes mention app handoff handling.",
+      "first_seen": "2026-06-09",
+      "confidence": 0.89
+    }
+  ]
+}
