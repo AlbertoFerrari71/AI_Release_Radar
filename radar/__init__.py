@@ -48,11 +48,19 @@ from radar.source_registry import (
     source_registry_to_dict,
     validate_source_definition,
 )
+from radar.source_fetcher import (
+    FetchedSourceContent,
+    fetched_sources_to_dict,
+    fetch_source_content,
+    fetch_sources_content,
+    summarize_fetched_sources,
+)
 from radar.snapshot_builder import build_source_snapshot_from_items
 from radar.url_verifier import UrlVerificationResult, verify_url_format, verify_url_live
 
 __all__ = [
     "DiffResult",
+    "FetchedSourceContent",
     "Item",
     "ItemClassification",
     "ProjectImpact",
@@ -69,6 +77,9 @@ __all__ = [
     "classify_category_from_text",
     "classify_item",
     "classify_severity_from_text",
+    "fetched_sources_to_dict",
+    "fetch_source_content",
+    "fetch_sources_content",
     "impact_item_for_projects",
     "impact_scores_for_projects",
     "load_source_registry",
@@ -88,6 +99,7 @@ __all__ = [
     "score_diff_items",
     "score_item",
     "source_registry_to_dict",
+    "summarize_fetched_sources",
     "summarize_url_verification_results",
     "validate_source_definition",
     "verification_results_to_dict",
