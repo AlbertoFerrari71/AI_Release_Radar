@@ -1,5 +1,13 @@
 # Changelog
 
+## 0065) ASF Auto-Merge Policy Clarification
+
+- [F] Chiarita policy auto-merge ASF. Fonte: `AGENTS.md`.
+- [F] Definite classi rischio L0-L4. Fonte: `AGENTS.md`.
+- [F] Definiti file high-risk. Fonte: `AGENTS.md`.
+- [F] Chiarito che modifiche a `AGENTS.md` non sono auto-mergeable. Fonte: `AGENTS.md`.
+- [F] Documentata lesson learned dallo step 0060. Fonte: `docs/decisions/0065_DECISIONS.md`.
+
 ## 0060) Classification and Relevance Scoring
 
 - [F] Aggiunta classificazione deterministica keyword-based. Fonte: `radar/classification.py`.
