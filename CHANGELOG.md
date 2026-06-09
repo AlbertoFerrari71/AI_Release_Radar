@@ -1,5 +1,14 @@
 # Changelog
 
+## 0090) CLI Dry Run
+
+- [F] Aggiunta CLI `python -m radar.cli dry-run`. Fonte: `radar/cli.py`.
+- [F] Aggiunto output full/compact/summary. Fonte: `radar/cli.py`.
+- [F] Aggiunti test CLI. Fonte: `tests/test_cli.py`.
+- [F] Aggiunte fixture expected CLI. Fonte: `examples/fixtures/0090_cli_expected_summary.txt`, `examples/fixtures/0090_cli_expected_full.md`, `examples/fixtures/0090_cli_expected_compact.md`.
+- [F] Nessun fetch live introdotto. Fonte: `radar/cli.py`.
+- [F] Auto-merge trial L1 documentato. Fonte: `docs/decisions/0090_DECISIONS.md`.
+
 ## 0080) Report Engine
 
 - [F] Aggiunto report engine Markdown. Fonte: `radar/report_engine.py`.
