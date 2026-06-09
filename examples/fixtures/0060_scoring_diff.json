@@ -1,0 +1,16 @@
+{
+  "changed_items": [
+    "0060_agents_breaking",
+    "0060_api_deprecation"
+  ],
+  "new_items": [
+    "0060_codex_cli_new_command",
+    "0060_security_sandbox"
+  ],
+  "removed_items": [
+    "0060_image_vision_improvement"
+  ],
+  "schema_version": 1,
+  "source_id": "offline-0060-scoring-fixture",
+  "unchanged_count": 1
+}
