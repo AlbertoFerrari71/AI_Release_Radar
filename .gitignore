@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+dist/
+build/
+*.egg-info/
+
+# Runtime locale / Bridge / output generati
+runtime/
+bridge/
+outputs/
+reports/
+snapshots/
+logs/
+candidate_prompts/
+
+# IDE
+.vscode/
+.idea/
