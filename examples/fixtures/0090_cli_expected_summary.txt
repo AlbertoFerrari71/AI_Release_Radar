@@ -1,0 +1,6 @@
+AI Release Radar dry-run completed
+Status: CRITICAL
+Full report: <OUTPUT_DIR>/0090_dry_run_report_full.md
+Compact report: <OUTPUT_DIR>/0090_dry_run_report_compact.md
+Summary: <OUTPUT_DIR>/0090_dry_run_summary.txt
+Next step: 0100) OpenAI Source Registry and URL Verification
