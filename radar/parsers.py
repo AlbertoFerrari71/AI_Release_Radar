@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from html.parser import HTMLParser
+import re
 from typing import Any
 
 from radar.hash_utils import content_hash_for_item_fields, normalize_text, stable_item_id
@@ -21,6 +22,11 @@ _REQUIRED_FIXTURE_FIELDS = (
     "confidence",
 )
 _GITHUB_RELEASE_BODY_SUMMARY_MAX_CHARS = 500
+_CODEX_CHANGELOG_MAX_CHARS = 20000
+_CODEX_CHANGELOG_VERSION_RE = re.compile(
+    r"\b[vV]?(?P<version>\d+\.\d+(?:\.\d+)?(?:[-.][A-Za-z0-9]+)?)\b"
+)
+_CODEX_CHANGELOG_DATE_RE = re.compile(r"\b(?P<date>\d{4}-\d{2}-\d{2})\b")
 
 
 def _item_sort_key(item: Item) -> tuple[str, str, str]:
@@ -358,6 +364,214 @@ def _github_release_evidence(
         f"api_url={api_url or 'missing'}",
     ]
     return "GitHub Releases API metadata: " + "; ".join(metadata) + f". Summary: {body_summary}"
+
+
+def parse_codex_changelog_fixture(
+    source_id: str,
+    provider: str,
+    content: str | bytes,
+    *,
+    first_seen: str = "2026-06-10",
+    source_url: str = "https://developers.openai.com/codex/changelog",
+    encoding: str = "utf-8",
+    max_chars: int = _CODEX_CHANGELOG_MAX_CHARS,
+) -> list[Item]:
+    """Parse a controlled Codex changelog markdown/text fixture.
+
+    This parser is intentionally conservative: it recognizes version headings,
+    optional YYYY-MM-DD dates, section headings, and bullet lines only.
+    """
+    normalized_source_id = _require_non_empty_str(source_id, "source_id")
+    normalized_provider = _require_non_empty_str(provider, "provider")
+    normalized_first_seen = _require_non_empty_str(first_seen, "first_seen")
+    normalized_source_url = _require_non_empty_str(source_url, "source_url")
+    text = _decode_codex_changelog_content(content, encoding)
+    if not text.strip():
+        return []
+    if not isinstance(max_chars, int) or isinstance(max_chars, bool) or max_chars < 1:
+        raise ValueError("max_chars must be a positive integer.")
+    if len(text) > max_chars:
+        raise ValueError("Codex changelog content is too long.")
+
+    entries = _codex_changelog_entries(text)
+    items: list[Item] = []
+    for entry in entries:
+        items.append(
+            _codex_changelog_item(
+                source_id=normalized_source_id,
+                provider=normalized_provider,
+                first_seen=normalized_first_seen,
+                source_url=normalized_source_url,
+                entry=entry,
+            )
+        )
+    return _sorted_items(items)
+
+
+def _decode_codex_changelog_content(content: str | bytes, encoding: str) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, bytes):
+        try:
+            return content.decode(encoding)
+        except (LookupError, UnicodeDecodeError) as exc:
+            raise ValueError("Codex changelog content encoding is invalid.") from exc
+    raise ValueError("content must be a string or bytes.")
+
+
+def _codex_changelog_entries(text: str) -> list[dict[str, Any]]:
+    entries: dict[tuple[str, str], dict[str, Any]] = {}
+    current_version: str | None = None
+    current_date: str | None = None
+    current_section = "general"
+
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("#"):
+            version, date = _parse_codex_version_heading(stripped, line_number)
+            if version is not None:
+                current_version = version
+                current_date = date
+                current_section = "general"
+                continue
+            if current_version is not None and stripped.startswith("###"):
+                current_section = _codex_section_name(stripped)
+                continue
+            continue
+        bullet = _codex_bullet_text(stripped)
+        if bullet is not None and current_version is not None:
+            key = (current_version, _codex_section_name(current_section))
+            entry = entries.setdefault(
+                key,
+                {
+                    "version": current_version,
+                    "date": current_date,
+                    "section": _codex_section_name(current_section),
+                    "bullets": set(),
+                },
+            )
+            if entry["date"] is None and current_date is not None:
+                entry["date"] = current_date
+            entry["bullets"].add(bullet)
+
+    return [
+        entry
+        for entry in sorted(
+            entries.values(),
+            key=lambda candidate: (
+                candidate["date"] or "undated",
+                candidate["version"],
+                candidate["section"],
+            ),
+        )
+        if entry["bullets"]
+    ]
+
+
+def _parse_codex_version_heading(
+    stripped_line: str,
+    line_number: int,
+) -> tuple[str | None, str | None]:
+    heading_text = stripped_line.lstrip("#").strip()
+    version_match = _CODEX_CHANGELOG_VERSION_RE.search(heading_text)
+    if version_match is None:
+        return None, None
+    date_match = _CODEX_CHANGELOG_DATE_RE.search(heading_text)
+    date = None
+    if date_match is not None:
+        date = date_match.group("date")
+        _validate_codex_changelog_date(date, line_number)
+    return version_match.group("version"), date
+
+
+def _validate_codex_changelog_date(date: str, line_number: int) -> None:
+    try:
+        from datetime import datetime
+
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError as exc:
+        raise ValueError(
+            f"Codex changelog heading line {line_number} has an invalid date."
+        ) from exc
+
+
+def _codex_section_name(raw_section: str) -> str:
+    section = raw_section.lstrip("#").strip()
+    return normalize_text(section) or "general"
+
+
+def _codex_bullet_text(stripped_line: str) -> str | None:
+    if stripped_line.startswith("- ") or stripped_line.startswith("* "):
+        return normalize_text(stripped_line[2:])
+    return None
+
+
+def _codex_changelog_item(
+    *,
+    source_id: str,
+    provider: str,
+    first_seen: str,
+    source_url: str,
+    entry: dict[str, Any],
+) -> Item:
+    version = _require_non_empty_str(entry["version"], "entry.version")
+    section = _require_non_empty_str(entry["section"], "entry.section")
+    published_at = (
+        f"{entry['date']}T00:00:00Z" if entry.get("date") is not None else "undated"
+    )
+    bullets = sorted(entry["bullets"])
+    summary = " ".join(bullets)
+    natural_key = f"codex_changelog:{version}:{section.lower()}"
+    category = _codex_category_from_section(section)
+    severity = "info"
+    title = f"Codex {version} - {section}"
+    url = normalized_url = f"{source_url}#{_codex_anchor(version, section)}"
+    evidence = (
+        f"Codex changelog version={version}; section={section}; "
+        f"date={entry.get('date') or 'missing'}. Summary: {summary}"
+    )
+    content_hash = content_hash_for_item_fields(
+        source_id=source_id,
+        provider=provider,
+        category=category,
+        severity=severity,
+        title=title,
+        published_at=published_at,
+        url=normalized_url,
+        evidence=evidence,
+    )
+    return Item(
+        item_id=stable_item_id(source_id, natural_key),
+        source_id=source_id,
+        provider=provider,
+        category=category,
+        severity=severity,
+        title=title,
+        published_at=published_at,
+        url=url,
+        evidence=evidence,
+        content_hash=content_hash,
+        first_seen=first_seen,
+        confidence=0.82 if published_at == "undated" else 0.88,
+    )
+
+
+def _codex_category_from_section(section: str) -> str:
+    token = re.sub(r"[^a-z0-9]+", "_", section.lower()).strip("_")
+    if not token:
+        return "codex_changelog"
+    if token == "agents_md":
+        return "codex_agents_md"
+    if token.startswith("codex_"):
+        return token
+    return f"codex_{token}"
+
+
+def _codex_anchor(version: str, section: str) -> str:
+    token = re.sub(r"[^a-z0-9]+", "-", f"{version}-{section}".lower()).strip("-")
+    return token or "codex-changelog"
 
 
 class _SimpleReleaseHTMLParser(HTMLParser):

@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import radar.parsers as parsers_module
 from radar.parsers import (
+    parse_codex_changelog_fixture,
     parse_github_releases_api_fixture,
     parse_json_items_fixture,
     parse_simple_html_release_fixture,
@@ -27,6 +28,12 @@ def _load_json_fixture() -> dict:
 def _load_github_releases_api_fixture() -> list:
     return json.loads(
         (FIXTURES_DIR / "0150_github_releases_api_fixture.json").read_text()
+    )
+
+
+def _load_codex_changelog_fixture() -> str:
+    return (FIXTURES_DIR / "0160_codex_changelog_fixture.md").read_text(
+        encoding="utf-8"
     )
 
 
@@ -119,6 +126,79 @@ class ParserTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "published_at must be an ISO timestamp"):
             parse_github_releases_api_fixture("github_codex_releases", "github", fixture)
 
+    def test_codex_changelog_fixture_produces_items(self):
+        items = parse_codex_changelog_fixture(
+            "openai_codex_changelog",
+            "openai",
+            _load_codex_changelog_fixture(),
+        )
+        self.assertEqual(len(items), 4)
+        self.assertEqual(
+            {item.category for item in items},
+            {"codex_agents_md", "codex_cli", "codex_general", "codex_windows"},
+        )
+        self.assert_items_have_ids_and_hashes(items)
+
+    def test_codex_changelog_parser_merges_duplicate_sections(self):
+        items = parse_codex_changelog_fixture(
+            "openai_codex_changelog",
+            "openai",
+            _load_codex_changelog_fixture(),
+        )
+        cli_item = next(item for item in items if item.category == "codex_cli")
+        self.assertIn("Added deterministic release radar fixture support", cli_item.evidence)
+        self.assertIn("Tightened fetch safety warnings", cli_item.evidence)
+        self.assertEqual(cli_item.published_at, "2026-06-10T00:00:00Z")
+
+    def test_codex_changelog_parser_handles_version_without_date(self):
+        items = parse_codex_changelog_fixture(
+            "openai_codex_changelog",
+            "openai",
+            _load_codex_changelog_fixture(),
+        )
+        undated = next(item for item in items if item.title == "Codex 0.138.0 - General")
+        self.assertEqual(undated.published_at, "undated")
+        self.assertIn("date=missing", undated.evidence)
+
+    def test_codex_changelog_parser_handles_empty_changelog(self):
+        self.assertEqual(
+            parse_codex_changelog_fixture("openai_codex_changelog", "openai", ""),
+            [],
+        )
+
+    def test_codex_changelog_parser_decodes_bytes(self):
+        items = parse_codex_changelog_fixture(
+            "openai_codex_changelog",
+            "openai",
+            _load_codex_changelog_fixture().encode("utf-8"),
+        )
+        self.assertEqual(len(items), 4)
+
+    def test_codex_changelog_parser_rejects_bad_encoding(self):
+        with self.assertRaisesRegex(ValueError, "encoding is invalid"):
+            parse_codex_changelog_fixture(
+                "openai_codex_changelog",
+                "openai",
+                b"\xff",
+            )
+
+    def test_codex_changelog_parser_rejects_too_long_content(self):
+        with self.assertRaisesRegex(ValueError, "too long"):
+            parse_codex_changelog_fixture(
+                "openai_codex_changelog",
+                "openai",
+                "## v0.1.0\n- change",
+                max_chars=5,
+            )
+
+    def test_codex_changelog_parser_rejects_invalid_heading_date(self):
+        with self.assertRaisesRegex(ValueError, "invalid date"):
+            parse_codex_changelog_fixture(
+                "openai_codex_changelog",
+                "openai",
+                "## v0.1.0 - 2026-13-99\n- Broken fixture date.",
+            )
+
     def test_html_fixture_produces_three_items(self):
         items = parse_simple_html_release_fixture(
             "offline-codex-changelog-fixture",
@@ -183,10 +263,16 @@ class ParserTests(unittest.TestCase):
             "github",
             _load_github_releases_api_fixture(),
         )
+        codex_changelog_items = parse_codex_changelog_fixture(
+            "openai_codex_changelog",
+            "openai",
+            _load_codex_changelog_fixture(),
+        )
         self.assert_items_sorted(json_items)
         self.assert_items_sorted(html_items)
         self.assert_items_sorted(text_items)
         self.assert_items_sorted(github_release_api_items)
+        self.assert_items_sorted(codex_changelog_items)
         self.assertEqual(json_items[0].title, "Codex CLI v0.138.0 fixture release")
 
     def test_parsers_do_not_create_files(self):
@@ -203,6 +289,11 @@ class ParserTests(unittest.TestCase):
                     "github-release-source",
                     "github",
                     _load_github_releases_api_fixture(),
+                )
+                parse_codex_changelog_fixture(
+                    "codex-changelog-source",
+                    "openai",
+                    _load_codex_changelog_fixture(),
                 )
                 parse_simple_html_release_fixture("html-source", "provider", html_fixture)
                 parse_simple_text_release_fixture("text-source", "provider", text_fixture)
@@ -226,6 +317,11 @@ class ParserTests(unittest.TestCase):
                 "github-release-source",
                 "github",
                 _load_github_releases_api_fixture(),
+            )
+            parse_codex_changelog_fixture(
+                "codex-changelog-source",
+                "openai",
+                _load_codex_changelog_fixture(),
             )
             parse_simple_html_release_fixture("html-source", "provider", html_fixture)
             parse_simple_text_release_fixture("text-source", "provider", text_fixture)
