@@ -15,11 +15,7 @@
         "category codex_agents_md is direct for ai_software_factory"
       ],
       "suggested_actions": [
-        "review AGENTS.md",
-        "update workflow",
-        "update runner",
-        "update verification gate",
-        "create Codex step"
+        "AGENTS.md loading change detected. Direct action for AI Software Factory: review AGENTS.md. Reason: codex_agents_md matches this project with score 77. Next step: open a compatibility review only if CLI, sandbox, approvals, AGENTS.md, or output formats changed."
       ]
     },
     {
@@ -37,10 +33,7 @@
         "category codex_agents_md is direct for codex_skills"
       ],
       "suggested_actions": [
-        "update skill",
-        "review skill trigger",
-        "update validator",
-        "update catalog"
+        "AGENTS.md loading change detected. Direct action for Codex_Skills: update skill. Reason: codex_agents_md matches this project with score 77. Next step: check as-common-codex-* and validator/catalog behavior only if commands or runtime behavior changed."
       ]
     },
     {
@@ -58,11 +51,7 @@
         "category deprecation is direct for ai_software_factory"
       ],
       "suggested_actions": [
-        "review AGENTS.md",
-        "update workflow",
-        "update runner",
-        "update verification gate",
-        "create Codex step"
+        "API deprecation notice detected. Direct action for AI Software Factory: review AGENTS.md. Reason: deprecation matches this project with score 85. Next step: open a compatibility review only if CLI, sandbox, approvals, AGENTS.md, or output formats changed."
       ]
     },
     {
@@ -80,7 +69,7 @@
         "monitor_only caps impact level from critical to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for deprecation but do not open implementation work yet"
+        "API deprecation notice detected. Monitor-only for AggloDetect: keep the project visible for deprecation, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -98,7 +87,7 @@
         "monitor_only caps impact level from critical to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for deprecation but do not open implementation work yet"
+        "API deprecation notice detected. Monitor-only for Codex_Skills: keep the project visible for deprecation, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -118,7 +107,7 @@
         "monitor_only caps impact level from critical to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for deprecation but do not open implementation work yet"
+        "API deprecation notice detected. Monitor-only for ControlloGestioneExcel / eSolver: keep the project visible for deprecation, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -136,7 +125,7 @@
         "monitor_only caps impact level from critical to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for deprecation but do not open implementation work yet"
+        "API deprecation notice detected. Monitor-only for DiamSign: keep the project visible for deprecation, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -154,7 +143,7 @@
         "monitor_only caps impact level from critical to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for deprecation but do not open implementation work yet"
+        "API deprecation notice detected. Monitor-only for Family Photo Organizer: keep the project visible for deprecation, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -174,7 +163,7 @@
         "monitor_only caps impact level from critical to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for deprecation but do not open implementation work yet"
+        "API deprecation notice detected. Monitor-only for Mansionario_Vivo: keep the project visible for deprecation, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -192,11 +181,7 @@
         "category codex_cli is direct for ai_software_factory"
       ],
       "suggested_actions": [
-        "review AGENTS.md",
-        "update workflow",
-        "update runner",
-        "update verification gate",
-        "create Codex step"
+        "Codex CLI command update detected. Direct action for AI Software Factory: review AGENTS.md. Reason: codex_cli matches this project with score 71. Next step: open a compatibility review only if CLI, sandbox, approvals, AGENTS.md, or output formats changed."
       ]
     },
     {
@@ -214,10 +199,7 @@
         "category codex_cli is direct for codex_skills"
       ],
       "suggested_actions": [
-        "update skill",
-        "review skill trigger",
-        "update validator",
-        "update catalog"
+        "Codex CLI command update detected. Direct action for Codex_Skills: update skill. Reason: codex_cli matches this project with score 71. Next step: check as-common-codex-* and validator/catalog behavior only if commands or runtime behavior changed."
       ]
     },
     {
@@ -235,7 +217,7 @@
         "monitor_only caps impact level from high to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for codex_cli but do not open implementation work yet"
+        "Codex CLI command update detected. Monitor-only for AggloDetect: keep the project visible for codex_cli, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -253,7 +235,7 @@
         "monitor_only caps impact level from high to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for codex_cli but do not open implementation work yet"
+        "Codex CLI command update detected. Monitor-only for ControlloGestioneExcel / eSolver: keep the project visible for codex_cli, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -271,7 +253,7 @@
         "monitor_only caps impact level from high to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for codex_cli but do not open implementation work yet"
+        "Codex CLI command update detected. Monitor-only for DiamSign: keep the project visible for codex_cli, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -289,7 +271,7 @@
         "monitor_only caps impact level from high to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for codex_cli but do not open implementation work yet"
+        "Codex CLI command update detected. Monitor-only for Family Photo Organizer: keep the project visible for codex_cli, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -307,7 +289,7 @@
         "monitor_only caps impact level from high to low"
       ],
       "suggested_actions": [
-        "monitor only: keep the project visible for codex_cli but do not open implementation work yet"
+        "Codex CLI command update detected. Monitor-only for Mansionario_Vivo: keep the project visible for codex_cli, but do not open implementation work without a direct project signal. Next step: re-check during the next manual radar review."
       ]
     },
     {
@@ -325,11 +307,7 @@
         "category codex_skills is direct for ai_software_factory"
       ],
       "suggested_actions": [
-        "review AGENTS.md",
-        "update workflow",
-        "update runner",
-        "update verification gate",
-        "create Codex step"
+        "Codex skills catalog update detected. Direct action for AI Software Factory: review AGENTS.md. Reason: codex_skills matches this project with score 26. Next step: open a compatibility review only if CLI, sandbox, approvals, AGENTS.md, or output formats changed."
       ]
     },
     {
@@ -347,10 +325,7 @@
         "category codex_skills is direct for codex_skills"
       ],
       "suggested_actions": [
-        "update skill",
-        "review skill trigger",
-        "update validator",
-        "update catalog"
+        "Codex skills catalog update detected. Direct action for Codex_Skills: update skill. Reason: codex_skills matches this project with score 26. Next step: check as-common-codex-* and validator/catalog behavior only if commands or runtime behavior changed."
       ]
     },
     {
@@ -368,9 +343,7 @@
         "category data_analysis is direct for controllo_gestione_esolver"
       ],
       "suggested_actions": [
-        "review VBA workflow",
-        "review SQL read-only workflow",
-        "run export regression test"
+        "Data analysis item detected. Direct action for ControlloGestioneExcel / eSolver: review VBA workflow. Reason: data_analysis matches this project with score 70. Next step: run export or read-only data workflow regression tests only when data/Python/VBA behavior changed."
       ]
     },
     {
@@ -389,7 +362,7 @@
         "no_action caps impact level from high to low"
       ],
       "suggested_actions": [
-        "no action: keep no project task until a direct project signal appears"
+        "Data analysis item detected. No project action for AggloDetect: data_analysis does not match a direct project rule. Next step: do not open a task unless a later source confirms project-specific impact."
       ]
     },
     {
@@ -407,7 +380,7 @@
         "no_action caps impact level from high to low"
       ],
       "suggested_actions": [
-        "no action: keep no project task until a direct project signal appears"
+        "Data analysis item detected. No project action for Family Photo Organizer: data_analysis does not match a direct project rule. Next step: do not open a task unless a later source confirms project-specific impact."
       ]
     },
     {
@@ -425,7 +398,7 @@
         "no_action caps impact level from high to low"
       ],
       "suggested_actions": [
-        "no action: keep no project task until a direct project signal appears"
+        "Data analysis item detected. No project action for Mansionario_Vivo: data_analysis does not match a direct project rule. Next step: do not open a task unless a later source confirms project-specific impact."
       ]
     },
     {
@@ -443,9 +416,7 @@
         "category image_vision is direct for agglodetect"
       ],
       "suggested_actions": [
-        "review image pipeline",
-        "run fixture image test",
-        "update analysis report"
+        "Image vision item detected. Direct action for AggloDetect: review image pipeline. Reason: image_vision matches this project with score 71. Next step: run fixture image pipeline tests only when image behavior is confirmed."
       ]
     },
     {
@@ -463,9 +434,7 @@
         "category image_vision is direct for diamsign"
       ],
       "suggested_actions": [
-        "review anti-spoofing pipeline",
-        "test image path handling",
-        "review security assumptions"
+        "Image vision item detected. Direct action for DiamSign: review anti-spoofing pipeline. Reason: image_vision matches this project with score 71. Next step: review mobile/security assumptions only when vision or security changed."
       ]
     },
     {
@@ -483,9 +452,7 @@
         "category image_vision is direct for family_photo_organizer"
       ],
       "suggested_actions": [
-        "review image workflow",
-        "run read-only safety test",
-        "update review checklist"
+        "Image vision item detected. Direct action for Family Photo Organizer: review image workflow. Reason: image_vision matches this project with score 71. Next step: run the read-only safety checklist only if image, local-file, privacy, or permission behavior changed."
       ]
     },
     {
@@ -503,11 +470,7 @@
         "category security is direct for ai_software_factory"
       ],
       "suggested_actions": [
-        "review AGENTS.md",
-        "update workflow",
-        "update runner",
-        "update verification gate",
-        "create Codex step"
+        "Security sandbox item detected. Direct action for AI Software Factory: review AGENTS.md. Reason: security matches this project with score 105. Next step: open a compatibility review only if CLI, sandbox, approvals, AGENTS.md, or output formats changed."
       ]
     },
     {
@@ -525,9 +488,7 @@
         "category security is direct for controllo_gestione_esolver"
       ],
       "suggested_actions": [
-        "review VBA workflow",
-        "review SQL read-only workflow",
-        "run export regression test"
+        "Security sandbox item detected. Direct action for ControlloGestioneExcel / eSolver: review VBA workflow. Reason: security matches this project with score 105. Next step: run export or read-only data workflow regression tests only when data/Python/VBA behavior changed."
       ]
     },
     {
@@ -545,9 +506,7 @@
         "category security is direct for diamsign"
       ],
       "suggested_actions": [
-        "review anti-spoofing pipeline",
-        "test image path handling",
-        "review security assumptions"
+        "Security sandbox item detected. Direct action for DiamSign: review anti-spoofing pipeline. Reason: security matches this project with score 105. Next step: review mobile/security assumptions only when vision or security changed."
       ]
     },
     {
@@ -565,9 +524,7 @@
         "category security is direct for family_photo_organizer"
       ],
       "suggested_actions": [
-        "review image workflow",
-        "run read-only safety test",
-        "update review checklist"
+        "Security sandbox item detected. Direct action for Family Photo Organizer: review image workflow. Reason: security matches this project with score 105. Next step: run the read-only safety checklist only if image, local-file, privacy, or permission behavior changed."
       ]
     },
     {
@@ -585,9 +542,7 @@
         "category security is direct for mansionario_vivo"
       ],
       "suggested_actions": [
-        "review FastAPI workflow",
-        "run regression tests",
-        "update deployment notes"
+        "Security sandbox item detected. Direct action for Mansionario_Vivo: review FastAPI workflow. Reason: security matches this project with score 105. Next step: run FastAPI and deploy-readiness regression tests only when web, security, or local automation behavior changed."
       ]
     }
   ]

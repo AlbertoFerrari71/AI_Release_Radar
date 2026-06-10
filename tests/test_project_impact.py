@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from radar.classification import ItemClassification
 from radar.json_utils import read_json
@@ -8,6 +9,7 @@ from radar.project_impact import (
     ACTION_TYPE_RANK,
     IMPACT_RANK,
     ProjectImpact,
+    _readable_action_item_title,
     impact_item_for_projects,
     impact_scores_for_projects,
     load_project_map,
@@ -183,6 +185,88 @@ class ProjectImpactTests(unittest.TestCase):
             self.assertTrue(impact.reasons)
             self.assertTrue(impact.suggested_actions)
             self.assertIn(impact.action_type, {"direct_action", "monitor_only", "no_action"})
+
+    def test_direct_action_mentions_title_reason_and_next_step(self):
+        impacts = self.impacts_for_item("0070_codex_cli_command")
+        action = {
+            impact.project_key: impact.suggested_actions[0]
+            for impact in impacts
+        }["ai_software_factory"]
+
+        self.assertIn("Codex CLI command update detected.", action)
+        self.assertIn("Direct action for AI Software Factory", action)
+        self.assertIn("Reason: codex_cli matches this project", action)
+        self.assertIn("Next step:", action)
+
+    def test_monitor_only_action_avoids_unrelated_project_action(self):
+        impacts = self.impacts_for_item("0070_codex_cli_command")
+        action = {
+            impact.project_key: impact.suggested_actions[0]
+            for impact in impacts
+        }["agglodetect"]
+
+        self.assertIn("Codex CLI command update detected.", action)
+        self.assertIn("Monitor-only for AggloDetect", action)
+        self.assertIn("do not open implementation work", action)
+        self.assertNotIn("review image pipeline", action)
+
+    def test_no_action_recommendation_is_explicit_for_category_without_direct_rule(self):
+        item = Item(
+            item_id="experimental_item",
+            source_id="offline-0270-impact-test",
+            provider="openai_fixture",
+            category="experimental",
+            severity="info",
+            title="Experimental platform note",
+            published_at="2026-06-10T12:00:00Z",
+            url="https://example.invalid/0270/experimental",
+            evidence="Offline fixture: experimental note.",
+            content_hash="hash-experimental",
+            first_seen="2026-06-10",
+            confidence=0.7,
+        )
+        classification = ItemClassification(
+            item_id=item.item_id,
+            category="experimental",
+            severity="info",
+            matched_keywords=[],
+            reasons=["test classification"],
+        )
+        score = RelevanceScore(
+            item_id=item.item_id,
+            score=35,
+            severity_score=5,
+            keyword_score=0,
+            confidence_score=7,
+            novelty_score=15,
+            category_score=8,
+            reasons=["test score"],
+        )
+        project_map = {
+            "sample_project": {
+                "project_key": "sample_project",
+                "project_name": "Sample Project",
+                "categories": ["experimental"],
+                "keywords": [],
+                "sensitive": False,
+                "suggested_actions": ["update sample project"],
+            }
+        }
+
+        impacts = impact_item_for_projects(item, classification, score, project_map)
+
+        self.assertEqual(len(impacts), 1)
+        self.assertEqual(impacts[0].action_type, "no_action")
+        self.assertEqual(impacts[0].impact_level, "low")
+        self.assertIn("No project action for Sample Project", impacts[0].suggested_actions[0])
+
+    def test_action_title_fallback_is_readable(self):
+        item = SimpleNamespace(title="", item_id="missing_title_item")
+
+        self.assertEqual(
+            _readable_action_item_title(item),
+            "Untitled radar item missing_title_item",
+        )
 
     def test_output_is_sorted_deterministically(self):
         items_by_id = self.load_items_by_id()
