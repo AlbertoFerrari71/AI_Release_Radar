@@ -57,6 +57,7 @@ Se il gate dice `ACTION_REVIEW_REQUIRED`:
 
 - [F] "Codex fatto" significa recuperare il report Codex atteso dal Bridge nel path deterministico dello step. Fonte: `docs/architecture/0370_BRIDGE_RETRIEVAL_CONTRACT.md`.
 - [F] Per questo super-step il report atteso e' `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\codex_command\0410-0500-Report_Codex.md`. Fonte: prompt `0410-0500` salvato nel Bridge.
+- [F] Per lo step scheduler dry-report 0510-0600 il report atteso e' `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\codex_command\0510-0600-Report_Codex.md`. Fonte: prompt `0510-0600` salvato nel Bridge.
 - [PROP] Se il report manca, trattare lo step come incompleto e non creare puntatori sovrascritti.
 
 ## H. Se Una Fonte Restituisce 403
@@ -95,6 +96,15 @@ Non procedere se:
 - [F] Output runtime e' dentro repository. Fonte: `radar/cli.py`.
 - [F] Serve creare task Windows senza prompt L3 esplicito. Fonte: `AGENTS.md`.
 
-## M. Prossimo Step Operativo
+## M. Scheduler Dry-Report Dal 0600
 
-- [PROP] Usare `daily-sim` manuale e Bridge retrieval finche' Alberto non autorizza uno step L3 separato per scheduler dry/report.
+- [F] Dal 0600 il task Windows `AIReleaseRadar_DailyDryReport` esegue `daily-sim` dry-report alle 07:15 ora locale. Fonte: `docs/architecture/0600_SCHEDULER_DRY_REPORT_CLOSURE_PACK.md`.
+- [F] Output e log sono nel Bridge, non nel repository. Fonte: `docs/architecture/0600_SCHEDULER_DRY_REPORT_CLOSURE_PACK.md`.
+- [F] Il primo trigger manuale e' stato verificato con gate `ACTION_REVIEW_REQUIRED` e readiness `HOLD`. Fonte: `docs/architecture/0560_SCHEDULED_RUN_OUTPUT_VERIFICATION.md`.
+- [F] Il flusso review per "Radar fatto" e' `docs/runbooks/0590_OPERATOR_REVIEW_FLOW.md`. Fonte: `docs/runbooks/0590_OPERATOR_REVIEW_FLOW.md`.
+- [INT] Il task e' utile per produrre report giornalieri supervisionati, non per eseguire azioni.
+
+## N. Prossimo Step Operativo
+
+- [PROP] Usare il task dry-report e Bridge retrieval per raccogliere evidenza supervisionata.
+- [PROP] Non procedere oltre dry-report senza nuovo step e consenso esplicito.

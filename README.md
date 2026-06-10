@@ -43,6 +43,15 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [INT] Readiness finale: `GO_WITH_WARNINGS` per futuro scheduler dry/report supervisionato, `HOLD` per scheduler operativo pieno. Fonte: `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
 - [PROP] Prossimo blocco consigliato: `0510) Scheduler Dry-Report L3 Approval` solo se Alberto autorizza esplicitamente uno step L3.
 
+## Scheduler dry-report L3
+
+- [F] Il consenso L3 per scheduler dry-report e' registrato in `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Il consenso autorizza solo scheduler dry-report con output Bridge e human review gate. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Il consenso non autorizza auto-azioni, email/notifiche automatiche, chiamate LLM automatiche, deploy o modifiche ad altri repository. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Il task `AIReleaseRadar_DailyDryReport` e' stato creato con schedule daily 07:15 e action Windows PowerShell verso `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`. Fonte: `docs/architecture/0540_WINDOWS_TASK_CREATION.md`.
+- [F] Il primo trigger manuale riuscito ha prodotto output Bridge e gate report. Fonte: `docs/architecture/0550_FIRST_SCHEDULED_TASK_TRIGGER.md`, `docs/architecture/0560_SCHEDULED_RUN_OUTPUT_VERIFICATION.md`.
+- [INT] Lo scheduler dry-report non cambia la decisione `HOLD` per scheduler operativo pieno. Fonte: `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
+
 ## Comandi principali
 
 ```powershell
@@ -50,6 +59,8 @@ python -m radar.cli --help
 python -m radar.cli real-run --help
 python -m radar.cli real-run --profile manual --output-dir "<directory-fuori-repo>"
 python -m radar.cli daily-sim --output-root "<Bridge-runs-fuori-repo>"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\alberto.ferrari\source\repos\AI_Release_Radar\scripts\scheduler\ai_release_radar_daily_dry_report.ps1"
 ```
 
-- [F] Non esiste scheduler attivo nella V1 manuale. Fonte: `radar/cli.py`, `AGENTS.md`.
+- [F] La V1 manuale `real-run` non crea scheduler. Fonte: `radar/cli.py`, `AGENTS.md`.
+- [F] Dal 0600 esiste un task Windows dry-report controllato, non operativo pieno. Fonte: `docs/architecture/0600_SCHEDULER_DRY_REPORT_CLOSURE_PACK.md`.

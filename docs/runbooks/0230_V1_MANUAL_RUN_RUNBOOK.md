@@ -24,6 +24,12 @@
 - [F] Non crea puntatori `LAST-*` o `latest-*`. Fonte: `radar/real_run.py`, `radar/run_index.py`.
 - [F] Non garantisce parsing utile per tutte le fonti HTML ufficiali. Fonte: `radar/live_snapshot.py`, `docs/architecture/0190_FIRST_REAL_OUTPUT_PARSER_COVERAGE_HARDENING.md`.
 
+Nota post-0600:
+
+- [F] Il comando manuale `real-run` continua a non creare scheduler. Fonte: `radar/cli.py`.
+- [F] Dal 0600 esiste un Windows Scheduled Task dry-report separato, `AIReleaseRadar_DailyDryReport`, che esegue `daily-sim` e scrive solo nel Bridge. Fonte: `docs/architecture/0600_SCHEDULER_DRY_REPORT_CLOSURE_PACK.md`.
+- [F] Lo scheduler operativo pieno resta non autorizzato. Fonte: `docs/decisions/0600_DECISIONS.md`.
+
 ## Comando Consigliato
 
 Eseguire da PowerShell nel repository:
@@ -138,4 +144,4 @@ python -m radar.cli daily-sim --output-root "D:\FG-SAB Dropbox\Alberto Ferrari\C
 - [F] Alcune fonti possono restituire 403 o status inattesi. Fonte: prompt 0200-0230 fornito da Alberto.
 - [F] Il report suggerisce azioni ma non le esegue. Fonte: `radar/project_impact.py`, `radar/real_run.py`.
 - [F] Non ci sono chiamate LLM automatiche. Fonte: `radar/real_run.py`.
-- [F] Non c'e' scheduler attivo. Fonte: `radar/cli.py`, `AGENTS.md`.
+- [F] Non c'e' scheduler operativo pieno attivo; dal 0600 esiste solo il task dry-report controllato `AIReleaseRadar_DailyDryReport`. Fonte: `docs/architecture/0600_SCHEDULER_DRY_REPORT_CLOSURE_PACK.md`.
