@@ -2,7 +2,9 @@ import unittest
 from pathlib import Path
 
 from radar.run_comparison import (
+    compare_multi_day_runs,
     compare_run_summaries,
+    render_multi_day_comparison_markdown,
     render_run_comparison_markdown,
 )
 
@@ -82,6 +84,45 @@ class RunComparisonTests(unittest.TestCase):
         self.assertIn("# AI Release Radar Run Comparison", markdown)
         self.assertIn("| direct_actions | 1 | 2 | 1 |", markdown)
         self.assertTrue(markdown.endswith("\n"))
+
+    def test_compare_multi_day_runs_identifies_repeated_items_and_warnings(self):
+        before = self.summary(
+            source_count=11,
+            parsed_count=1,
+            direct_action_count=2,
+        )
+        before["diff_result"] = {"new_items": ["item-a", "item-b"]}
+        before["source_diagnostics"] = [
+            {
+                "source_id": "openai_api_changelog",
+                "diagnostic_status": "fetched_but_unsupported",
+            }
+        ]
+        after = self.summary(
+            source_count=11,
+            parsed_count=1,
+            direct_action_count=1,
+        )
+        after["diff_result"] = {"new_items": ["item-b", "item-c"]}
+        after["source_diagnostics"] = [
+            {
+                "source_id": "openai_api_changelog",
+                "diagnostic_status": "fetched_but_unsupported",
+            }
+        ]
+
+        comparison = compare_multi_day_runs([before, after])
+        markdown = render_multi_day_comparison_markdown(comparison)
+
+        self.assertEqual(comparison.new_today, ["item-c"])
+        self.assertEqual(comparison.repeated_items, ["item-b"])
+        self.assertEqual(comparison.stale_actions, ["direct_actions_repeated"])
+        self.assertEqual(
+            comparison.persistent_source_warnings,
+            ["openai_api_changelog:fetched_but_unsupported"],
+        )
+        self.assertTrue(comparison.coverage_unchanged)
+        self.assertIn("0690) Multi-Day Run Comparison", markdown)
 
     def test_no_last_or_latest_files_exist(self):
         forbidden = [
