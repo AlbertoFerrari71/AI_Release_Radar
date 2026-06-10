@@ -68,7 +68,8 @@ Ctrl+C
 - [F] Se la home mostra `runs_root_missing`, verificare che il Bridge root esista. Fonte: `radar_web/app.py`, `radar_web/config.py`.
 - [F] Se il trigger manuale restituisce `ALREADY_RUNNING`, attendere la fine del run in corso. Fonte: `radar_web/manual_trigger.py`.
 - [F] Se il trigger manuale restituisce `REFUSED`, controllare che l'output root non sia dentro repo e non contenga `LAST-*` o `latest-*`. Fonte: `radar_web/config.py`, `radar_web/manual_trigger.py`.
+- [F] La guida troubleshooting dettagliata e' `docs/runbooks/0940_WEB_DASHBOARD_TROUBLESHOOTING.md`. Fonte: `docs/runbooks/0940_WEB_DASHBOARD_TROUBLESHOOTING.md`.
 
 ## H. Prossimo Step
 
-- [PROP] `0860) First Local Dashboard Operator Smoke`: avvio locale, verifica ultimo run Bridge, verifica card scheduler e prova del trigger manuale solo con consenso esplicito di Alberto.
+- [PROP] Dopo il polish 0860-0950, usare la dashboard come V1 operator-ready locale e mantenere review manuale per ogni trigger `daily-sim`.
