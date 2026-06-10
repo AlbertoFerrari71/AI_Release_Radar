@@ -119,6 +119,27 @@ class AutomationGateTests(unittest.TestCase):
             self.assertEqual(gate.status, PASS_WITH_WARNINGS)
             self.assertIn("manual_review_required_present: count=1", gate.warnings)
 
+    def test_gate_warns_for_source_403_as_manual_review(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = self.write_run_output(
+                Path(tmp),
+                result_overrides={
+                    "source_count": 2,
+                    "parsed_count": 1,
+                    "manual_review_required_count": 1,
+                },
+                diagnostics=[
+                    self.diagnostic("parsed"),
+                    self.diagnostic("manual_review_required", manual=True, http_status_code=403),
+                ],
+            )
+
+            gate = evaluate_automation_gate(output_dir)
+
+            self.assertEqual(gate.status, PASS_WITH_WARNINGS)
+            self.assertEqual(gate.metrics["manual_review_required_count"], 1)
+            self.assertIn("manual_review_required_present: count=1", gate.warnings)
+
     def test_gate_requires_action_review_when_direct_actions_exist(self):
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = self.write_run_output(
@@ -137,6 +158,105 @@ class AutomationGateTests(unittest.TestCase):
 
             self.assertEqual(gate.status, ACTION_REVIEW_REQUIRED)
             self.assertEqual(gate.failures, [])
+
+    def test_gate_fail_when_run_summary_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = self.write_run_output(
+                Path(tmp),
+                result_overrides={"source_count": 2, "parsed_count": 2},
+                diagnostics=[self.diagnostic("parsed") for _ in range(2)],
+                missing={"run_summary"},
+            )
+
+            gate = evaluate_automation_gate(output_dir)
+
+            self.assertEqual(gate.status, FAIL)
+            self.assertIn("run_summary_missing", gate.failures)
+
+    def test_gate_fail_when_runs_index_is_corrupted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = self.write_run_output(
+                Path(tmp),
+                result_overrides={"source_count": 2, "parsed_count": 2},
+                diagnostics=[self.diagnostic("parsed") for _ in range(2)],
+            )
+            (output_dir / "runs_index.jsonl").write_text("{not-json}\n", encoding="utf-8")
+
+            gate = evaluate_automation_gate(output_dir)
+
+            self.assertEqual(gate.status, FAIL)
+            self.assertTrue(
+                any(failure.startswith("runs_index_invalid") for failure in gate.failures)
+            )
+
+    def test_gate_fail_when_output_dir_is_inside_repo(self):
+        gate = evaluate_automation_gate(REPO_ROOT / "tmp_forbidden_gate_output")
+
+        self.assertEqual(gate.status, FAIL)
+        self.assertIn("output_dir_inside_repository", gate.failures)
+
+    def test_gate_can_pass_with_no_direct_actions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = self.write_run_output(
+                Path(tmp),
+                result_overrides={
+                    "source_count": 2,
+                    "parsed_count": 2,
+                    "direct_action_count": 0,
+                    "monitor_only_action_count": 0,
+                    "no_action_count": 2,
+                },
+                diagnostics=[self.diagnostic("parsed") for _ in range(2)],
+            )
+
+            gate = evaluate_automation_gate(output_dir)
+
+            self.assertEqual(gate.status, PASS)
+            self.assertEqual(gate.metrics["direct_action_count"], 0)
+
+    def test_gate_warns_when_monitor_only_volume_is_high(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = self.write_run_output(
+                Path(tmp),
+                result_overrides={
+                    "source_count": 4,
+                    "parsed_count": 4,
+                    "direct_action_count": 0,
+                    "monitor_only_action_count": 4,
+                    "no_action_count": 0,
+                },
+                diagnostics=[self.diagnostic("parsed") for _ in range(4)],
+            )
+
+            gate = evaluate_automation_gate(output_dir)
+
+            self.assertEqual(gate.status, PASS_WITH_WARNINGS)
+            self.assertIn("monitor_only_volume_high: 4/4", gate.warnings)
+
+    def test_gate_warns_when_manual_review_required_is_high(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = self.write_run_output(
+                Path(tmp),
+                result_overrides={
+                    "source_count": 6,
+                    "parsed_count": 3,
+                    "manual_review_required_count": 3,
+                    "no_action_count": 2,
+                },
+                diagnostics=[
+                    self.diagnostic("parsed"),
+                    self.diagnostic("parsed"),
+                    self.diagnostic("parsed"),
+                    self.diagnostic("manual_review_required", manual=True),
+                    self.diagnostic("manual_review_required", manual=True),
+                    self.diagnostic("manual_review_required", manual=True),
+                ],
+            )
+
+            gate = evaluate_automation_gate(output_dir)
+
+            self.assertEqual(gate.status, PASS_WITH_WARNINGS)
+            self.assertIn("manual_review_required_present: count=3", gate.warnings)
 
     def write_run_output(
         self,
