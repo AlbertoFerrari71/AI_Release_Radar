@@ -222,6 +222,12 @@ class CliTests(unittest.TestCase):
             self.assertTrue(Path(result["daily_sim_summary"]).is_file())
             self.assertTrue(Path(result["automation_gate_json"]).is_file())
             self.assertTrue(Path(result["automation_gate_markdown"]).is_file())
+            self.assertTrue(Path(result["daily_quality_gate_v2_json"]).is_file())
+            self.assertTrue(Path(result["action_triage_json"]).is_file())
+            self.assertTrue(Path(result["prompt_suggestions_markdown"]).is_file())
+            self.assertTrue(Path(result["hag_report_markdown"]).is_file())
+            self.assertTrue(Path(result["dashboard_path"]).is_file())
+            self.assertTrue(Path(result["supervised_action_loop_dry_run"]).is_file())
             self.assertEqual(run_mock.call_args.args[0], str(cli.DEFAULT_SOURCE_REGISTRY_PATH))
             self.assertIn(
                 "0320_0400_daily_sim_20260610_120000",
@@ -273,6 +279,15 @@ class CliTests(unittest.TestCase):
                 summary["scheduler_readiness_recommendation"],
                 "HOLD",
             )
+            self.assertEqual(
+                summary["daily_quality_gate_v2"]["overall_daily_review_status"],
+                "ACTION_REVIEW_REQUIRED",
+            )
+            self.assertEqual(summary["action_triage_status"], "HOLD")
+            self.assertIn("prompt_suggestions_count", summary)
+            self.assertEqual(summary["auto_action_executed"], False)
+            self.assertEqual(summary["other_repository_touched"], False)
+            self.assertEqual(summary["email_sent"], False)
 
     def test_main_daily_sim_with_mock_returns_zero(self):
         with tempfile.TemporaryDirectory() as tmp:
