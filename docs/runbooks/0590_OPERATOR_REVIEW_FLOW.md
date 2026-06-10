@@ -24,6 +24,8 @@ ChatGPT/Codex deve:
    - `0350-Daily_Sim_Gate.md`
    - `0350-Daily_Sim_Summary.json`
    - `0180-Run_Summary.json`
+   - `0710-Daily_Operator_Dashboard.md`, se presente
+   - `0680-Human_Approval_Gate_Report.md`, se presente
 
 Path base:
 
@@ -130,3 +132,11 @@ Aprire uno step Codex successivo quando:
 - [PROP] il task fallisce o non produce output;
 - [PROP] si vuole introdurre retention automatica;
 - [PROP] si vuole valutare il passaggio da dry-report a scheduler operativo, con nuovo consenso esplicito.
+
+## J. V1.5 Supervised Daily Intelligence
+
+- [F] Dal blocco 0610-0750, `daily-sim` produce anche quality gate v2, action triage, prompt suggestions, HAG report, dashboard e supervised action loop dry run. Fonte: `radar/cli.py`.
+- [F] Il contratto aggiornato per `Radar fatto` e' `docs/architecture/0620_RADAR_DONE_BRIDGE_RETRIEVAL_CONTRACT.md`. Fonte: `docs/architecture/0620_RADAR_DONE_BRIDGE_RETRIEVAL_CONTRACT.md`.
+- [F] Il dashboard compatto e' `0710-Daily_Operator_Dashboard.md`. Fonte: `radar/operator_dashboard.py`.
+- [F] I prompt suggestions sono `suggested_only` e non devono essere eseguiti automaticamente. Fonte: `radar/prompt_suggestions.py`.
+- [PROP] Quando HAG segnala `HOLD_FOR_HUMAN_APPROVAL`, scegliere una sola decisione A/B/C/D e aprire uno step separato se serve. Base: `radar/hag_report.py`.

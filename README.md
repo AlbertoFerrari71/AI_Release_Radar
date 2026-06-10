@@ -52,6 +52,14 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Il primo trigger manuale riuscito ha prodotto output Bridge e gate report. Fonte: `docs/architecture/0550_FIRST_SCHEDULED_TASK_TRIGGER.md`, `docs/architecture/0560_SCHEDULED_RUN_OUTPUT_VERIFICATION.md`.
 - [INT] Lo scheduler dry-report non cambia la decisione `HOLD` per scheduler operativo pieno. Fonte: `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
 
+## V1.5 supervised daily intelligence
+
+- [F] V1.5 aggiunge quality gate v2, action triage, prompt suggestions, Human Approval Gate report e dashboard giornaliera al run `daily-sim`. Fonte: `radar/cli.py`.
+- [F] Il contratto `Radar fatto` e' documentato in `docs/architecture/0620_RADAR_DONE_BRIDGE_RETRIEVAL_CONTRACT.md`. Fonte: `docs/architecture/0620_RADAR_DONE_BRIDGE_RETRIEVAL_CONTRACT.md`.
+- [F] I prompt suggestions restano `suggested_only` e non vengono eseguiti automaticamente. Fonte: `radar/prompt_suggestions.py`, `radar/supervised_loop.py`.
+- [F] Cross-project PR, email/notifiche automatiche, chiamate LLM automatiche e auto-azioni restano vietate. Fonte: `docs/reviews/0740_V1_5_GOVERNANCE_AND_RISK_REVIEW.md`.
+- [PROP] Prossimo passo consigliato: `0760) First Real Scheduled Run V1.5 Review`. Fonte: `docs/architecture/0750_SUPERVISED_DAILY_INTELLIGENCE_CLOSURE_PACK.md`.
+
 ## Comandi principali
 
 ```powershell
