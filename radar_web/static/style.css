@@ -291,6 +291,30 @@ th {
   font-size: 24px;
 }
 
+.alert-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 8px;
+}
+
+.alert-panel strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.alert-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.45fr);
@@ -300,6 +324,39 @@ th {
 .stack {
   display: grid;
   gap: 18px;
+}
+
+.collapsible {
+  padding-top: 0;
+}
+
+.collapsible summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  margin: -16px -16px 14px;
+  padding: 14px 16px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary-meta {
+  min-width: 0;
+  color: var(--muted);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .report {
@@ -332,6 +389,14 @@ th {
   overflow-wrap: anywhere;
 }
 
+.path-value {
+  color: var(--text);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .item-list {
   display: grid;
   gap: 10px;
@@ -344,6 +409,26 @@ th {
   padding: 10px;
   background: var(--surface-soft);
   border-radius: 6px;
+}
+
+.emphasis {
+  border-color: #9ec5fe;
+}
+
+.warning-panel {
+  border-color: #fdba74;
+}
+
+.attention-item {
+  border-left: 4px solid var(--review);
+}
+
+.warning-panel .attention-item {
+  border-left-color: var(--hold);
+}
+
+.section-note {
+  margin: 0 0 12px;
 }
 
 .item-title {
@@ -377,6 +462,15 @@ th {
 
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .alert-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .alert-badges {
+    justify-content: flex-start;
   }
 }
 

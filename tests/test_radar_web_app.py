@@ -118,6 +118,60 @@ class RadarWebAppTests(unittest.TestCase):
         self.assertIn("11/06/2026 07:15", html)
         self.assertIn("Yes", html)
 
+    def test_run_detail_highlights_hold_warnings_and_prompt_suggestions(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            run_dir = next((bridge / "runs").iterdir())
+            summary_path = run_dir / "0350-Daily_Sim_Summary.json"
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            summary.update(
+                {
+                    "status": "ACTION_REVIEW_REQUIRED",
+                    "hag_status": "HOLD_FOR_HUMAN_APPROVAL",
+                    "action_triage": {
+                        "status": "HOLD",
+                        "counts": {
+                            "blocked_by_coverage": 1,
+                            "blocked_by_manual_review": 0,
+                        },
+                        "entries": [
+                            {
+                                "triage_class": "blocked_by_coverage",
+                                "title": "Coverage blocked action",
+                                "target_project": "Radar",
+                                "reason": "coverage",
+                                "risk_class": "L1/L2",
+                            }
+                        ],
+                    },
+                    "prompt_suggestions": {
+                        "status": "suggested_only",
+                        "suggestions_count": 1,
+                        "suggestions": [
+                            {
+                                "suggested_step_number": "PS-001",
+                                "title": "Review dashboard",
+                                "status": "suggested_only",
+                                "target_project": "Radar",
+                                "risk_class": "L1/L2",
+                            }
+                        ],
+                    },
+                    "prompt_suggestions_count": 1,
+                }
+            )
+            summary_path.write_text(json.dumps(summary), encoding="utf-8")
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                html = TestClient(create_app(config)).get(f"/runs/{run_dir.name}").text
+
+        self.assertIn("operator attention", html)
+        self.assertIn("HOLD_FOR_HUMAN_APPROVAL", html)
+        self.assertIn("Coverage blocked action", html)
+        self.assertIn("SUGGESTED ONLY - not executed", html)
+        self.assertIn("Review dashboard", html)
+        self.assertIn("<summary>", html)
+
     def test_manual_trigger_uses_only_daily_sim_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             bridge = Path(tmpdir) / "bridge"
