@@ -39,6 +39,7 @@ class CliTests(unittest.TestCase):
             parser.parse_args(["real-run", "--help"])
         self.assertEqual(exc.exception.code, 0)
         self.assertIn("--project-map", stdout.getvalue())
+        self.assertIn("--profile", stdout.getvalue())
 
     def test_main_dry_run_returns_zero(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -128,7 +129,7 @@ class CliTests(unittest.TestCase):
                     "run_summary": str(Path(tmp) / "0180-Run_Summary.json"),
                     "runs_index": str(Path(tmp) / "runs_index.jsonl"),
                 },
-            ):
+            ) as run_mock:
                 with redirect_stdout(stdout):
                     code = cli.main(
                         [
@@ -140,9 +141,53 @@ class CliTests(unittest.TestCase):
                             "--max-sources",
                             "1",
                         ]
-                    )
+            )
             self.assertEqual(code, 0)
             self.assertIn("AI Release Radar real run completed", stdout.getvalue())
+            self.assertEqual(
+                run_mock.call_args.kwargs["max_bytes"],
+                cli.DEFAULT_REAL_RUN_MAX_BYTES,
+            )
+
+    def test_main_real_run_manual_profile_with_mock_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stdout = io.StringIO()
+            with unittest.mock.patch.object(
+                cli,
+                "run_real_run",
+                return_value={
+                    "run_id": "0210-manual",
+                    "status": "CHANGES_FOUND",
+                    "source_count": 11,
+                    "item_count": 10,
+                    "new_count": 10,
+                    "changed_count": 0,
+                    "removed_count": 0,
+                    "project_impact_count": 60,
+                    "report_full": str(Path(tmp) / "0180-Report_Full.md"),
+                    "report_compact": str(Path(tmp) / "0180-Report_Compact.md"),
+                    "run_summary": str(Path(tmp) / "0180-Run_Summary.json"),
+                    "runs_index": str(Path(tmp) / "runs_index.jsonl"),
+                },
+            ) as run_mock:
+                with redirect_stdout(stdout):
+                    code = cli.main(["real-run", "--profile", "manual", "--output-dir", tmp])
+
+            self.assertEqual(code, 0)
+            self.assertIn("AI Release Radar real run completed", stdout.getvalue())
+            self.assertEqual(run_mock.call_args.args[0], str(cli.DEFAULT_SOURCE_REGISTRY_PATH))
+            self.assertEqual(run_mock.call_args.kwargs["timeout_seconds"], 30.0)
+            self.assertEqual(run_mock.call_args.kwargs["max_sources"], 11)
+            self.assertEqual(run_mock.call_args.kwargs["max_bytes"], 2_000_000)
+
+    def test_main_real_run_requires_source_registry_without_profile(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stderr = io.StringIO()
+            with redirect_stderr(stderr):
+                code = cli.main(["real-run", "--output-dir", tmp])
+
+            self.assertNotEqual(code, 0)
+            self.assertIn("--source-registry", stderr.getvalue())
 
     def test_dry_run_creates_full_compact_and_summary(self):
         with tempfile.TemporaryDirectory() as tmp:

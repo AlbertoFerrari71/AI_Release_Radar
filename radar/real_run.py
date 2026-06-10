@@ -183,7 +183,19 @@ def run_real_radar_report(
         report_full=str(full_report_path),
         report_compact=str(compact_report_path),
         snapshot_dir=str(target_dir),
-        notes="First manual real radar report. Runtime outputs are outside repository.",
+        notes=(
+            "Manual real radar report. "
+            f"source_count={live_result.source_count}; "
+            f"parsed_count={live_result.parsed_count}; "
+            f"item_count={len(current_snapshot.items)}. "
+            "Runtime outputs are outside repository."
+        ),
+        source_count=live_result.source_count,
+        parsed_count=live_result.parsed_count,
+        item_count=len(current_snapshot.items),
+        failed_count=live_result.failed_count,
+        skipped_count=live_result.skipped_count,
+        timestamp=timestamp,
     )
     write_json(run_index_entry_path, run_index_entry)
     append_run_index_entry(runs_index_path, run_index_entry)
@@ -321,11 +333,17 @@ def _render_real_full_report(
             item = report_input.items_by_id[item_id]
             classification = report_input.classifications_by_id[item_id]
             score = report_input.scores_by_id.get(item_id)
+            title = _readable_item_title(item)
             lines.extend(
                 [
-                    f"- [F] `{item_id}` - {item.title}",
+                    f"- [F] {title}",
+                    f"  - [F] item_id: `{item_id}`.",
                     f"  - [F] novelty: {_novelty(report_input, item_id)}.",
-                    f"  - [F] source: {item.source_id}.",
+                    f"  - [F] source: {_source_label(item.source_id)}.",
+                    f"  - [F] provider: {item.provider}.",
+                    f"  - [F] source_id: {item.source_id}.",
+                    f"  - [F] published_at: {item.published_at}.",
+                    f"  - [F] title/version: {title}.",
                     f"  - [F] category: {classification.category}.",
                     f"  - [F] severity: {classification.severity}.",
                     f"  - [F] confidence: {item.confidence:.2f}.",
@@ -339,11 +357,16 @@ def _render_real_full_report(
     lines.extend(["", "## 4. Project Impacts", ""])
     if report_input.project_impacts:
         for impact in report_input.project_impacts:
+            item_ref = _readable_item_reference(report_input, impact.item_id)
+            score = report_input.scores_by_id.get(impact.item_id)
             lines.extend(
                 [
-                    f"- [F] {impact.project_name}: {impact.impact_level} for `{impact.item_id}`.",
-                    f"  - [INT] reasons: {'; '.join(impact.reasons)}.",
-                    f"  - [PROP] actions: {'; '.join(impact.suggested_actions)}.",
+                    f"- [F] {impact.project_name}: {impact.impact_level} impact for {item_ref}.",
+                    f"  - [F] project_key: {impact.project_key}.",
+                    f"  - [F] item_id: `{impact.item_id}`.",
+                    f"  - [F] score: {score.score if score is not None else 'n/a'}.",
+                    f"  - [INT] impact_reason: {'; '.join(impact.reasons)}.",
+                    f"  - [PROP] recommended_actions: {'; '.join(impact.suggested_actions)}.",
                 ]
             )
     else:
@@ -360,7 +383,7 @@ def _render_real_full_report(
             "",
             "## 6. Recommended Next Codex Step",
             "",
-            "- [PROP] 0190) Review first real radar output and decide parser/source coverage hardening.",
+            "- [PROP] 0240) Decide the next manual V1 hardening step before any scheduler work.",
         ]
     )
     return _join_lines(lines)
@@ -385,18 +408,44 @@ def _render_real_compact_report(
             f"{len(report_input.diff_result.removed_items)} removed."
         ),
         "",
-        "## Top Actions",
+        "## Top Items",
         "",
     ]
+    changed_ids = _changed_item_ids_by_score(report_input)[:5]
+    if changed_ids:
+        for item_id in changed_ids:
+            item = report_input.items_by_id[item_id]
+            classification = report_input.classifications_by_id[item_id]
+            score = report_input.scores_by_id.get(item_id)
+            lines.append(
+                f"- [F] {_readable_item_title(item)}; "
+                f"source {_source_label(item.source_id)}; provider {item.provider}; "
+                f"published_at {item.published_at}; category {classification.category}; "
+                f"severity {classification.severity}; score {score.score if score is not None else 'n/a'}; "
+                f"url {item.url}"
+            )
+    else:
+        lines.append("- [F] No new, changed or removed item.")
+    lines.extend(
+        [
+            "",
+            "## Top Actions",
+            "",
+        ]
+    )
     if report_input.project_impacts:
         for impact in report_input.project_impacts[:5]:
+            item_ref = _readable_item_reference(report_input, impact.item_id)
+            score = report_input.scores_by_id.get(impact.item_id)
+            reason = impact.reasons[0] if impact.reasons else "impact rules matched"
             lines.append(
                 f"- [PROP] {impact.project_name}: {impact.suggested_actions[0]} "
-                f"for `{impact.item_id}` ({impact.impact_level})."
+                f"for {item_ref} ({impact.impact_level}; "
+                f"score {score.score if score is not None else 'n/a'}; reason: {reason})."
             )
     else:
         lines.append("- [PROP] No project action before manual review.")
-    lines.append("- [PROP] 0190) Review first real radar output and source coverage.")
+    lines.append("- [PROP] 0240) Decide the next manual V1 hardening step before any scheduler work.")
     return _join_lines(lines)
 
 
@@ -406,9 +455,11 @@ def _render_source_diagnostics(source_diagnostics: list[dict[str, Any]]) -> list
     lines: list[str] = []
     for source in source_diagnostics:
         error = source.get("error")
+        source_id = str(source.get("source_id"))
         lines.append(
             "- [F] "
-            f"`{source.get('source_id')}`; "
+            f"{_source_label(source_id)} (`{source_id}`); "
+            f"provider={source.get('provider')}; "
             f"type={source.get('source_type')}; "
             f"fetch_status={source.get('fetch_status')}; "
             f"http_status_code={source.get('http_status_code')}; "
@@ -419,11 +470,60 @@ def _render_source_diagnostics(source_diagnostics: list[dict[str, Any]]) -> list
     return lines
 
 
+def _readable_item_title(item: object) -> str:
+    title = getattr(item, "title", "")
+    if isinstance(title, str) and title.strip():
+        return title.strip()
+    source_id = getattr(item, "source_id", "unknown source")
+    return f"Untitled item from {source_id}"
+
+
+def _readable_item_reference(
+    report_input: ReportInput,
+    item_id: str,
+    *,
+    include_url: bool = True,
+) -> str:
+    item = report_input.items_by_id.get(item_id)
+    if item is None:
+        return f"`{item_id}`"
+    title = _readable_item_title(item)
+    if include_url and item.url.strip():
+        return f"{title} ({item.url})"
+    return title
+
+
+def _source_label(source_id: str) -> str:
+    replacements = {
+        "api": "API",
+        "cli": "CLI",
+        "codex": "Codex",
+        "github": "GitHub",
+        "openai": "OpenAI",
+    }
+    words = str(source_id).replace("-", "_").split("_")
+    return " ".join(replacements.get(word.lower(), word.capitalize()) for word in words if word)
+
+
 def _changed_item_ids(report_input: ReportInput) -> list[str]:
     return sorted(
         set(report_input.diff_result.new_items)
         | set(report_input.diff_result.changed_items)
         | set(report_input.diff_result.removed_items)
+    )
+
+
+def _changed_item_ids_by_score(report_input: ReportInput) -> list[str]:
+    return sorted(
+        _changed_item_ids(report_input),
+        key=lambda item_id: (
+            -(
+                report_input.scores_by_id[item_id].score
+                if item_id in report_input.scores_by_id
+                else -1
+            ),
+            item_id,
+        ),
     )
 
 

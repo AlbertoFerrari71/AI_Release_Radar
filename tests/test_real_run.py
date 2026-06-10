@@ -1,9 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from radar.json_utils import read_json, write_json
-from radar.real_run import run_real_radar_report
+from radar.real_run import _readable_item_title, run_real_radar_report
 from radar.source_fetcher import FetchedSourceContent
 
 
@@ -46,12 +47,40 @@ class RealRunTests(unittest.TestCase):
             self.assertNotIn("offline fixture only", full_report)
             self.assertIn("## 2.1 Source Parser Diagnostics", full_report)
             self.assertIn("github_api_openai_codex_releases", full_report)
+            self.assertIn(
+                "GitHub API OpenAI Codex Releases (`github_api_openai_codex_releases`); "
+                "provider=github",
+                full_report,
+            )
+            self.assertIn("title/version: Codex CLI v0.140.0", full_report)
+            self.assertIn("provider: github", full_report)
+            self.assertIn("published_at: 2026-06-10T08:00:00Z", full_report)
+            self.assertIn(
+                "url: https://github.com/openai/codex/releases/tag/v0.140.0",
+                full_report,
+            )
+            compact_report = Path(result.report_compact).read_text(encoding="utf-8")
+            self.assertIn("## Top Items", compact_report)
+            self.assertIn("Codex CLI v0.140.0", compact_report)
+            self.assertIn(
+                "https://github.com/openai/codex/releases/tag/v0.140.0",
+                compact_report,
+            )
+            self.assertIn("reason:", compact_report)
+            self.assertNotIn("for `item_", compact_report)
             summary = read_json(result.run_summary)
             self.assertEqual(summary["result"]["run_id"], "0180-test-run")
             self.assertEqual(summary["result"]["parsed_count"], 2)
             self.assertEqual(summary["report_status"], result.status)
             self.assertEqual(summary["source_diagnostics"], summary["live_snapshot"]["source_diagnostics"])
             self.assertEqual(summary["source_diagnostics"], result.source_diagnostics)
+            run_index_entry = read_json(result.run_index_entry)
+            self.assertEqual(run_index_entry["source_count"], 2)
+            self.assertEqual(run_index_entry["parsed_count"], 2)
+            self.assertEqual(run_index_entry["failed_count"], 0)
+            self.assertEqual(run_index_entry["skipped_count"], 0)
+            self.assertEqual(run_index_entry["item_count"], result.item_count)
+            self.assertEqual(run_index_entry["timestamp"], "2026-06-10T11:00:00Z")
 
     def test_real_run_rejects_output_inside_repo(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -156,6 +185,14 @@ class RealRunTests(unittest.TestCase):
                 "parser_skipped_unsupported_source",
             )
             self.assertEqual(diagnostic["item_count"], 0)
+
+    def test_readable_title_falls_back_when_item_has_no_title(self):
+        item = SimpleNamespace(title="", source_id="github_api_openai_codex_releases")
+
+        self.assertEqual(
+            _readable_item_title(item),
+            "Untitled item from github_api_openai_codex_releases",
+        )
 
     def fake_fetcher(self, sources, timeout_seconds=None, max_sources=None, max_bytes=65536):
         github_body = (FIXTURES_DIR / "0150_github_releases_api_fixture.json").read_text(

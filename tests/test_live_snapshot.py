@@ -54,6 +54,13 @@ class LiveSnapshotTests(unittest.TestCase):
             self.assertEqual(len((output_dir / RUNS_INDEX_FILENAME).read_text().splitlines()), 1)
             summary = read_json(result.run_summary_path)
             self.assertEqual(summary["sources"], summary["run"]["source_diagnostics"])
+            run_index_entry = read_json(result.run_index_entry_path)
+            self.assertEqual(run_index_entry["source_count"], 2)
+            self.assertEqual(run_index_entry["parsed_count"], 2)
+            self.assertEqual(run_index_entry["failed_count"], 0)
+            self.assertEqual(run_index_entry["skipped_count"], 0)
+            self.assertGreater(run_index_entry["item_count"], 0)
+            self.assertEqual(run_index_entry["timestamp"], "2026-06-10T10:00:00Z")
             github_diagnostic = next(
                 source
                 for source in summary["sources"]

@@ -55,6 +55,29 @@ def read_run_index(index_path: str | Path) -> list[RunIndexEntry]:
     return entries
 
 
+def validate_run_index(index_path: str | Path) -> list[str]:
+    """Return validation issues for a run index without rewriting it."""
+    target = Path(index_path)
+    _reject_forbidden_index_name(target)
+    if not target.exists():
+        return []
+
+    issues: list[str] = []
+    try:
+        with target.open("r", encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                try:
+                    RunIndexEntry.from_dict(json.loads(stripped))
+                except (json.JSONDecodeError, ValueError, TypeError) as exc:
+                    issues.append(f"line {line_number}: {exc}")
+    except OSError as exc:
+        raise OSError(f"Unable to validate run index from {target}: {exc}") from exc
+    return issues
+
+
 def get_last_run_index_entry(index_path: str | Path) -> RunIndexEntry | None:
     """Return the last valid run index entry, or None for a missing/empty file."""
     target = Path(index_path)

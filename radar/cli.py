@@ -54,6 +54,10 @@ LIVE_SNAPSHOT_NEXT_STEP_RECOMMENDATION = (
 REAL_RUN_NEXT_STEP_RECOMMENDATION = (
     "0190) Review first real radar output and source coverage"
 )
+REAL_RUN_MANUAL_PROFILE = "manual"
+REAL_RUN_MANUAL_TIMEOUT_SECONDS = 30.0
+REAL_RUN_MANUAL_MAX_SOURCES = 11
+REAL_RUN_MANUAL_MAX_BYTES = 2_000_000
 
 
 def build_dry_run_report_input() -> ReportInput:
@@ -208,6 +212,36 @@ def run_real_run(
         max_sources=max_sources,
         max_bytes=max_bytes,
     ).to_dict()
+
+
+def resolve_real_run_config(
+    *,
+    source_registry: str | None,
+    profile: str | None,
+    timeout_seconds: float | None,
+    max_sources: int | None,
+    max_bytes: int | None,
+) -> tuple[str, float | None, int | None, int]:
+    """Resolve real-run CLI defaults without hiding the output directory."""
+    if profile is None:
+        if source_registry is None:
+            raise ValueError(
+                "real-run requires --source-registry unless --profile manual is used."
+            )
+        return (
+            source_registry,
+            timeout_seconds,
+            max_sources,
+            max_bytes if max_bytes is not None else DEFAULT_REAL_RUN_MAX_BYTES,
+        )
+    if profile != REAL_RUN_MANUAL_PROFILE:
+        raise ValueError(f"unsupported real-run profile: {profile}")
+    return (
+        source_registry if source_registry is not None else str(DEFAULT_SOURCE_REGISTRY_PATH),
+        timeout_seconds if timeout_seconds is not None else REAL_RUN_MANUAL_TIMEOUT_SECONDS,
+        max_sources if max_sources is not None else REAL_RUN_MANUAL_MAX_SOURCES,
+        max_bytes if max_bytes is not None else REAL_RUN_MANUAL_MAX_BYTES,
+    )
 
 
 def build_summary(
@@ -455,9 +489,22 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Run explicit live snapshot plus first manual radar report generation.",
     )
     real_run.add_argument(
+        "--profile",
+        choices=[REAL_RUN_MANUAL_PROFILE],
+        default=None,
+        help=(
+            "Optional safe manual profile. Keeps --output-dir explicit and uses "
+            "the default source registry, max 11 sources, 30 second timeout and "
+            "2,000,000 max bytes when those options are omitted."
+        ),
+    )
+    real_run.add_argument(
         "--source-registry",
-        required=True,
-        help=f"Source registry JSON path. Default project registry: {DEFAULT_SOURCE_REGISTRY_PATH}",
+        default=None,
+        help=(
+            "Source registry JSON path. Required unless --profile manual is used. "
+            f"Default project registry: {DEFAULT_SOURCE_REGISTRY_PATH}"
+        ),
     )
     real_run.add_argument(
         "--output-dir",
@@ -489,7 +536,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     real_run.add_argument(
         "--max-bytes",
         type=int,
-        default=DEFAULT_REAL_RUN_MAX_BYTES,
+        default=None,
         help="Global maximum response body bytes per source; registry max_bytes overrides when set.",
     )
     return parser
@@ -543,14 +590,29 @@ def main(argv: list[str] | None = None) -> int:
             sys.stdout.write(build_live_snapshot_summary(result))
             return 0
         if args.command == "real-run":
+            try:
+                (
+                    source_registry,
+                    timeout_seconds,
+                    max_sources,
+                    max_bytes,
+                ) = resolve_real_run_config(
+                    source_registry=args.source_registry,
+                    profile=args.profile,
+                    timeout_seconds=args.timeout_seconds,
+                    max_sources=args.max_sources,
+                    max_bytes=args.max_bytes,
+                )
+            except ValueError as exc:
+                parser.error(str(exc))
             result = run_real_run(
-                args.source_registry,
+                source_registry,
                 args.output_dir,
                 project_map=args.project_map,
                 previous_snapshot_dir=args.previous_snapshot_dir,
-                timeout_seconds=args.timeout_seconds,
-                max_sources=args.max_sources,
-                max_bytes=args.max_bytes,
+                timeout_seconds=timeout_seconds,
+                max_sources=max_sources,
+                max_bytes=max_bytes,
             )
             sys.stdout.write(build_real_run_summary(result))
             return 0

@@ -75,8 +75,30 @@ class ModelTests(unittest.TestCase):
             report_compact=None,
             snapshot_dir="examples/snapshots",
             notes="Artificial offline test entry.",
+            source_count=2,
+            parsed_count=1,
+            item_count=3,
+            failed_count=0,
+            skipped_count=1,
+            timestamp="2026-06-09T10:00:02Z",
         )
         self.assertEqual(RunIndexEntry.from_dict(entry.to_dict()), entry)
+
+    def test_run_index_entry_rejects_negative_counts(self):
+        with self.assertRaises(ValueError):
+            RunIndexEntry(
+                run_id="2026-06-09_100000_0030",
+                step="0030",
+                status="failed",
+                started_at="2026-06-09T10:00:00Z",
+                finished_at="2026-06-09T10:00:02Z",
+                duration_seconds=2,
+                report_full=None,
+                report_compact=None,
+                snapshot_dir="examples/snapshots",
+                notes="Artificial offline test entry.",
+                source_count=-1,
+            )
 
 
 if __name__ == "__main__":
