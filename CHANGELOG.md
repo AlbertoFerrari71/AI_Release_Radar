@@ -1,5 +1,17 @@
 # Changelog
 
+## 0860-0950) Local Web Dashboard Operator-Ready V1
+
+- [F] Aggiunto smoke operator offline per home, health, status, runs, scheduler, dettaglio run e API detail. Fonte: `tests/test_radar_web_app.py`.
+- [F] Migliorata la UI home con griglia piu' ampia, badge leggibili, wrapping controllato, date human-readable e booleani Yes/No. Fonte: `radar_web/templates/index.html`, `radar_web/static/style.css`, `radar_web/app.py`.
+- [F] Migliorata la pagina dettaglio con sezioni collassabili, alert per warning/HOLD/blocked actions, path lunghi leggibili e prompt suggestions evidenti. Fonte: `radar_web/templates/run_detail.html`, `radar_web/static/style.css`.
+- [F] Rafforzato il trigger manuale `daily-sim` con JSON safety esplicito, lock, timeout, automation gate, HAG status e conferme no scheduler/email/LLM/auto-action/other repo. Fonte: `radar_web/manual_trigger.py`, `tests/test_radar_web_app.py`.
+- [F] Aggiunto data completeness gate per Bridge/runs root, runs_index e artifact mancanti. Fonte: `radar_web/app.py`, `radar_web/run_locator.py`, `radar_web/models.py`, `tests/test_radar_web_run_locator.py`.
+- [F] Migliorata la scheduler card con interpretation `OK` per `Ready` + `LastTaskResult=0`. Fonte: `radar_web/scheduler_status.py`, `tests/test_radar_web_scheduler_status.py`.
+- [F] Resi piu' evidenti HAG e prompt suggestions `SUGGESTED ONLY - not executed`. Fonte: `radar_web/templates/index.html`, `radar_web/templates/run_detail.html`, `radar_web/run_locator.py`.
+- [F] Aggiunti runbook screenshot pack, troubleshooting e closure pack operator-ready V1. Fonte: `docs/runbooks/0930_OPERATOR_SCREENSHOT_PACK.md`, `docs/runbooks/0940_WEB_DASHBOARD_TROUBLESHOOTING.md`, `docs/architecture/0950_DASHBOARD_V1_OPERATOR_READY_CLOSURE_PACK.md`, `docs/decisions/0950_DECISIONS.md`.
+- [F] Nessuna nuova dipendenza, nessun nuovo scheduler, nessuna email/notifica automatica, nessuna chiamata LLM automatica, nessuna auto-azione, nessun altro repository e nessun output runtime versionato introdotti. Fonte: `pyproject.toml`, `radar_web/`, `AGENTS.md`.
+
 ## 0760-0850) Local Web Dashboard
 
 - [F] Aggiunta architettura dashboard locale e closure pack 0850. Fonte: `docs/architecture/0760_WEB_DASHBOARD_ARCHITECTURE.md`, `docs/architecture/0850_WEB_DASHBOARD_CLOSURE_PACK.md`.

@@ -64,9 +64,12 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 
 - [F] La dashboard locale si avvia con `python -m radar_web.app --host 127.0.0.1 --port 8787`. Fonte: `radar_web/app.py`, `docs/runbooks/0850_WEB_DASHBOARD_RUNBOOK.md`.
 - [F] La dashboard legge i run Bridge da `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\runs`. Fonte: `radar_web/config.py`.
-- [F] La home mostra ultimo run, gate, source coverage, HAG, scheduler status e run recenti. Fonte: `radar_web/templates/index.html`.
-- [F] La pagina dettaglio mostra report compact, gate, HAG, dashboard operatore, prompt suggestions e path locali come testo. Fonte: `radar_web/templates/run_detail.html`.
-- [F] Il bottone manuale esegue solo `python -m radar.cli daily-sim --output-root "<Bridge runs root>"`, con lock e timeout. Fonte: `radar_web/manual_trigger.py`.
+- [F] La home mostra ultimo run, gate, source coverage, data completeness, HAG, prompt suggestions, scheduler status e run recenti. Fonte: `radar_web/templates/index.html`, `radar_web/app.py`.
+- [F] La pagina dettaglio mostra report compact, gate, HAG, dashboard operatore, diagnostics, direct actions, blocked actions, monitor-only, manual review queue, prompt suggestions e path locali come testo. Fonte: `radar_web/templates/run_detail.html`.
+- [F] Il bottone manuale esegue solo `python -m radar.cli daily-sim --output-root "<Bridge runs root>"`, con lock, timeout e JSON safety esplicito. Fonte: `radar_web/manual_trigger.py`.
+- [F] La scheduler card interpreta `Ready` + `LastTaskResult=0` come `OK`. Fonte: `radar_web/scheduler_status.py`.
+- [F] Il runbook troubleshooting V1 e' `docs/runbooks/0940_WEB_DASHBOARD_TROUBLESHOOTING.md`. Fonte: `docs/runbooks/0940_WEB_DASHBOARD_TROUBLESHOOTING.md`.
+- [F] Il closure pack operator-ready V1 e' `docs/architecture/0950_DASHBOARD_V1_OPERATOR_READY_CLOSURE_PACK.md`. Fonte: `docs/architecture/0950_DASHBOARD_V1_OPERATOR_READY_CLOSURE_PACK.md`.
 - [F] Nessuna email, nessun LLM, nessuna auto-azione, nessun nuovo scheduler e nessun altro repository vengono toccati dalla dashboard. Fonte: `radar_web/manual_trigger.py`, `radar_web/scheduler_status.py`.
 
 ## Comandi principali
