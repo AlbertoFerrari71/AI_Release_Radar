@@ -4,7 +4,12 @@ import unittest
 from pathlib import Path
 
 from radar_web.bridge_reader import load_json, load_text
-from radar_web.run_locator import find_latest_run, list_recent_runs, load_run_detail
+from radar_web.run_locator import (
+    find_latest_run,
+    inspect_runs_root,
+    list_recent_runs,
+    load_run_detail,
+)
 
 
 class RadarWebRunLocatorTests(unittest.TestCase):
@@ -116,6 +121,18 @@ class RadarWebRunLocatorTests(unittest.TestCase):
             self.assertEqual(len(runs), 1)
             self.assertIn("missing_json:0350-Daily_Sim_Summary.json", runs[0].warnings)
             self.assertIn("missing_json:0180-Run_Summary.json", runs[0].warnings)
+
+    def test_inspect_runs_root_reports_missing_and_invalid_index(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            runs_root = Path(tmpdir) / "runs"
+
+            self.assertEqual(inspect_runs_root(runs_root), ["runs_root_missing"])
+
+            runs_root.mkdir()
+            (runs_root / "runs_index.jsonl").write_text("{not-json}\n", encoding="utf-8")
+            warnings = inspect_runs_root(runs_root)
+
+            self.assertTrue(any(warning.startswith("runs_index:line 1:") for warning in warnings))
 
     def test_load_run_detail_extracts_hag_prompt_and_review_data(self):
         with tempfile.TemporaryDirectory() as tmpdir:

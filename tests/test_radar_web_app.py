@@ -118,6 +118,25 @@ class RadarWebAppTests(unittest.TestCase):
         self.assertIn("11/06/2026 07:15", html)
         self.assertIn("Yes", html)
 
+    def test_status_and_home_report_data_completeness_warnings(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = Path(tmpdir) / "bridge"
+            run_dir = bridge / "runs" / "0320_0400_daily_sim_20260610_090000"
+            run_dir.mkdir(parents=True)
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+                status = client.get("/api/status").json()
+                html = client.get("/").text
+
+        self.assertEqual(status["data_completeness_status"], "PASS_WITH_WARNINGS")
+        self.assertIn(
+            "missing_json:0350-Daily_Sim_Summary.json",
+            status["data_completeness_warnings"],
+        )
+        self.assertIn("Data Completeness Warnings", html)
+        self.assertIn("missing_json:0180-Run_Summary.json", html)
+
     def test_run_detail_highlights_hold_warnings_and_prompt_suggestions(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             bridge = self.create_bridge(Path(tmpdir))

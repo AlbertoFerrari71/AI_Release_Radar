@@ -15,6 +15,8 @@ class DashboardStatus:
     latest_run: dict[str, Any] | None
     recent_run_count: int
     scheduler: dict[str, Any]
+    data_completeness_status: str = "NO_DATA"
+    data_completeness_warnings: tuple[str, ...] = field(default_factory=tuple)
     read_only_default: bool = True
     manual_trigger_enabled: bool = False
     warnings: tuple[str, ...] = field(default_factory=tuple)
@@ -27,6 +29,8 @@ class DashboardStatus:
             "latest_run": self.latest_run,
             "recent_run_count": self.recent_run_count,
             "scheduler": self.scheduler,
+            "data_completeness_status": self.data_completeness_status,
+            "data_completeness_warnings": list(self.data_completeness_warnings),
             "read_only_default": self.read_only_default,
             "manual_trigger_enabled": self.manual_trigger_enabled,
             "warnings": list(self.warnings),

@@ -82,6 +82,29 @@ def find_latest_run(runs_root: str | Path) -> RunCandidate | None:
     return runs[0] if runs else None
 
 
+def inspect_runs_root(runs_root: str | Path) -> list[str]:
+    """Return read-only data completeness warnings for the runs root."""
+    root = Path(runs_root)
+    warnings: list[str] = []
+    if _has_forbidden_path_part(root):
+        warnings.append(f"forbidden_path_name:{root.name}")
+        return warnings
+    if not root.exists():
+        warnings.append("runs_root_missing")
+        return warnings
+    if not root.is_dir():
+        warnings.append("runs_root_not_directory")
+        return warnings
+    index_path = root / "runs_index.jsonl"
+    if index_path.exists() and not _has_forbidden_path_part(index_path):
+        try:
+            warnings.extend(f"runs_index:{issue}" for issue in validate_run_index(index_path))
+            get_last_run_index_entry(index_path)
+        except (OSError, ValueError) as exc:
+            warnings.append(f"runs_index_unreadable:{exc}")
+    return warnings
+
+
 def list_recent_runs(runs_root: str | Path, limit: int = 20) -> list[RunCandidate]:
     """List recent daily-sim Bridge runs, preferring indexed/dated run directories."""
     if limit < 1:

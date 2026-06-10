@@ -51,6 +51,10 @@
           <span class="label">source coverage</span>
           <strong class="badge {{ latest.source_coverage_status | status_class if latest else 'status-no-data' }}">{{ latest.source_coverage_status if latest else 'NO_DATA' }}</strong>
         </article>
+        <article class="metric">
+          <span class="label">data completeness</span>
+          <strong class="badge {{ status.data_completeness_status | status_class }}">{{ status.data_completeness_status }}</strong>
+        </article>
       </section>
 
       <section class="split">
@@ -181,9 +185,20 @@
 
       {% if status.warnings %}
       <section class="panel">
-        <h2>Warnings</h2>
+        <h2>Runtime Warnings</h2>
         <ul class="warning-list">
           {% for warning in status.warnings %}
+          <li>{{ warning }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      {% if status.data_completeness_warnings %}
+      <section class="panel warning-panel">
+        <h2>Data Completeness Warnings</h2>
+        <ul class="warning-list">
+          {% for warning in status.data_completeness_warnings %}
           <li>{{ warning }}</li>
           {% endfor %}
         </ul>

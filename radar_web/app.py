@@ -16,7 +16,7 @@ from fastapi.templating import Jinja2Templates
 from radar_web.config import DashboardConfig, default_config
 from radar_web.manual_trigger import DailySimTrigger
 from radar_web.models import ApiMessage, DashboardStatus
-from radar_web.run_locator import find_latest_run, list_recent_runs, load_run_detail
+from radar_web.run_locator import inspect_runs_root, list_recent_runs, load_run_detail
 from radar_web.scheduler_status import read_scheduler_status
 
 
@@ -160,14 +160,26 @@ def build_status(
     recent_runs = runs if runs is not None else list_recent_runs(config.runs_root, limit=20)
     latest = recent_runs[0].to_dict() if recent_runs else None
     warnings = list(config.validate_output_root())
+    if not config.bridge_root.exists():
+        warnings.append("bridge_root_missing")
     if not config.runs_root.exists():
         warnings.append("runs_root_missing")
+    warnings.extend(inspect_runs_root(config.runs_root))
+    data_warnings = list(warnings)
+    if isinstance(latest, dict):
+        data_warnings.extend(str(warning) for warning in latest.get("warnings", []))
+    data_warnings = sorted(set(data_warnings))
     return DashboardStatus(
         status=latest.get("status", "NO_DATA") if isinstance(latest, dict) else "NO_DATA",
         bridge_runs_root=str(config.runs_root),
         latest_run=latest,
         recent_run_count=len(recent_runs),
         scheduler=read_scheduler_status_placeholder(config),
+        data_completeness_status=_data_completeness_status(
+            has_runs=bool(recent_runs),
+            warnings=data_warnings,
+        ),
+        data_completeness_warnings=tuple(data_warnings),
         manual_trigger_enabled=True,
         warnings=tuple(sorted(set(warnings))),
     )
@@ -176,6 +188,12 @@ def build_status(
 def read_scheduler_status_placeholder(config: DashboardConfig) -> dict[str, Any]:
     """Return read-only scheduler status for the configured task."""
     return read_scheduler_status(config.scheduler_task_name)
+
+
+def _data_completeness_status(*, has_runs: bool, warnings: list[str]) -> str:
+    if not has_runs:
+        return "NO_DATA"
+    return "PASS_WITH_WARNINGS" if warnings else "PASS"
 
 
 def _run_detail_or_404(config: DashboardConfig, run_id: str) -> dict[str, Any]:
