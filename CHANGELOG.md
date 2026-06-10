@@ -4,6 +4,10 @@
 
 - [F] Registrato consenso L3 esplicito per scheduler dry-report controllato. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
 - [F] Lo scope autorizzato resta limitato a output Bridge, nessuna auto-azione, nessuna email/notifica automatica, nessuna chiamata LLM automatica, nessun deploy e nessuna modifica ad altri repository. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Aggiunto command pack PowerShell schedulabile con log e lock nel Bridge. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`, `docs/architecture/0520_SCHEDULER_COMMAND_PACK.md`.
+- [F] Creato task Windows `AIReleaseRadar_DailyDryReport`, daily alle 07:15, dry-report only. Fonte: `docs/architecture/0540_WINDOWS_TASK_CREATION.md`.
+- [F] Verificato primo trigger manuale con output Bridge, gate report e `LastTaskResult=0`. Fonte: `docs/architecture/0550_FIRST_SCHEDULED_TASK_TRIGGER.md`, `docs/architecture/0560_SCHEDULED_RUN_OUTPUT_VERIFICATION.md`.
+- [F] Documentati rollback, lock handling, retention senza cancellazione automatica e review flow operatore. Fonte: `docs/architecture/0530_SCHEDULER_SAFETY_AND_ROLLBACK.md`, `docs/architecture/0570_SCHEDULER_FAILURE_HANDLING_AND_LOCKING.md`, `docs/architecture/0580_SCHEDULER_RUN_INDEX_AND_RETENTION.md`, `docs/runbooks/0590_OPERATOR_REVIEW_FLOW.md`.
 - [F] Lo scheduler operativo pieno resta non autorizzato. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`, `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
 
 ## 0410-0500) Source Coverage V1.2 and Scheduler Readiness Final Gate
