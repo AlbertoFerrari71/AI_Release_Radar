@@ -114,6 +114,18 @@ def create_app(config: DashboardConfig | None = None) -> FastAPI:
     def api_scheduler() -> dict[str, Any]:
         return read_scheduler_status_placeholder(dashboard_config)
 
+    @app.get("/runs/{run_id}", response_class=HTMLResponse)
+    def run_detail(request: Request, run_id: str) -> Any:
+        detail = _run_detail_or_404(dashboard_config, run_id)
+        return templates.TemplateResponse(
+            request,
+            "run_detail.html",
+            {
+                "detail": detail,
+                "run": detail["run"],
+            },
+        )
+
     return app
 
 
