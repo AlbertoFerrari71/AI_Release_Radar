@@ -63,6 +63,10 @@ class RealRadarRunResult:
     removed_count: int
     unchanged_count: int
     project_impact_count: int
+    direct_action_count: int
+    monitor_only_action_count: int
+    no_action_count: int
+    unsupported_source_count: int
     report_scorecard_status: str
     source_diagnostics: list[dict[str, Any]]
     notes: list[str]
@@ -88,6 +92,15 @@ class RealRadarRunResult:
             "removed_count": self.removed_count,
             "unchanged_count": self.unchanged_count,
             "project_impact_count": self.project_impact_count,
+            "direct_action_count": self.direct_action_count,
+            "monitor_only_action_count": self.monitor_only_action_count,
+            "no_action_count": self.no_action_count,
+            "unsupported_source_count": self.unsupported_source_count,
+            "project_action_counts": {
+                "direct_action": self.direct_action_count,
+                "monitor_only": self.monitor_only_action_count,
+                "no_action": self.no_action_count,
+            },
             "report_scorecard_status": self.report_scorecard_status,
             "source_diagnostics": [dict(source) for source in self.source_diagnostics],
             "notes": list(self.notes),
@@ -162,6 +175,8 @@ def run_real_radar_report(
     live_result_data = live_result.to_dict()
     source_diagnostics = list(live_result_data.get("source_diagnostics", []))
     report_status = _real_report_status(report_input, live_result_data)
+    project_action_counts = _project_action_counts(impacts)
+    unsupported_source_count = _unsupported_source_count(source_diagnostics)
     report_scorecard = evaluate_report_scorecard(
         report_input,
         live_result=live_result_data,
@@ -242,6 +257,10 @@ def run_real_radar_report(
         removed_count=len(diff_result.removed_items),
         unchanged_count=diff_result.unchanged_count,
         project_impact_count=len(impacts),
+        direct_action_count=project_action_counts["direct_action"],
+        monitor_only_action_count=project_action_counts["monitor_only"],
+        no_action_count=project_action_counts["no_action"],
+        unsupported_source_count=unsupported_source_count,
         report_scorecard_status=report_scorecard.status,
         source_diagnostics=source_diagnostics,
         notes=notes,
@@ -267,6 +286,28 @@ def _real_report_status(report_input: ReportInput, live_result: dict[str, Any]) 
     if isinstance(source_count, int) and source_count > 0 and parsed_count == 0:
         return NO_PARSED_ITEMS_STATUS
     return render_report_status(report_input)
+
+
+def _project_action_counts(impacts: list[Any]) -> dict[str, int]:
+    counts = {
+        "direct_action": 0,
+        "monitor_only": 0,
+        "no_action": 0,
+    }
+    for impact in impacts:
+        action_type = getattr(impact, "action_type", None)
+        if action_type in counts:
+            counts[action_type] += 1
+    return counts
+
+
+def _unsupported_source_count(source_diagnostics: list[dict[str, Any]]) -> int:
+    return sum(
+        1
+        for source in source_diagnostics
+        if source.get("diagnostic_status") == "fetched_but_unsupported"
+        or source.get("parser_status") == "parser_skipped_unsupported_source"
+    )
 
 
 def _combined_snapshot_from_paths(
