@@ -15,6 +15,7 @@ from radar.live_snapshot import run_live_snapshot as run_live_snapshot_workflow
 from radar.real_run import (
     DEFAULT_REAL_RUN_MAX_BYTES,
     DEFAULT_PROJECT_MAP_PATH,
+    REAL_RUN_NEXT_STEP_RECOMMENDATION,
     run_real_radar_report,
 )
 from radar.report_engine import (
@@ -50,9 +51,6 @@ FETCH_SOURCES_NEXT_STEP_RECOMMENDATION = (
 )
 LIVE_SNAPSHOT_NEXT_STEP_RECOMMENDATION = (
     "0180) First Real Radar Report - Manual Run"
-)
-REAL_RUN_NEXT_STEP_RECOMMENDATION = (
-    "0190) Review first real radar output and source coverage"
 )
 REAL_RUN_MANUAL_PROFILE = "manual"
 REAL_RUN_MANUAL_TIMEOUT_SECONDS = 30.0
