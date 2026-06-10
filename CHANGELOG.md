@@ -1,5 +1,11 @@
 # Changelog
 
+## 0510-0600) Scheduler Dry-Report Controlled Activation
+
+- [F] Registrato consenso L3 esplicito per scheduler dry-report controllato. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Lo scope autorizzato resta limitato a output Bridge, nessuna auto-azione, nessuna email/notifica automatica, nessuna chiamata LLM automatica, nessun deploy e nessuna modifica ad altri repository. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Lo scheduler operativo pieno resta non autorizzato. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`, `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
+
 ## 0410-0500) Source Coverage V1.2 and Scheduler Readiness Final Gate
 
 - [F] Confermata la scelta di non aggiungere una seconda fonte live parsata senza formato stabile, evitando parser HTML fragile. Fonte: `docs/architecture/0410_SOURCE_COVERAGE_V1_2_IMPLEMENTATION.md`.

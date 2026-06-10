@@ -43,6 +43,13 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [INT] Readiness finale: `GO_WITH_WARNINGS` per futuro scheduler dry/report supervisionato, `HOLD` per scheduler operativo pieno. Fonte: `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
 - [PROP] Prossimo blocco consigliato: `0510) Scheduler Dry-Report L3 Approval` solo se Alberto autorizza esplicitamente uno step L3.
 
+## Scheduler dry-report L3
+
+- [F] Il consenso L3 per scheduler dry-report e' registrato in `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Il consenso autorizza solo scheduler dry-report con output Bridge e human review gate. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [F] Il consenso non autorizza auto-azioni, email/notifiche automatiche, chiamate LLM automatiche, deploy o modifiche ad altri repository. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
+- [INT] Lo scheduler dry-report non cambia la decisione `HOLD` per scheduler operativo pieno. Fonte: `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
+
 ## Comandi principali
 
 ```powershell
