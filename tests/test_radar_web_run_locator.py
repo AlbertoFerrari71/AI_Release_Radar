@@ -108,6 +108,7 @@ class RadarWebRunLocatorTests(unittest.TestCase):
             self.assertEqual(latest.run_dir, str(latest_dir))
             self.assertEqual(latest.status, "ACTION_REVIEW_REQUIRED")
             self.assertEqual(latest.prompt_suggestions_count, 1)
+            self.assertEqual(latest.prompt_suggestions_status, "suggested_only")
             self.assertEqual(latest.blocked_action_count, 1)
 
     def test_missing_files_are_reported_as_warnings(self):

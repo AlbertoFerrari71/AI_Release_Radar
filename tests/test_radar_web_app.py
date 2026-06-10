@@ -69,7 +69,9 @@ class RadarWebAppTests(unittest.TestCase):
                 self.assertEqual(client.get("/api/status").json()["status"], "PASS")
                 runs = client.get("/api/runs").json()["runs"]
                 self.assertEqual(len(runs), 1)
-                self.assertIn("AI Release Radar", client.get("/").text)
+                html = client.get("/").text
+                self.assertIn("AI Release Radar", html)
+                self.assertIn("SUGGESTED ONLY - not executed", html)
 
     def test_operator_smoke_covers_run_detail_and_sub_endpoints(self):
         with tempfile.TemporaryDirectory() as tmpdir:

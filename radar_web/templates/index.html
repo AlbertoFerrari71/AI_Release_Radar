@@ -84,7 +84,7 @@
           </dl>
         </div>
 
-        <div class="panel">
+        <div class="panel emphasis">
           <h2>Human Approval Gate</h2>
           <dl class="facts">
             <div>
@@ -92,16 +92,24 @@
               <dd><span class="badge {{ latest.hag_status | status_class if latest else 'status-no-data' }}">{{ latest.hag_status if latest else 'NO_DATA' }}</span></dd>
             </div>
             <div>
-              <dt>suggestions</dt>
-              <dd><span class="badge status-review">suggested_only</span></dd>
+              <dt>suggestion mode</dt>
+              <dd><span class="badge status-review">SUGGESTED ONLY - not executed</span></dd>
+            </div>
+            <div>
+              <dt>suggestion status</dt>
+              <dd><span class="badge {{ latest.prompt_suggestions_status | status_class if latest else 'status-no-data' }}">{{ latest.prompt_suggestions_status if latest else 'NO_DATA' }}</span></dd>
             </div>
             <div>
               <dt>no auto-action</dt>
               <dd><span class="badge status-pass">{{ true | yes_no }}</span></dd>
             </div>
             <div>
-              <dt>blocked</dt>
-              <dd>{{ latest.blocked_action_count if latest else 0 }}</dd>
+              <dt>prompt suggestions</dt>
+              <dd>{{ latest.prompt_suggestions_count if latest else 0 }}</dd>
+            </div>
+            <div>
+              <dt>blocked actions</dt>
+              <dd><span class="badge {{ 'HOLD' | status_class if latest and latest.blocked_action_count else 'status-pass' }}">{{ latest.blocked_action_count if latest else 0 }}</span></dd>
             </div>
           </dl>
         </div>

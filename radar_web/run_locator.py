@@ -48,6 +48,7 @@ class RunCandidate:
     blocked_action_count: int = 0
     manual_review_queue_count: int = 0
     prompt_suggestions_count: int = 0
+    prompt_suggestions_status: str = "NO_DATA"
     files: dict[str, str] = field(default_factory=dict)
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
@@ -71,6 +72,7 @@ class RunCandidate:
             "blocked_action_count": self.blocked_action_count,
             "manual_review_queue_count": self.manual_review_queue_count,
             "prompt_suggestions_count": self.prompt_suggestions_count,
+            "prompt_suggestions_status": self.prompt_suggestions_status,
             "files": dict(self.files),
             "warnings": list(self.warnings),
         }
@@ -256,6 +258,7 @@ def _candidate_from_dir(run_dir: Path) -> RunCandidate:
             summary_data.get("prompt_suggestions_count")
             or prompt_suggestions.get("suggestions_count")
         ),
+        prompt_suggestions_status=_string(prompt_suggestions.get("status")),
         files=files,
         warnings=tuple(sorted(set(warnings))),
     )
