@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Release Radar</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>AI Release Radar</h1>
+        <p class="path">{{ status.bridge_runs_root }}</p>
+      </div>
+      <div class="topbar-actions">
+        <a class="button" href="/api/status">API</a>
+        <button class="button primary" id="daily-sim-run" type="button">Run daily-sim now</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="status-grid" aria-label="Latest run status">
+        <article class="metric primary">
+          <span class="label">ultimo run</span>
+          {% if latest %}
+          <a class="metric-link" href="/runs/{{ latest.run_id }}">{{ latest.run_id }}</a>
+          {% else %}
+          <strong>NO_DATA</strong>
+          {% endif %}
+        </article>
+        <article class="metric">
+          <span class="label">status</span>
+          <strong class="badge {{ status.status | status_class }}">{{ status.status }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">automation gate</span>
+          <strong class="badge {{ latest.automation_gate_status | status_class if latest else 'status-no-data' }}">{{ latest.automation_gate_status if latest else 'NO_DATA' }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">daily quality gate</span>
+          <strong class="badge {{ latest.daily_quality_gate_status | status_class if latest else 'status-no-data' }}">{{ latest.daily_quality_gate_status if latest else 'NO_DATA' }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">scheduler readiness</span>
+          <strong>{{ latest.scheduler_readiness if latest else 'NO_DATA' }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">source coverage</span>
+          <strong class="badge {{ latest.source_coverage_status | status_class if latest else 'status-no-data' }}">{{ latest.source_coverage_status if latest else 'NO_DATA' }}</strong>
+        </article>
+      </section>
+
+      <section class="split">
+        <div class="panel">
+          <h2>Actions</h2>
+          <dl class="facts">
+            <div>
+              <dt>direct</dt>
+              <dd>{{ latest.direct_action_count if latest else 0 }}</dd>
+            </div>
+            <div>
+              <dt>monitor-only</dt>
+              <dd>{{ latest.monitor_only_action_count if latest else 0 }}</dd>
+            </div>
+            <div>
+              <dt>manual review queue</dt>
+              <dd>{{ latest.manual_review_queue_count if latest else 0 }}</dd>
+            </div>
+            <div>
+              <dt>prompt suggestions</dt>
+              <dd>{{ latest.prompt_suggestions_count if latest else 0 }}</dd>
+            </div>
+            <div>
+              <dt>blocked actions</dt>
+              <dd>{{ latest.blocked_action_count if latest else 0 }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="panel">
+          <h2>Human Approval Gate</h2>
+          <dl class="facts">
+            <div>
+              <dt>HAG status</dt>
+              <dd><span class="badge {{ latest.hag_status | status_class if latest else 'status-no-data' }}">{{ latest.hag_status if latest else 'NO_DATA' }}</span></dd>
+            </div>
+            <div>
+              <dt>suggestions</dt>
+              <dd>suggested_only</dd>
+            </div>
+            <div>
+              <dt>no auto-action</dt>
+              <dd>true</dd>
+            </div>
+            <div>
+              <dt>blocked</dt>
+              <dd>{{ latest.blocked_action_count if latest else 0 }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="split">
+        <div class="panel">
+          <h2>Scheduler</h2>
+          <dl class="facts">
+            <div>
+              <dt>task</dt>
+              <dd>{{ status.scheduler.task_name }}</dd>
+            </div>
+            <div>
+              <dt>status</dt>
+              <dd><span class="badge {{ status.scheduler.status | status_class }}">{{ status.scheduler.status }}</span></dd>
+            </div>
+            <div>
+              <dt>read-only</dt>
+              <dd>{{ status.scheduler.read_only }}</dd>
+            </div>
+            <div>
+              <dt>last result</dt>
+              <dd>{{ status.scheduler.last_task_result if status.scheduler.last_task_result is not none else 'NO_DATA' }}</dd>
+            </div>
+            <div>
+              <dt>next run</dt>
+              <dd>{{ status.scheduler.next_run_time or 'NO_DATA' }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Recent Runs</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>run</th>
+                <th>status</th>
+                <th>gate</th>
+                <th>quality</th>
+                <th>sources</th>
+                <th>actions</th>
+                <th>blocked</th>
+                <th>review</th>
+                <th>prompts</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for run in runs %}
+              <tr>
+                <td><a href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
+                <td><span class="badge {{ run.status | status_class }}">{{ run.status }}</span></td>
+                <td><span class="badge {{ run.automation_gate_status | status_class }}">{{ run.automation_gate_status }}</span></td>
+                <td><span class="badge {{ run.daily_quality_gate_status | status_class }}">{{ run.daily_quality_gate_status }}</span></td>
+                <td>{{ run.parsed_count if run.parsed_count is not none else 'n/a' }}/{{ run.source_count if run.source_count is not none else 'n/a' }}</td>
+                <td>{{ run.direct_action_count }}</td>
+                <td>{{ run.blocked_action_count }}</td>
+                <td>{{ run.manual_review_queue_count }}</td>
+                <td>{{ run.prompt_suggestions_count }}</td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="9" class="empty">NO_DATA</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {% if status.warnings %}
+      <section class="panel">
+        <h2>Warnings</h2>
+        <ul class="warning-list">
+          {% for warning in status.warnings %}
+          <li>{{ warning }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      <section class="panel" id="daily-sim-result" hidden>
+        <h2>Manual Daily-Sim Trigger</h2>
+        <pre class="report" id="daily-sim-output"></pre>
+      </section>
+    </main>
+    <script>
+      const runButton = document.getElementById("daily-sim-run");
+      const resultPanel = document.getElementById("daily-sim-result");
+      const output = document.getElementById("daily-sim-output");
+
+      runButton.addEventListener("click", async () => {
+        runButton.disabled = true;
+        resultPanel.hidden = false;
+        output.textContent = "RUNNING";
+        try {
+          const response = await fetch("/api/daily-sim/run", { method: "POST" });
+          const data = await response.json();
+          output.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          output.textContent = String(error);
+        } finally {
+          runButton.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

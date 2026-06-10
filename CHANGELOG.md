@@ -1,5 +1,14 @@
 # Changelog
 
+## 0760-0850) Local Web Dashboard
+
+- [F] Aggiunta architettura dashboard locale e closure pack 0850. Fonte: `docs/architecture/0760_WEB_DASHBOARD_ARCHITECTURE.md`, `docs/architecture/0850_WEB_DASHBOARD_CLOSURE_PACK.md`.
+- [F] Aggiunto package `radar_web` con Bridge run locator, backend FastAPI, scheduler card read-only e trigger manuale `daily-sim`. Fonte: `radar_web/`.
+- [F] Aggiunte UI home e dettaglio run con template Jinja2 e CSS semplice. Fonte: `radar_web/templates/index.html`, `radar_web/templates/run_detail.html`, `radar_web/static/style.css`.
+- [F] Aggiunto endpoint controllato `POST /api/daily-sim/run` con output root Bridge, lock e timeout. Fonte: `radar_web/manual_trigger.py`, `radar_web/app.py`.
+- [F] Aggiunti test offline per locator, app, scheduler fallback e trigger manuale. Fonte: `tests/test_radar_web_run_locator.py`, `tests/test_radar_web_app.py`, `tests/test_radar_web_scheduler_status.py`.
+- [F] Nessun nuovo scheduler, nessuna email/notifica automatica, nessuna chiamata LLM automatica, nessuna auto-azione, nessun altro repository e nessuna nuova dipendenza introdotti. Fonte: `radar_web/`, `pyproject.toml`.
+
 ## 0610-0750) Supervised Daily Intelligence Loop
 
 - [F] Aggiunti protocollo di review del primo run schedulato e contratto `Radar fatto` per recupero Bridge. Fonte: `docs/architecture/0610_FIRST_SCHEDULED_RUN_REVIEW_PROTOCOL.md`, `docs/architecture/0620_RADAR_DONE_BRIDGE_RETRIEVAL_CONTRACT.md`.
