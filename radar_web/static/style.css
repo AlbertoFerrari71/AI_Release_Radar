@@ -26,6 +26,7 @@ body {
   font-family: "Segoe UI", Arial, sans-serif;
   font-size: 15px;
   line-height: 1.45;
+  overflow-x: hidden;
 }
 
 a {
@@ -74,6 +75,7 @@ h2 {
 .button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 34px;
   padding: 0 12px;
   border: 1px solid var(--line);
@@ -101,15 +103,27 @@ h2 {
   flex-wrap: wrap;
 }
 
+.button-stack {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.button-note {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
 .layout {
-  max-width: 1240px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 24px 28px 40px;
 }
 
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -124,6 +138,7 @@ h2 {
 .metric {
   min-height: 96px;
   padding: 14px;
+  overflow: hidden;
 }
 
 .metric.primary {
@@ -148,17 +163,28 @@ dt {
   overflow-wrap: anywhere;
 }
 
+.run-link {
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 26px;
+  min-width: 76px;
   max-width: 100%;
   padding: 3px 8px;
   border-radius: 6px;
   color: #ffffff;
   font-size: 13px;
   font-weight: 750;
+  line-height: 1.2;
   overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .status-pass {
@@ -234,6 +260,7 @@ td {
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
+  overflow-wrap: anywhere;
 }
 
 th {
@@ -358,6 +385,10 @@ th {
     align-items: flex-start;
     flex-direction: column;
     padding: 18px;
+  }
+
+  .button-stack {
+    justify-items: start;
   }
 
   .layout {

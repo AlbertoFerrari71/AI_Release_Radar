@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 from pathlib import Path
+import re
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -28,6 +30,8 @@ def create_app(
     package_root = Path(__file__).resolve().parent
     templates = Jinja2Templates(directory=str(package_root / "templates"))
     templates.env.filters["status_class"] = status_class
+    templates.env.filters["human_datetime"] = human_datetime
+    templates.env.filters["yes_no"] = yes_no
     app = FastAPI(
         title="AI Release Radar Local Dashboard",
         version="0.1.0",
@@ -190,13 +194,11 @@ def _run_detail_or_404(config: DashboardConfig, run_id: str) -> dict[str, Any]:
 def status_class(value: object) -> str:
     """Map status values to CSS status classes."""
     status = str(value or "NO_DATA").upper()
-    if status == "PASS":
+    if status in {"PASS", "READY", "OK", "YES", "NO_ACTION_REQUIRED"}:
         return "status-pass"
-    if status == "READY":
-        return "status-pass"
-    if status == "RUNNING":
+    if status in {"RUNNING", "SUGGESTED_ONLY"}:
         return "status-review"
-    if status == "PASS_WITH_WARNINGS":
+    if status in {"PASS_WITH_WARNINGS", "WARN", "WARNING"}:
         return "status-warn"
     if status == "ACTION_REVIEW_REQUIRED":
         return "status-review"
@@ -205,6 +207,29 @@ def status_class(value: object) -> str:
     if status in {"FAIL", "FAIL_STOP"}:
         return "status-fail"
     return "status-no-data"
+
+
+def human_datetime(value: object) -> str:
+    """Format ISO-like datetimes for the operator UI."""
+    if value is None:
+        return "NO_DATA"
+    text = str(value).strip()
+    if not text or text == "NO_DATA":
+        return "NO_DATA"
+    normalized = text.replace("Z", "+00:00")
+    normalized = re.sub(r"(\.\d{6})\d+([+-]\d{2}:\d{2})$", r"\1\2", normalized)
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return text
+    return parsed.strftime("%d/%m/%Y %H:%M")
+
+
+def yes_no(value: object) -> str:
+    """Render booleans as operator-readable text."""
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    return str(value) if value is not None else "NO_DATA"
 
 
 def build_arg_parser() -> argparse.ArgumentParser:

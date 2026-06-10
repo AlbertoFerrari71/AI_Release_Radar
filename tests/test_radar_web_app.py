@@ -96,6 +96,28 @@ class RadarWebAppTests(unittest.TestCase):
                         response = client.get(endpoint)
                         self.assertEqual(response.status_code, 200)
 
+    def test_home_formats_scheduler_dates_and_manual_trigger_note(self):
+        scheduler = {
+            "status": "Ready",
+            "task_name": "AIReleaseRadar_DailyDryReport",
+            "read_only": True,
+            "last_run_time": "2026-06-10T19:01:02.0000000+02:00",
+            "last_task_result": 0,
+            "next_run_time": "2026-06-11T07:15:00.0000000+02:00",
+            "number_of_missed_runs": 0,
+            "warnings": [],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=scheduler):
+                html = TestClient(create_app(config)).get("/").text
+
+        self.assertIn("Manual only / no auto-action", html)
+        self.assertIn("10/06/2026 19:01", html)
+        self.assertIn("11/06/2026 07:15", html)
+        self.assertIn("Yes", html)
+
     def test_manual_trigger_uses_only_daily_sim_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             bridge = Path(tmpdir) / "bridge"

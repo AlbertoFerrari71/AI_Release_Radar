@@ -14,16 +14,19 @@
       </div>
       <div class="topbar-actions">
         <a class="button" href="/api/status">API</a>
-        <button class="button primary" id="daily-sim-run" type="button">Run daily-sim now</button>
+        <div class="button-stack">
+          <button class="button primary" id="daily-sim-run" type="button">Run daily-sim now</button>
+          <span class="button-note">Manual only / no auto-action</span>
+        </div>
       </div>
     </header>
 
     <main class="layout">
       <section class="status-grid" aria-label="Latest run status">
         <article class="metric primary">
-          <span class="label">ultimo run</span>
+          <span class="label">latest run</span>
           {% if latest %}
-          <a class="metric-link" href="/runs/{{ latest.run_id }}">{{ latest.run_id }}</a>
+          <a class="metric-link run-link" href="/runs/{{ latest.run_id }}">{{ latest.run_id }}</a>
           {% else %}
           <strong>NO_DATA</strong>
           {% endif %}
@@ -42,7 +45,7 @@
         </article>
         <article class="metric">
           <span class="label">scheduler readiness</span>
-          <strong>{{ latest.scheduler_readiness if latest else 'NO_DATA' }}</strong>
+          <strong class="badge {{ latest.scheduler_readiness | status_class if latest else 'status-no-data' }}">{{ latest.scheduler_readiness if latest else 'NO_DATA' }}</strong>
         </article>
         <article class="metric">
           <span class="label">source coverage</span>
@@ -86,11 +89,11 @@
             </div>
             <div>
               <dt>suggestions</dt>
-              <dd>suggested_only</dd>
+              <dd><span class="badge status-review">suggested_only</span></dd>
             </div>
             <div>
               <dt>no auto-action</dt>
-              <dd>true</dd>
+              <dd><span class="badge status-pass">{{ true | yes_no }}</span></dd>
             </div>
             <div>
               <dt>blocked</dt>
@@ -114,7 +117,11 @@
             </div>
             <div>
               <dt>read-only</dt>
-              <dd>{{ status.scheduler.read_only }}</dd>
+              <dd><span class="badge status-pass">{{ status.scheduler.read_only | yes_no }}</span></dd>
+            </div>
+            <div>
+              <dt>last run</dt>
+              <dd>{{ status.scheduler.last_run_time | human_datetime }}</dd>
             </div>
             <div>
               <dt>last result</dt>
@@ -122,7 +129,11 @@
             </div>
             <div>
               <dt>next run</dt>
-              <dd>{{ status.scheduler.next_run_time or 'NO_DATA' }}</dd>
+              <dd>{{ status.scheduler.next_run_time | human_datetime }}</dd>
+            </div>
+            <div>
+              <dt>missed runs</dt>
+              <dd>{{ status.scheduler.number_of_missed_runs if status.scheduler.number_of_missed_runs is not none else 'NO_DATA' }}</dd>
             </div>
           </dl>
         </div>
@@ -148,7 +159,7 @@
             <tbody>
               {% for run in runs %}
               <tr>
-                <td><a href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
+                <td><a class="run-link" href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
                 <td><span class="badge {{ run.status | status_class }}">{{ run.status }}</span></td>
                 <td><span class="badge {{ run.automation_gate_status | status_class }}">{{ run.automation_gate_status }}</span></td>
                 <td><span class="badge {{ run.daily_quality_gate_status | status_class }}">{{ run.daily_quality_gate_status }}</span></td>
