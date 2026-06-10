@@ -87,6 +87,14 @@
               <dt>read-only</dt>
               <dd>{{ status.scheduler.read_only }}</dd>
             </div>
+            <div>
+              <dt>last result</dt>
+              <dd>{{ status.scheduler.last_task_result if status.scheduler.last_task_result is not none else 'NO_DATA' }}</dd>
+            </div>
+            <div>
+              <dt>next run</dt>
+              <dd>{{ status.scheduler.next_run_time or 'NO_DATA' }}</dd>
+            </div>
           </dl>
         </div>
       </section>

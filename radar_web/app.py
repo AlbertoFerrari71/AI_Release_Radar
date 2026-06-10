@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 from radar_web.config import DashboardConfig, default_config
 from radar_web.models import ApiMessage, DashboardStatus
 from radar_web.run_locator import find_latest_run, list_recent_runs, load_run_detail
+from radar_web.scheduler_status import read_scheduler_status
 
 
 def create_app(config: DashboardConfig | None = None) -> FastAPI:
@@ -151,13 +152,8 @@ def build_status(
 
 
 def read_scheduler_status_placeholder(config: DashboardConfig) -> dict[str, Any]:
-    """Return a safe placeholder until the scheduler reader is enabled."""
-    return {
-        "status": "NO_DATA",
-        "task_name": config.scheduler_task_name,
-        "read_only": True,
-        "warnings": ["scheduler_status_reader_pending_0810"],
-    }
+    """Return read-only scheduler status for the configured task."""
+    return read_scheduler_status(config.scheduler_task_name)
 
 
 def _run_detail_or_404(config: DashboardConfig, run_id: str) -> dict[str, Any]:
@@ -178,6 +174,10 @@ def status_class(value: object) -> str:
     status = str(value or "NO_DATA").upper()
     if status == "PASS":
         return "status-pass"
+    if status == "READY":
+        return "status-pass"
+    if status == "RUNNING":
+        return "status-review"
     if status == "PASS_WITH_WARNINGS":
         return "status-warn"
     if status == "ACTION_REVIEW_REQUIRED":
