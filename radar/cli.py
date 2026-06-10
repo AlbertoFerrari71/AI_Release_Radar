@@ -66,7 +66,9 @@ DAILY_SIM_OUTPUT_PREFIX = "0320_0400_daily_sim"
 DAILY_SIM_SUMMARY_FILENAME = "0350-Daily_Sim_Summary.json"
 DAILY_SIM_GATE_JSON_FILENAME = "0350-Daily_Sim_Gate.json"
 DAILY_SIM_GATE_MARKDOWN_FILENAME = "0350-Daily_Sim_Gate.md"
-DAILY_SIM_NEXT_STEP_RECOMMENDATION = "0360) Automation Gate Policy"
+DAILY_SIM_NEXT_STEP_RECOMMENDATION = (
+    "0410) Source Coverage V1.2 Implementation before any scheduler activation."
+)
 
 
 def build_dry_run_report_input() -> ReportInput:

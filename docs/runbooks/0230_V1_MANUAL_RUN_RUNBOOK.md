@@ -103,6 +103,21 @@ python -m radar.cli real-run --profile manual --output-dir $out
 - [PROP] Prima dello scheduler verificare: output Bridge stabile, `runs_index.jsonl` valido, zero falsi verdi, gestione 403 documentata, parser coverage sufficiente, test full PASS, runbook aggiornato.
 - [PROP] Lo scheduler deve restare fuori scope finche' un prompt dedicato non autorizza L3.
 
+## Simulazione Daily Controllata
+
+Eseguire da PowerShell nel repository:
+
+```powershell
+Set-Location "C:\Users\alberto.ferrari\source\repos\AI_Release_Radar"
+python -m radar.cli daily-sim --output-root "D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\runs"
+```
+
+- [F] `daily-sim` crea una directory datata sotto `--output-root` e richiama la logica `real-run` con default manuali sicuri. Fonte: `radar/cli.py`.
+- [F] `daily-sim` scrive `0350-Daily_Sim_Summary.json`, `0350-Daily_Sim_Gate.json` e `0350-Daily_Sim_Gate.md` nella directory runtime fuori repo. Fonte: `radar/cli.py`.
+- [F] L'automation gate produce `FAIL`, `PASS_WITH_WARNINGS`, `ACTION_REVIEW_REQUIRED` o `PASS`. Fonte: `radar/automation_gate.py`.
+- [F] `daily-sim` non crea scheduler, task Windows, notifiche automatiche o chiamate LLM. Fonte: `radar/cli.py`.
+- [INT] Usare `daily-sim` per raccogliere evidenza Bridge ripetibile prima di qualunque step scheduler. Base: `docs/architecture/0400_AUTOMATION_READINESS_CLOSURE_PACK.md`.
+
 ## Criteri Dopo V1.1
 
 - [F] 0310 ha rivisto un real-run V1.1 fuori repo e ha documentato la review in `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.
