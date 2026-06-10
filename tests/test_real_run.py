@@ -74,6 +74,13 @@ class RealRunTests(unittest.TestCase):
             self.assertEqual(summary["report_status"], result.status)
             self.assertEqual(summary["source_diagnostics"], summary["live_snapshot"]["source_diagnostics"])
             self.assertEqual(summary["source_diagnostics"], result.source_diagnostics)
+            run_index_entry = read_json(result.run_index_entry)
+            self.assertEqual(run_index_entry["source_count"], 2)
+            self.assertEqual(run_index_entry["parsed_count"], 2)
+            self.assertEqual(run_index_entry["failed_count"], 0)
+            self.assertEqual(run_index_entry["skipped_count"], 0)
+            self.assertEqual(run_index_entry["item_count"], result.item_count)
+            self.assertEqual(run_index_entry["timestamp"], "2026-06-10T11:00:00Z")
 
     def test_real_run_rejects_output_inside_repo(self):
         with tempfile.TemporaryDirectory() as tmp:

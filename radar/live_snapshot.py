@@ -140,6 +140,7 @@ def run_live_snapshot(
         failed_count=failed_count,
         errors=errors,
     )
+    item_count = sum(len(snapshot.items) for snapshot in snapshots)
     run_index_entry = RunIndexEntry(
         run_id=effective_run_id,
         step="0170",
@@ -151,6 +152,12 @@ def run_live_snapshot(
         report_compact=None,
         snapshot_dir=str(target_dir),
         notes="Controlled live snapshot generation output. No LAST-* or latest-* files.",
+        source_count=len(sources),
+        parsed_count=parsed_count,
+        item_count=item_count,
+        failed_count=failed_count,
+        skipped_count=skipped_count,
+        timestamp=run_timestamp,
     )
     run_index_entry_path = target_dir / RUN_INDEX_ENTRY_FILENAME
     runs_index_path = target_dir / RUNS_INDEX_FILENAME

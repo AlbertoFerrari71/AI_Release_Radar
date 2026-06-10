@@ -183,7 +183,19 @@ def run_real_radar_report(
         report_full=str(full_report_path),
         report_compact=str(compact_report_path),
         snapshot_dir=str(target_dir),
-        notes="First manual real radar report. Runtime outputs are outside repository.",
+        notes=(
+            "Manual real radar report. "
+            f"source_count={live_result.source_count}; "
+            f"parsed_count={live_result.parsed_count}; "
+            f"item_count={len(current_snapshot.items)}. "
+            "Runtime outputs are outside repository."
+        ),
+        source_count=live_result.source_count,
+        parsed_count=live_result.parsed_count,
+        item_count=len(current_snapshot.items),
+        failed_count=live_result.failed_count,
+        skipped_count=live_result.skipped_count,
+        timestamp=timestamp,
     )
     write_json(run_index_entry_path, run_index_entry)
     append_run_index_entry(runs_index_path, run_index_entry)

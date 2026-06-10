@@ -92,6 +92,15 @@ def _validate_schema_attr(value: object, model_name: str) -> None:
         raise ValueError(f"{model_name}.schema_version must be a positive integer.")
 
 
+def _validate_optional_non_negative_int(value: object, field_name: str) -> None:
+    if value is None:
+        return
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValueError(f"{field_name} must be an integer or None.")
+    if value < 0:
+        raise ValueError(f"{field_name} must not be negative.")
+
+
 @dataclass(frozen=True, kw_only=True)
 class Item:
     """A normalized release-radar item observed from one source."""
@@ -295,6 +304,12 @@ class RunIndexEntry:
     report_compact: str | None
     snapshot_dir: str | None
     notes: str | None
+    source_count: int | None = None
+    parsed_count: int | None = None
+    item_count: int | None = None
+    failed_count: int | None = None
+    skipped_count: int | None = None
+    timestamp: str | None = None
 
     def __post_init__(self) -> None:
         _validate_schema_attr(self.schema_version, "RunIndexEntry")
@@ -312,6 +327,16 @@ class RunIndexEntry:
             value = getattr(self, field_name)
             if value is not None and not isinstance(value, str):
                 raise ValueError(f"{field_name} must be a string or None.")
+        for field_name in (
+            "source_count",
+            "parsed_count",
+            "item_count",
+            "failed_count",
+            "skipped_count",
+        ):
+            _validate_optional_non_negative_int(getattr(self, field_name), field_name)
+        if self.timestamp is not None:
+            _validate_str_attr(self.timestamp, "timestamp")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -326,6 +351,12 @@ class RunIndexEntry:
             "report_compact": self.report_compact,
             "snapshot_dir": self.snapshot_dir,
             "notes": self.notes,
+            "source_count": self.source_count,
+            "parsed_count": self.parsed_count,
+            "item_count": self.item_count,
+            "failed_count": self.failed_count,
+            "skipped_count": self.skipped_count,
+            "timestamp": self.timestamp,
         }
 
     @classmethod
@@ -343,4 +374,10 @@ class RunIndexEntry:
             report_compact=_optional_str(raw, "report_compact"),
             snapshot_dir=_optional_str(raw, "snapshot_dir"),
             notes=_optional_str(raw, "notes"),
+            source_count=_optional_int(raw, "source_count"),
+            parsed_count=_optional_int(raw, "parsed_count"),
+            item_count=_optional_int(raw, "item_count"),
+            failed_count=_optional_int(raw, "failed_count"),
+            skipped_count=_optional_int(raw, "skipped_count"),
+            timestamp=_optional_str(raw, "timestamp"),
         )
