@@ -81,6 +81,7 @@ class RealRunTests(unittest.TestCase):
             self.assertGreaterEqual(summary["result"]["monitor_only_action_count"], 0)
             self.assertIn("project_action_counts", summary["result"])
             self.assertEqual(summary["result"]["report_scorecard_status"], "PASS")
+            self.assertEqual(summary["result"]["manual_review_required_count"], 0)
             self.assertEqual(summary["report_scorecard"]["status"], "PASS")
             self.assertEqual(summary["source_diagnostics"], summary["live_snapshot"]["source_diagnostics"])
             self.assertEqual(summary["source_diagnostics"], result.source_diagnostics)
@@ -186,6 +187,7 @@ class RealRunTests(unittest.TestCase):
             summary = read_json(result.run_summary)
             self.assertEqual(summary["report_status"], "NO_PARSED_ITEMS")
             self.assertEqual(summary["result"]["status"], "NO_PARSED_ITEMS")
+            self.assertEqual(summary["result"]["manual_review_required_count"], 0)
             diagnostic = summary["source_diagnostics"][0]
             self.assertEqual(diagnostic["source_id"], "openai_codex_skills")
             self.assertEqual(diagnostic["source_type"], "official_docs")

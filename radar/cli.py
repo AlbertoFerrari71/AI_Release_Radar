@@ -7,6 +7,11 @@ from datetime import datetime, timezone
 import sys
 from pathlib import Path
 
+from radar.automation_gate import (
+    FAIL,
+    evaluate_automation_gate,
+    render_automation_gate_markdown,
+)
 from radar.json_utils import read_json, write_json
 from radar.live_url_check import (
     check_sources_live,
@@ -59,6 +64,8 @@ REAL_RUN_MANUAL_MAX_SOURCES = 11
 REAL_RUN_MANUAL_MAX_BYTES = 2_000_000
 DAILY_SIM_OUTPUT_PREFIX = "0320_0400_daily_sim"
 DAILY_SIM_SUMMARY_FILENAME = "0350-Daily_Sim_Summary.json"
+DAILY_SIM_GATE_JSON_FILENAME = "0350-Daily_Sim_Gate.json"
+DAILY_SIM_GATE_MARKDOWN_FILENAME = "0350-Daily_Sim_Gate.md"
 DAILY_SIM_NEXT_STEP_RECOMMENDATION = "0360) Automation Gate Policy"
 
 
@@ -257,14 +264,24 @@ def run_daily_sim(
         max_sources=resolved_max_sources,
         max_bytes=resolved_max_bytes,
     )
+    gate = evaluate_automation_gate(target_dir)
+    gate_json_path = target_dir / DAILY_SIM_GATE_JSON_FILENAME
+    gate_markdown_path = target_dir / DAILY_SIM_GATE_MARKDOWN_FILENAME
+    write_json(gate_json_path, gate)
+    _write_text(gate_markdown_path, render_automation_gate_markdown(gate))
     summary_path = target_dir / DAILY_SIM_SUMMARY_FILENAME
     summary_data: dict[str, object] = {
         "schema_version": 1,
         "mode": "daily-sim",
         "status": result.get("status"),
+        "automation_gate_status": gate.status,
+        "recommendation": gate.recommendation,
         "output_dir": str(target_dir),
         "daily_sim_summary": str(summary_path),
+        "automation_gate_json": str(gate_json_path),
+        "automation_gate_markdown": str(gate_markdown_path),
         "real_run": result,
+        "automation_gate": gate.to_dict(),
         "scheduler_activated": False,
         "windows_task_created": False,
         "llm_called": False,
@@ -434,6 +451,10 @@ def build_daily_sim_summary(result_data: object) -> str:
     real_run = result_data.get("real_run")
     if not isinstance(real_run, dict):
         raise ValueError("daily-sim result_data must include real_run dict.")
+    gate = result_data.get("automation_gate")
+    gate_metrics = gate.get("metrics") if isinstance(gate, dict) else {}
+    if not isinstance(gate_metrics, dict):
+        gate_metrics = {}
     lines = [
         "AI Release Radar daily simulation completed",
         "Mode: controlled daily run simulation",
@@ -444,11 +465,13 @@ def build_daily_sim_summary(result_data: object) -> str:
         f"Items: {real_run.get('item_count')}",
         f"Direct actions: {real_run.get('direct_action_count')}",
         f"Monitor-only actions: {real_run.get('monitor_only_action_count')}",
-        f"Manual review required: pending gate evaluation",
+        f"Manual review required: {gate_metrics.get('manual_review_required_count')}",
         f"Unsupported sources: {real_run.get('unsupported_source_count')}",
-        "Automation gate: pending 0360 policy",
+        f"Automation gate: {result_data.get('automation_gate_status')}",
+        f"Recommendation: {result_data.get('recommendation')}",
         f"Output dir: {result_data.get('output_dir')}",
         f"Run summary: {real_run.get('run_summary')}",
+        f"Gate report: {result_data.get('automation_gate_markdown')}",
         f"Daily sim summary: {result_data.get('daily_sim_summary')}",
         "No scheduler: confirmed",
         "No Windows task: confirmed",
@@ -762,7 +785,7 @@ def main(argv: list[str] | None = None) -> int:
                 max_bytes=args.max_bytes,
             )
             sys.stdout.write(build_daily_sim_summary(result))
-            return 0
+            return 1 if result.get("automation_gate_status") == FAIL else 0
         parser.error(f"unsupported command: {args.command}")
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 1

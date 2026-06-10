@@ -67,6 +67,7 @@ class RealRadarRunResult:
     monitor_only_action_count: int
     no_action_count: int
     unsupported_source_count: int
+    manual_review_required_count: int
     report_scorecard_status: str
     source_diagnostics: list[dict[str, Any]]
     notes: list[str]
@@ -96,6 +97,7 @@ class RealRadarRunResult:
             "monitor_only_action_count": self.monitor_only_action_count,
             "no_action_count": self.no_action_count,
             "unsupported_source_count": self.unsupported_source_count,
+            "manual_review_required_count": self.manual_review_required_count,
             "project_action_counts": {
                 "direct_action": self.direct_action_count,
                 "monitor_only": self.monitor_only_action_count,
@@ -177,6 +179,7 @@ def run_real_radar_report(
     report_status = _real_report_status(report_input, live_result_data)
     project_action_counts = _project_action_counts(impacts)
     unsupported_source_count = _unsupported_source_count(source_diagnostics)
+    manual_review_required_count = _manual_review_required_count(source_diagnostics)
     report_scorecard = evaluate_report_scorecard(
         report_input,
         live_result=live_result_data,
@@ -261,6 +264,7 @@ def run_real_radar_report(
         monitor_only_action_count=project_action_counts["monitor_only"],
         no_action_count=project_action_counts["no_action"],
         unsupported_source_count=unsupported_source_count,
+        manual_review_required_count=manual_review_required_count,
         report_scorecard_status=report_scorecard.status,
         source_diagnostics=source_diagnostics,
         notes=notes,
@@ -307,6 +311,15 @@ def _unsupported_source_count(source_diagnostics: list[dict[str, Any]]) -> int:
         for source in source_diagnostics
         if source.get("diagnostic_status") == "fetched_but_unsupported"
         or source.get("parser_status") == "parser_skipped_unsupported_source"
+    )
+
+
+def _manual_review_required_count(source_diagnostics: list[dict[str, Any]]) -> int:
+    return sum(
+        1
+        for source in source_diagnostics
+        if source.get("diagnostic_status") == "manual_review_required"
+        or source.get("manual_review_required") is True
     )
 
 

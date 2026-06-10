@@ -214,8 +214,11 @@ class CliTests(unittest.TestCase):
                 )
 
             self.assertEqual(result["status"], "CHANGES_FOUND")
+            self.assertEqual(result["automation_gate_status"], "FAIL")
             self.assertIn("0320_0400_daily_sim_20260610_120000", result["output_dir"])
             self.assertTrue(Path(result["daily_sim_summary"]).is_file())
+            self.assertTrue(Path(result["automation_gate_json"]).is_file())
+            self.assertTrue(Path(result["automation_gate_markdown"]).is_file())
             self.assertEqual(run_mock.call_args.args[0], str(cli.DEFAULT_SOURCE_REGISTRY_PATH))
             self.assertIn(
                 "0320_0400_daily_sim_20260610_120000",
@@ -233,11 +236,21 @@ class CliTests(unittest.TestCase):
                 "run_daily_sim",
                 return_value={
                     "status": "CHANGES_FOUND",
+                    "automation_gate_status": "ACTION_REVIEW_REQUIRED",
+                    "recommendation": "Manual review required before acting on direct actions; no auto-action.",
                     "output_dir": str(Path(tmp) / "run"),
                     "daily_sim_summary": str(
                         Path(tmp) / "run" / cli.DAILY_SIM_SUMMARY_FILENAME
                     ),
+                    "automation_gate_markdown": str(
+                        Path(tmp) / "run" / cli.DAILY_SIM_GATE_MARKDOWN_FILENAME
+                    ),
                     "next_step": cli.DAILY_SIM_NEXT_STEP_RECOMMENDATION,
+                    "automation_gate": {
+                        "metrics": {
+                            "manual_review_required_count": 0,
+                        }
+                    },
                     "real_run": {
                         "run_id": "0180-daily-sim",
                         "source_count": 11,
