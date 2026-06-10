@@ -69,56 +69,63 @@
 - [F] AI Software Factory (`ai_software_factory`)
   - [F] item_id: `0080_api_deprecation`.
   - [F] impact_level: critical.
+  - [F] action_type: direct_action.
   - [INT] reasons: category deprecation relevant to project; deprecation relevant to API/platform project; deprecation score 85 >= 80; score 85; severity high.
   - [PROP] suggested_actions: review AGENTS.md; update workflow; update verification gate; create Codex step.
 - [F] Mansionario_Vivo (`mansionario_vivo`)
   - [F] item_id: `0080_api_deprecation`.
   - [F] impact_level: critical.
+  - [F] action_type: direct_action.
   - [INT] reasons: category deprecation relevant to project; deprecation relevant to API/platform project; matched project keywords: api, deprecat; deprecation score 85 >= 80; score 85; severity high.
   - [PROP] suggested_actions: review FastAPI workflow; run regression tests; update deployment notes.
 - [F] AI Software Factory (`ai_software_factory`)
   - [F] item_id: `0080_security_sandbox`.
   - [F] impact_level: critical.
+  - [F] action_type: direct_action.
   - [INT] reasons: category security relevant to project; matched project keywords: sandbox, security; critical severity on relevant project; score 105; severity critical.
   - [PROP] suggested_actions: review AGENTS.md; update workflow; update verification gate; create Codex step.
 - [F] Family Photo Organizer (`family_photo_organizer`)
   - [F] item_id: `0080_security_sandbox`.
   - [F] impact_level: critical.
+  - [F] action_type: direct_action.
   - [INT] reasons: category security relevant to project; matched project keywords: security; critical severity on relevant project; score 105; severity critical.
   - [PROP] suggested_actions: review image workflow; run read-only safety test; update review checklist.
 - [F] AI Software Factory (`ai_software_factory`)
   - [F] item_id: `0080_codex_cli_removed`.
   - [F] impact_level: medium.
+  - [F] action_type: direct_action.
   - [INT] reasons: category codex_cli relevant to project; matched project keywords: codex cli; medium severity on relevant project; score 68; severity medium.
   - [PROP] suggested_actions: review CLI workflow; update runner documentation.
 - [F] Family Photo Organizer (`family_photo_organizer`)
   - [F] item_id: `0080_image_vision_unchanged`.
   - [F] impact_level: medium.
+  - [F] action_type: direct_action.
   - [INT] reasons: category image_vision relevant to project; matched project keywords: image, local file path, vision; medium severity on relevant project; score 56; severity medium.
   - [PROP] suggested_actions: review image workflow; run read-only safety test.
 - [F] Codex_Skills (`codex_skills`)
   - [F] item_id: `0080_codex_skills_unchanged`.
   - [F] impact_level: low.
+  - [F] action_type: direct_action.
   - [INT] reasons: category codex_skills relevant to project; matched project keywords: skill, skills; relevant category with low score; score 26; severity info.
   - [PROP] suggested_actions: update skill; review skill trigger; update catalog.
 
 ## 9. Recommended actions
 
-1. [PROP] AI Software Factory: review AGENTS.md for `0080_api_deprecation` (critical).
-2. [PROP] AI Software Factory: update workflow for `0080_api_deprecation` (critical).
-3. [PROP] AI Software Factory: update verification gate for `0080_api_deprecation` (critical).
-4. [PROP] AI Software Factory: create Codex step for `0080_api_deprecation` (critical).
-5. [PROP] Mansionario_Vivo: review FastAPI workflow for `0080_api_deprecation` (critical).
-6. [PROP] Mansionario_Vivo: run regression tests for `0080_api_deprecation` (critical).
-7. [PROP] Mansionario_Vivo: update deployment notes for `0080_api_deprecation` (critical).
-8. [PROP] Family Photo Organizer: review image workflow for `0080_security_sandbox` (critical).
-9. [PROP] Family Photo Organizer: run read-only safety test for `0080_security_sandbox` (critical).
-10. [PROP] Family Photo Organizer: update review checklist for `0080_security_sandbox` (critical).
-11. [PROP] AI Software Factory: review CLI workflow for `0080_codex_cli_removed` (medium).
-12. [PROP] AI Software Factory: update runner documentation for `0080_codex_cli_removed` (medium).
-13. [PROP] Codex_Skills: update skill for `0080_codex_skills_unchanged` (low).
-14. [PROP] Codex_Skills: review skill trigger for `0080_codex_skills_unchanged` (low).
-15. [PROP] Codex_Skills: update catalog for `0080_codex_skills_unchanged` (low).
+1. [PROP] AI Software Factory: review AGENTS.md for `0080_api_deprecation` (critical; direct_action).
+2. [PROP] AI Software Factory: update workflow for `0080_api_deprecation` (critical; direct_action).
+3. [PROP] AI Software Factory: update verification gate for `0080_api_deprecation` (critical; direct_action).
+4. [PROP] AI Software Factory: create Codex step for `0080_api_deprecation` (critical; direct_action).
+5. [PROP] Mansionario_Vivo: review FastAPI workflow for `0080_api_deprecation` (critical; direct_action).
+6. [PROP] Mansionario_Vivo: run regression tests for `0080_api_deprecation` (critical; direct_action).
+7. [PROP] Mansionario_Vivo: update deployment notes for `0080_api_deprecation` (critical; direct_action).
+8. [PROP] Family Photo Organizer: review image workflow for `0080_security_sandbox` (critical; direct_action).
+9. [PROP] Family Photo Organizer: run read-only safety test for `0080_security_sandbox` (critical; direct_action).
+10. [PROP] Family Photo Organizer: update review checklist for `0080_security_sandbox` (critical; direct_action).
+11. [PROP] AI Software Factory: review CLI workflow for `0080_codex_cli_removed` (medium; direct_action).
+12. [PROP] AI Software Factory: update runner documentation for `0080_codex_cli_removed` (medium; direct_action).
+13. [PROP] Codex_Skills: update skill for `0080_codex_skills_unchanged` (low; direct_action).
+14. [PROP] Codex_Skills: review skill trigger for `0080_codex_skills_unchanged` (low; direct_action).
+15. [PROP] Codex_Skills: update catalog for `0080_codex_skills_unchanged` (low; direct_action).
 
 ## 10. Risks and caveats
 

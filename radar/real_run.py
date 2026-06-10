@@ -365,6 +365,7 @@ def _render_real_full_report(
                     f"- [F] {impact.project_name}: {impact.impact_level} impact for {item_ref}.",
                     f"  - [F] project_key: {impact.project_key}.",
                     f"  - [F] item_id: `{impact.item_id}`.",
+                    f"  - [F] action_type: {impact.action_type}.",
                     f"  - [F] score: {score.score if score is not None else 'n/a'}.",
                     f"  - [INT] impact_reason: {'; '.join(impact.reasons)}.",
                     f"  - [PROP] recommended_actions: {'; '.join(impact.suggested_actions)}.",
@@ -442,6 +443,7 @@ def _render_real_compact_report(
             lines.append(
                 f"- [PROP] {impact.project_name}: {impact.suggested_actions[0]} "
                 f"for {item_ref} ({impact.impact_level}; "
+                f"{impact.action_type}; "
                 f"score {score.score if score is not None else 'n/a'}; reason: {reason})."
             )
     else:

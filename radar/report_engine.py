@@ -7,7 +7,7 @@ from typing import Any
 
 from radar.classification import ItemClassification
 from radar.models import DiffResult, Item
-from radar.project_impact import IMPACT_RANK, ProjectImpact
+from radar.project_impact import ACTION_TYPE_RANK, IMPACT_RANK, ProjectImpact
 from radar.scoring import RelevanceScore
 
 
@@ -259,6 +259,13 @@ def _require_str(data: dict[str, Any], field_name: str) -> str:
     return value
 
 
+def _optional_str(data: dict[str, Any], field_name: str, default: str) -> str:
+    value = data.get(field_name, default)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must be a non-empty string when provided.")
+    return value
+
+
 def _require_str_list(
     data: dict[str, Any],
     field_name: str,
@@ -366,9 +373,12 @@ def _load_project_impacts(data: object) -> list[ProjectImpact]:
             impact_level=_require_str(impact_raw, "impact_level"),
             reasons=_require_str_list(impact_raw, "reasons"),
             suggested_actions=_require_str_list(impact_raw, "suggested_actions"),
+            action_type=_optional_str(impact_raw, "action_type", "direct_action"),
         )
         if impact.impact_level not in IMPACT_RANK:
             raise ValueError(f"unsupported impact_level: {impact.impact_level}")
+        if impact.action_type not in ACTION_TYPE_RANK:
+            raise ValueError(f"unsupported action_type: {impact.action_type}")
         impacts.append(impact)
     return _sort_impacts(impacts)
 
@@ -402,7 +412,12 @@ def _sorted_scores(report_input: ReportInput) -> list[RelevanceScore]:
 def _sort_impacts(impacts: list[ProjectImpact]) -> list[ProjectImpact]:
     return sorted(
         impacts,
-        key=lambda impact: (-IMPACT_RANK[impact.impact_level], impact.item_id, impact.project_key),
+        key=lambda impact: (
+            -IMPACT_RANK[impact.impact_level],
+            -ACTION_TYPE_RANK[impact.action_type],
+            impact.item_id,
+            impact.project_key,
+        ),
     )
 
 
@@ -497,6 +512,7 @@ def _render_impacts_section(report_input: ReportInput) -> list[str]:
                 f"- [F] {impact.project_name} (`{impact.project_key}`)",
                 f"  - [F] item_id: `{impact.item_id}`.",
                 f"  - [F] impact_level: {impact.impact_level}.",
+                f"  - [F] action_type: {impact.action_type}.",
                 f"  - [INT] reasons: {'; '.join(impact.reasons)}.",
                 f"  - [PROP] suggested_actions: {'; '.join(impact.suggested_actions)}.",
             ]
@@ -516,6 +532,7 @@ def _recommended_actions(report_input: ReportInput) -> list[dict[str, str]]:
             actions.append(
                 {
                     "action": action,
+                    "action_type": impact.action_type,
                     "impact_level": impact.impact_level,
                     "item_id": impact.item_id,
                     "project_key": impact.project_key,
@@ -531,7 +548,7 @@ def _render_recommended_actions_section(report_input: ReportInput) -> list[str]:
         return ["- [PROP] No project action recommended by the current offline input."]
     return [
         f"{index}. [PROP] {action['project_name']}: {action['action']} "
-        f"for `{action['item_id']}` ({action['impact_level']})."
+        f"for `{action['item_id']}` ({action['impact_level']}; {action['action_type']})."
         for index, action in enumerate(actions, start=1)
     ]
 

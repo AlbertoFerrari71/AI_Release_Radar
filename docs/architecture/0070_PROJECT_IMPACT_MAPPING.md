@@ -11,7 +11,7 @@
 - [F] `Item` resta il modello normalizzato della novita' osservata. Fonte: `radar/models.py`.
 - [F] `ItemClassification` contiene categoria, severita', keyword matchate e motivazioni di classificazione. Fonte: `radar/classification.py`.
 - [F] `RelevanceScore` contiene score totale e componenti auditabili. Fonte: `radar/scoring.py`.
-- [F] `ProjectImpact` collega un item a un progetto, con `impact_level`, `reasons` e `suggested_actions`. Fonte: `radar/project_impact.py`.
+- [F] `ProjectImpact` collega un item a un progetto, con `impact_level`, `action_type`, `reasons` e `suggested_actions`. Fonte: `radar/project_impact.py`.
 - [F] `ProjectImpact` e' derivato da `Item`, `ItemClassification`, `RelevanceScore` e project map offline. Fonte: `radar/project_impact.py`.
 
 ## Project Map
@@ -24,12 +24,13 @@
 ## Regole Impact Level
 
 - [F] I livelli supportati sono `critical`, `high`, `medium`, `low` e `none`. Fonte: `radar/project_impact.py`.
+- [F] I tipi azione supportati sono `direct_action`, `monitor_only` e `no_action`. Fonte: `radar/project_impact.py`.
 - [F] Un progetto non rilevante produce `none` e non viene incluso nell'output finale. Fonte: `radar/project_impact.py`.
 - [F] `critical` viene assegnato per severita' critical su progetto rilevante o per `security`/`deprecation` con score almeno 80. Fonte: `radar/project_impact.py`.
 - [F] `high` viene assegnato per severita' high o score almeno 70 su progetto rilevante. Fonte: `radar/project_impact.py`.
 - [F] `medium` viene assegnato per severita' medium o score almeno 45 su progetto rilevante. Fonte: `radar/project_impact.py`.
 - [F] `low` viene assegnato quando la categoria e' rilevante ma lo score resta basso. Fonte: `radar/project_impact.py`.
-- [F] L'output e' ordinato per `item_id` ascendente, `impact_level` discendente e `project_key` ascendente. Fonte: `radar/project_impact.py`.
+- [F] L'output e' ordinato per `item_id` ascendente, `impact_level` discendente, `action_type` discendente e `project_key` ascendente. Fonte: `radar/project_impact.py`.
 
 ## Regole Speciali
 
@@ -42,8 +43,11 @@
 ## Azioni Suggerite
 
 - [F] Le azioni suggerite sono definite per progetto nella project map offline. Fonte: `examples/fixtures/0070_project_map.json`.
-- [F] Ogni `ProjectImpact` include una copia delle azioni del progetto. Fonte: `radar/project_impact.py`.
-- [INT] Nella V1 le azioni sono project-level, non ancora filtrate per categoria. Fonte: `radar/project_impact.py`.
+- [F] Ogni `ProjectImpact` include azioni filtrate in base a `action_type`. Fonte: `radar/project_impact.py`.
+- [F] `direct_action` mantiene le azioni del progetto quando la categoria e' diretta per quel progetto. Fonte: `radar/project_impact.py`.
+- [F] `monitor_only` mantiene il progetto visibile ma impedisce azioni implementative immediate. Fonte: `radar/project_impact.py`.
+- [F] `no_action` conserva il segnale senza aprire task di progetto. Fonte: `radar/project_impact.py`.
+- [INT] La V1.1 separa la presenza di un impatto dalla decisione di aprire lavoro tecnico diretto. Fonte: `radar/project_impact.py`.
 
 ## Limiti V1
 

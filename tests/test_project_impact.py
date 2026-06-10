@@ -5,6 +5,7 @@ from radar.classification import ItemClassification
 from radar.json_utils import read_json
 from radar.models import Item
 from radar.project_impact import (
+    ACTION_TYPE_RANK,
     IMPACT_RANK,
     ProjectImpact,
     impact_item_for_projects,
@@ -84,23 +85,31 @@ class ProjectImpactTests(unittest.TestCase):
         by_project = {impact.project_key: impact for impact in impacts}
         self.assertIn("ai_software_factory", by_project)
         self.assertIn(by_project["ai_software_factory"].impact_level, {"high", "medium"})
+        self.assertEqual(by_project["ai_software_factory"].action_type, "direct_action")
+        self.assertEqual(by_project["codex_skills"].action_type, "direct_action")
+        self.assertEqual(by_project["agglodetect"].action_type, "monitor_only")
+        self.assertEqual(by_project["agglodetect"].impact_level, "low")
 
     def test_codex_agents_md_impacts_asf_and_codex_skills_at_least_high(self):
         impacts = self.impacts_for_item("0070_agents_md_loading")
         by_project = {impact.project_key: impact for impact in impacts}
         self.assertGreaterEqual(IMPACT_RANK[by_project["ai_software_factory"].impact_level], 3)
         self.assertGreaterEqual(IMPACT_RANK[by_project["codex_skills"].impact_level], 3)
+        self.assertEqual(by_project["ai_software_factory"].action_type, "direct_action")
+        self.assertEqual(by_project["codex_skills"].action_type, "direct_action")
 
     def test_image_vision_impacts_image_projects(self):
         impacts = self.impacts_for_item("0070_image_vision")
-        impacted_projects = {impact.project_key for impact in impacts}
-        self.assertTrue(
-            {"agglodetect", "diamsign", "family_photo_organizer"} <= impacted_projects
-        )
+        by_project = {impact.project_key: impact for impact in impacts}
+        self.assertTrue({"agglodetect", "diamsign", "family_photo_organizer"} <= set(by_project))
+        for project_key in ("agglodetect", "diamsign", "family_photo_organizer"):
+            self.assertEqual(by_project[project_key].action_type, "direct_action")
 
     def test_data_analysis_impacts_controllo_gestione_esolver(self):
         impacts = self.impacts_for_item("0070_data_analysis")
-        self.assertIn("controllo_gestione_esolver", {impact.project_key for impact in impacts})
+        by_project = {impact.project_key: impact for impact in impacts}
+        self.assertIn("controllo_gestione_esolver", by_project)
+        self.assertEqual(by_project["controllo_gestione_esolver"].action_type, "direct_action")
 
     def test_deprecation_impacts_api_platform_projects_at_least_high(self):
         impacts = self.impacts_for_item("0070_api_deprecation")
@@ -112,8 +121,11 @@ class ProjectImpactTests(unittest.TestCase):
         }
         by_project = {impact.project_key: impact for impact in impacts}
         self.assertTrue(api_project_keys <= set(by_project))
-        for project_key in api_project_keys:
-            self.assertGreaterEqual(IMPACT_RANK[by_project[project_key].impact_level], 3)
+        self.assertGreaterEqual(IMPACT_RANK[by_project["ai_software_factory"].impact_level], 3)
+        self.assertEqual(by_project["ai_software_factory"].action_type, "direct_action")
+        for project_key in api_project_keys - {"ai_software_factory"}:
+            self.assertEqual(by_project[project_key].action_type, "monitor_only")
+            self.assertEqual(by_project[project_key].impact_level, "low")
 
     def test_security_generates_high_or_critical_sensitive_project_impacts(self):
         impacts = self.impacts_for_item("0070_security_sandbox")
@@ -128,6 +140,7 @@ class ProjectImpactTests(unittest.TestCase):
         self.assertTrue(sensitive_projects <= set(by_project))
         for project_key in sensitive_projects:
             self.assertGreaterEqual(IMPACT_RANK[by_project[project_key].impact_level], 3)
+            self.assertEqual(by_project[project_key].action_type, "direct_action")
 
     def test_non_relevant_item_produces_no_impacts(self):
         item = Item(
@@ -169,6 +182,7 @@ class ProjectImpactTests(unittest.TestCase):
         for impact in impacts:
             self.assertTrue(impact.reasons)
             self.assertTrue(impact.suggested_actions)
+            self.assertIn(impact.action_type, {"direct_action", "monitor_only", "no_action"})
 
     def test_output_is_sorted_deterministically(self):
         items_by_id = self.load_items_by_id()
@@ -181,7 +195,12 @@ class ProjectImpactTests(unittest.TestCase):
             self.load_project_map(),
         )
         sort_keys = [
-            (impact.item_id, -IMPACT_RANK[impact.impact_level], impact.project_key)
+            (
+                impact.item_id,
+                -IMPACT_RANK[impact.impact_level],
+                -ACTION_TYPE_RANK[impact.action_type],
+                impact.project_key,
+            )
             for impact in impacts
         ]
         self.assertEqual(sort_keys, sorted(sort_keys))
