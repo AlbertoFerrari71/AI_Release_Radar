@@ -16,7 +16,7 @@
         <a class="button" href="/api/status">API</a>
         <div class="button-stack">
           <button class="button primary" id="daily-sim-run" type="button">Run daily-sim now</button>
-          <span class="button-note">Manual only / no auto-action</span>
+          <span class="button-note">Manual only / no auto-action / writes to Bridge</span>
         </div>
       </div>
     </header>
@@ -202,16 +202,19 @@
 
       runButton.addEventListener("click", async () => {
         runButton.disabled = true;
+        const originalLabel = runButton.textContent;
+        runButton.textContent = "Running daily-sim...";
         resultPanel.hidden = false;
-        output.textContent = "RUNNING";
+        output.textContent = "RUNNING - manual trigger locked";
         try {
           const response = await fetch("/api/daily-sim/run", { method: "POST" });
           const data = await response.json();
-          output.textContent = JSON.stringify(data, null, 2);
+          output.textContent = JSON.stringify({ http_status: response.status, ...data }, null, 2);
         } catch (error) {
           output.textContent = String(error);
         } finally {
           runButton.disabled = false;
+          runButton.textContent = originalLabel;
         }
       });
     </script>

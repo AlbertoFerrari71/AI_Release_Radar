@@ -180,12 +180,24 @@ class RadarWebAppTests(unittest.TestCase):
 
             def fake_runner(command, **kwargs):
                 calls.append((command, kwargs))
+                output_dir = bridge / "runs" / "0320_0400_daily_sim_20260610_090000"
+                output_dir.mkdir(parents=True)
+                (output_dir / "0350-Daily_Sim_Summary.json").write_text(
+                    json.dumps(
+                        {
+                            "status": "PASS",
+                            "automation_gate_status": "PASS",
+                            "hag_status": "NO_ACTION_REQUIRED",
+                        }
+                    ),
+                    encoding="utf-8",
+                )
                 return subprocess.CompletedProcess(
                     command,
                     0,
                     stdout=(
                         "Output dir: "
-                        f"{bridge / 'runs' / '0320_0400_daily_sim_20260610_090000'}\n"
+                        f"{output_dir}\n"
                     ),
                     stderr="",
                 )
@@ -198,6 +210,12 @@ class RadarWebAppTests(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["status"], "PASS")
+            self.assertTrue(response.json()["manual_only"])
+            self.assertTrue(response.json()["writes_to_bridge"])
+            self.assertTrue(response.json()["no_auto_action"])
+            self.assertTrue(response.json()["dashboard_updated"])
+            self.assertEqual(response.json()["automation_gate_status"], "PASS")
+            self.assertEqual(response.json()["hag_status"], "NO_ACTION_REQUIRED")
             self.assertEqual(
                 calls[0][0],
                 [
