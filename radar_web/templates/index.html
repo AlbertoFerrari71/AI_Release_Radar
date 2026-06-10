@@ -116,8 +116,12 @@
               <dd>{{ status.scheduler.task_name }}</dd>
             </div>
             <div>
-              <dt>status</dt>
+              <dt>state</dt>
               <dd><span class="badge {{ status.scheduler.status | status_class }}">{{ status.scheduler.status }}</span></dd>
+            </div>
+            <div>
+              <dt>interpretation</dt>
+              <dd><span class="badge {{ status.scheduler.interpretation | status_class }}">{{ status.scheduler.interpretation or 'NO_DATA' }}</span></dd>
             </div>
             <div>
               <dt>read-only</dt>

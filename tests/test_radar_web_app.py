@@ -17,6 +17,7 @@ SCHEDULER_NO_DATA = {
     "status": "NO_DATA",
     "task_name": "AIReleaseRadar_DailyDryReport",
     "read_only": True,
+    "interpretation": "NO_DATA",
     "warnings": [],
 }
 
@@ -105,6 +106,7 @@ class RadarWebAppTests(unittest.TestCase):
             "last_task_result": 0,
             "next_run_time": "2026-06-11T07:15:00.0000000+02:00",
             "number_of_missed_runs": 0,
+            "interpretation": "OK",
             "warnings": [],
         }
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -12,6 +12,7 @@ class RadarWebSchedulerStatusTests(unittest.TestCase):
             status = read_scheduler_status("AIReleaseRadar_DailyDryReport")
 
         self.assertEqual(status["status"], "NO_DATA")
+        self.assertEqual(status["interpretation"], "NO_DATA")
         self.assertIn("scheduler_status_not_windows", status["warnings"])
 
     def test_windows_runner_success_parses_payload(self):
@@ -37,6 +38,7 @@ class RadarWebSchedulerStatusTests(unittest.TestCase):
 
         self.assertEqual(status["status"], "Ready")
         self.assertEqual(status["last_task_result"], 0)
+        self.assertEqual(status["interpretation"], "OK")
         self.assertTrue(status["read_only"])
 
     def test_windows_runner_failure_is_no_data(self):
@@ -50,6 +52,7 @@ class RadarWebSchedulerStatusTests(unittest.TestCase):
             )
 
         self.assertEqual(status["status"], "NO_DATA")
+        self.assertEqual(status["interpretation"], "NO_DATA")
         self.assertEqual(status["warnings"], ["boom"])
 
 

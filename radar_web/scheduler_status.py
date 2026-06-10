@@ -27,6 +27,7 @@ class SchedulerStatus:
     last_task_result: int | None = None
     next_run_time: str | None = None
     number_of_missed_runs: int | None = None
+    interpretation: str = "NO_DATA"
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
     def to_dict(self) -> dict[str, Any]:
@@ -40,6 +41,7 @@ class SchedulerStatus:
             "last_task_result": self.last_task_result,
             "next_run_time": self.next_run_time,
             "number_of_missed_runs": self.number_of_missed_runs,
+            "interpretation": self.interpretation,
             "warnings": list(self.warnings),
         }
 
@@ -112,14 +114,17 @@ def read_scheduler_status(
         ).to_dict()
     raw_warnings = data.get("warnings")
     warnings = raw_warnings if isinstance(raw_warnings, list) else []
+    status = _string(data.get("status"))
+    last_task_result = _optional_int(data.get("last_task_result"))
     return SchedulerStatus(
-        status=_string(data.get("status")),
+        status=status,
         task_name=_string(data.get("task_name"), default=task_name),
         task_path=_optional_string(data.get("task_path")),
         last_run_time=_optional_string(data.get("last_run_time")),
-        last_task_result=_optional_int(data.get("last_task_result")),
+        last_task_result=last_task_result,
         next_run_time=_optional_string(data.get("next_run_time")),
         number_of_missed_runs=_optional_int(data.get("number_of_missed_runs")),
+        interpretation=_interpret_scheduler(status, last_task_result),
         warnings=tuple(str(item) for item in warnings),
     ).to_dict()
 
@@ -173,3 +178,16 @@ def _optional_string(value: object) -> str | None:
 
 def _optional_int(value: object) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _interpret_scheduler(status: str, last_task_result: int | None) -> str:
+    normalized = status.upper()
+    if normalized == "NO_DATA":
+        return "NO_DATA"
+    if normalized == "READY" and last_task_result == 0:
+        return "OK"
+    if normalized == "RUNNING":
+        return "RUNNING"
+    if last_task_result not in (None, 0):
+        return "REVIEW"
+    return normalized
