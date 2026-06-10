@@ -20,8 +20,13 @@ PASS = "PASS"
 PASS_WITH_WARNINGS = "PASS_WITH_WARNINGS"
 ACTION_REVIEW_REQUIRED = "ACTION_REVIEW_REQUIRED"
 FAIL = "FAIL"
+SCHEDULER_GO = "GO"
+SCHEDULER_GO_WITH_WARNINGS = "GO_WITH_WARNINGS"
+SCHEDULER_HOLD = "HOLD"
+SCHEDULER_STOP = "STOP"
 ALLOWED_ZERO_ITEM_STATUSES = {"NO_CHANGE", "NO_PARSED_ITEMS"}
 FULL_PASS_MIN_PARSED_RATIO = 0.50
+SCHEDULER_HOLD_MAX_LOW_PARSED_RATIO = 0.25
 HIGH_UNSUPPORTED_RATIO = 0.50
 HIGH_MONITOR_ONLY_RATIO = 0.75
 
@@ -38,12 +43,14 @@ class AutomationGateResult:
     failures: list[str]
     warnings: list[str]
     required_outputs: dict[str, str]
+    scheduler_readiness_recommendation: str
 
     def to_dict(self) -> dict[str, object]:
         return {
             "schema_version": 1,
             "status": self.status,
             "recommendation": self.recommendation,
+            "scheduler_readiness_recommendation": self.scheduler_readiness_recommendation,
             "output_dir": self.output_dir,
             "summary_path": self.summary_path,
             "metrics": dict(self.metrics),
@@ -105,6 +112,10 @@ def render_automation_gate_markdown(gate: AutomationGateResult) -> str:
         "",
         f"- [F] automation_gate_status: {gate.status}.",
         f"- [F] recommendation: {gate.recommendation}",
+        (
+            "- [F] scheduler_readiness_recommendation: "
+            f"{gate.scheduler_readiness_recommendation}"
+        ),
         f"- [F] output_dir: {gate.output_dir}",
         f"- [F] run_summary: {gate.summary_path or 'missing'}",
         "",
@@ -144,6 +155,11 @@ def _build_result(
         failures=failures,
         warnings=warnings,
         required_outputs=required_outputs,
+        scheduler_readiness_recommendation=_scheduler_readiness_recommendation(
+            metrics,
+            failures,
+            warnings,
+        ),
     )
 
 
@@ -169,6 +185,31 @@ def _recommendation(status: str) -> str:
     if status == PASS_WITH_WARNINGS:
         return "Controlled daily simulation can continue, but scheduler readiness remains held."
     return "No gate blockers detected; keep human approval before scheduler activation."
+
+
+def _scheduler_readiness_recommendation(
+    metrics: dict[str, object],
+    failures: list[str],
+    warnings: list[str],
+) -> str:
+    if failures:
+        return SCHEDULER_STOP
+    source_count = _metric_int(metrics, "source_count")
+    unsupported_count = _metric_int(metrics, "unsupported_source_count")
+    parsed_ratio = float(metrics.get("parsed_ratio") or 0.0)
+    if _metric_int(metrics, "parsed_count") == 0:
+        return SCHEDULER_STOP
+    if parsed_ratio < SCHEDULER_HOLD_MAX_LOW_PARSED_RATIO:
+        return SCHEDULER_HOLD
+    if _metric_int(metrics, "direct_action_count") > 0:
+        return SCHEDULER_HOLD
+    if _metric_int(metrics, "manual_review_required_count") > 0:
+        return SCHEDULER_HOLD
+    if source_count and unsupported_count / source_count >= HIGH_UNSUPPORTED_RATIO:
+        return SCHEDULER_HOLD
+    if warnings:
+        return SCHEDULER_GO_WITH_WARNINGS
+    return SCHEDULER_GO
 
 
 def _summary_result(summary_data: object) -> dict[str, Any] | None:

@@ -7,6 +7,9 @@ from radar.automation_gate import (
     FAIL,
     PASS,
     PASS_WITH_WARNINGS,
+    SCHEDULER_GO,
+    SCHEDULER_HOLD,
+    SCHEDULER_STOP,
     evaluate_automation_gate,
     render_automation_gate_markdown,
 )
@@ -35,6 +38,7 @@ class AutomationGateTests(unittest.TestCase):
             gate = evaluate_automation_gate(output_dir)
 
             self.assertEqual(gate.status, PASS)
+            self.assertEqual(gate.scheduler_readiness_recommendation, SCHEDULER_GO)
             self.assertEqual(gate.failures, [])
             self.assertEqual(gate.warnings, [])
             self.assertIn("automation_gate_status: PASS", render_automation_gate_markdown(gate))
@@ -57,6 +61,8 @@ class AutomationGateTests(unittest.TestCase):
             gate = evaluate_automation_gate(output_dir)
 
             self.assertEqual(gate.status, PASS_WITH_WARNINGS)
+            self.assertEqual(gate.scheduler_readiness_recommendation, SCHEDULER_HOLD)
+            self.assertEqual(gate.metrics["report_scorecard_status"], "PASS")
             self.assertTrue(
                 any(warning.startswith("low_source_coverage") for warning in gate.warnings)
             )
@@ -81,6 +87,7 @@ class AutomationGateTests(unittest.TestCase):
             gate = evaluate_automation_gate(output_dir)
 
             self.assertEqual(gate.status, FAIL)
+            self.assertEqual(gate.scheduler_readiness_recommendation, SCHEDULER_STOP)
             self.assertIn("parsed_count_zero", gate.failures)
 
     def test_gate_fail_when_compact_report_is_missing(self):
