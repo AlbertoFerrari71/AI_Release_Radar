@@ -20,7 +20,18 @@ function Write-LogLine {
         [string] $Message
     )
     $line = "{0} {1}" -f (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssK"), $Message
-    Add-Content -Path $LogPath -Value $line -Encoding UTF8
+    $encoding = New-Object System.Text.UTF8Encoding($false)
+    for ($attempt = 1; $attempt -le 10; $attempt++) {
+        try {
+            [System.IO.File]::AppendAllText($LogPath, $line + [Environment]::NewLine, $encoding)
+            return
+        } catch [System.IO.IOException] {
+            if ($attempt -eq 10) {
+                throw
+            }
+            Start-Sleep -Milliseconds (200 * $attempt)
+        }
+    }
 }
 
 function Exit-WithCode {
