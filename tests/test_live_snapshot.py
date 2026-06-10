@@ -38,10 +38,33 @@ class LiveSnapshotTests(unittest.TestCase):
             self.assertEqual(result.parsed_count, 2)
             self.assertEqual(result.skipped_count, 0)
             self.assertEqual(result.failed_count, 0)
+            self.assertEqual(
+                {
+                    source["source_id"]: source["parser_status"]
+                    for source in result.source_diagnostics
+                },
+                {
+                    "openai_codex_changelog": "parsed",
+                    "github_api_openai_codex_releases": "parsed",
+                },
+            )
             self.assertTrue(Path(result.run_summary_path).is_file())
             self.assertTrue(Path(result.run_index_entry_path).is_file())
             self.assertTrue((output_dir / RUNS_INDEX_FILENAME).is_file())
             self.assertEqual(len((output_dir / RUNS_INDEX_FILENAME).read_text().splitlines()), 1)
+            summary = read_json(result.run_summary_path)
+            self.assertEqual(summary["sources"], summary["run"]["source_diagnostics"])
+            github_diagnostic = next(
+                source
+                for source in summary["sources"]
+                if source["source_id"] == "github_api_openai_codex_releases"
+            )
+            self.assertEqual(github_diagnostic["source_type"], "github_api")
+            self.assertEqual(github_diagnostic["fetch_status"], "fetched")
+            self.assertEqual(github_diagnostic["http_status_code"], 200)
+            self.assertEqual(github_diagnostic["parser_status"], "parsed")
+            self.assertGreater(github_diagnostic["item_count"], 0)
+            self.assertIsNone(github_diagnostic["error"])
 
             snapshots = [
                 SourceSnapshot.from_dict(read_json(path))
@@ -104,6 +127,14 @@ class LiveSnapshotTests(unittest.TestCase):
             self.assertEqual(result.source_count, 3)
             self.assertEqual(result.parsed_count, 2)
             self.assertEqual(result.skipped_count, 1)
+            unsupported = next(
+                source
+                for source in result.source_diagnostics
+                if source["source_id"] == "openai_codex_skills"
+            )
+            self.assertEqual(unsupported["source_type"], "official_docs")
+            self.assertEqual(unsupported["parser_status"], "parser_skipped_unsupported_source")
+            self.assertEqual(unsupported["item_count"], 0)
 
     def fake_fetcher(self, sources, timeout_seconds=None, max_sources=None, max_bytes=65536):
         results = []

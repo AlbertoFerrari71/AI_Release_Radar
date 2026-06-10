@@ -48,6 +48,7 @@ OPTIONAL_SOURCE_FIELDS = (
     "expected_status_codes",
     "allow_redirects",
     "timeout_seconds",
+    "max_bytes",
     "live_check_enabled",
     "manual_review_required",
 )
@@ -136,6 +137,17 @@ def _optional_float(data: dict[str, Any], field_name: str) -> float | None:
     return float(value)
 
 
+def _optional_positive_int(data: dict[str, Any], field_name: str) -> int | None:
+    value = data.get(field_name)
+    if value is None:
+        return None
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValueError(f"{field_name} must be an integer or null.")
+    if value < 1:
+        raise ValueError(f"{field_name} must be >= 1 when provided.")
+    return value
+
+
 def _validate_https_url(url: str) -> None:
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.netloc:
@@ -160,6 +172,7 @@ class SourceDefinition:
     expected_status_codes: list[int] | None = None
     allow_redirects: bool = True
     timeout_seconds: float | None = None
+    max_bytes: int | None = None
     live_check_enabled: bool = True
     manual_review_required: bool = False
 
@@ -194,6 +207,7 @@ class SourceDefinition:
             ),
             "allow_redirects": self.allow_redirects,
             "timeout_seconds": self.timeout_seconds,
+            "max_bytes": self.max_bytes,
             "live_check_enabled": self.live_check_enabled,
             "manual_review_required": self.manual_review_required,
         }
@@ -216,6 +230,7 @@ class SourceDefinition:
             expected_status_codes=_optional_int_list(raw, "expected_status_codes"),
             allow_redirects=_optional_bool(raw, "allow_redirects", True),
             timeout_seconds=_optional_float(raw, "timeout_seconds"),
+            max_bytes=_optional_positive_int(raw, "max_bytes"),
             live_check_enabled=_optional_bool(raw, "live_check_enabled", True),
             manual_review_required=_optional_bool(raw, "manual_review_required", False),
         )
@@ -280,6 +295,11 @@ def validate_source_definition(source: SourceDefinition) -> None:
             raise ValueError("timeout_seconds must be a number or None.")
         if source.timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be positive when provided.")
+    if source.max_bytes is not None:
+        if not isinstance(source.max_bytes, int) or isinstance(source.max_bytes, bool):
+            raise ValueError("max_bytes must be an integer or None.")
+        if source.max_bytes < 1:
+            raise ValueError("max_bytes must be >= 1 when provided.")
     if not isinstance(source.live_check_enabled, bool):
         raise ValueError("live_check_enabled must be a boolean.")
     if not isinstance(source.manual_review_required, bool):

@@ -29,6 +29,7 @@ RUNS_INDEX_FILENAME = "runs_index.jsonl"
 COMBINED_SOURCE_ID = "0180_real_radar_run"
 COMBINED_PROVIDER = "mixed"
 DEFAULT_REAL_RUN_MAX_BYTES = 5 * 1024 * 1024
+NO_PARSED_ITEMS_STATUS = "NO_PARSED_ITEMS"
 
 
 @dataclass(frozen=True)
@@ -45,12 +46,16 @@ class RealRadarRunResult:
     runs_index: str
     live_snapshot_status: str
     source_count: int
+    parsed_count: int
+    skipped_count: int
+    failed_count: int
     item_count: int
     new_count: int
     changed_count: int
     removed_count: int
     unchanged_count: int
     project_impact_count: int
+    source_diagnostics: list[dict[str, Any]]
     notes: list[str]
 
     def to_dict(self) -> dict[str, Any]:
@@ -65,12 +70,16 @@ class RealRadarRunResult:
             "runs_index": self.runs_index,
             "live_snapshot_status": self.live_snapshot_status,
             "source_count": self.source_count,
+            "parsed_count": self.parsed_count,
+            "skipped_count": self.skipped_count,
+            "failed_count": self.failed_count,
             "item_count": self.item_count,
             "new_count": self.new_count,
             "changed_count": self.changed_count,
             "removed_count": self.removed_count,
             "unchanged_count": self.unchanged_count,
             "project_impact_count": self.project_impact_count,
+            "source_diagnostics": [dict(source) for source in self.source_diagnostics],
             "notes": list(self.notes),
         }
 
@@ -140,7 +149,9 @@ def run_real_radar_report(
         project_impacts=impacts,
         notes=notes,
     )
-    report_status = render_report_status(report_input)
+    live_result_data = live_result.to_dict()
+    source_diagnostics = list(live_result_data.get("source_diagnostics", []))
+    report_status = _real_report_status(report_input, live_result_data)
 
     full_report_path = target_dir / REPORT_FULL_FILENAME
     compact_report_path = target_dir / REPORT_COMPACT_FILENAME
@@ -148,10 +159,18 @@ def run_real_radar_report(
     run_index_entry_path = target_dir / RUN_INDEX_ENTRY_FILENAME
     runs_index_path = target_dir / RUNS_INDEX_FILENAME
 
-    _write_text(full_report_path, _render_real_full_report(report_input, live_result.to_dict()))
+    _write_text(
+        full_report_path,
+        _render_real_full_report(
+            report_input,
+            live_result_data,
+            report_status,
+            source_diagnostics,
+        ),
+    )
     _write_text(
         compact_report_path,
-        _render_real_compact_report(report_input, live_result.to_dict()),
+        _render_real_compact_report(report_input, live_result_data, report_status),
     )
 
     run_index_entry = RunIndexEntry(
@@ -180,12 +199,16 @@ def run_real_radar_report(
         runs_index=str(runs_index_path),
         live_snapshot_status=live_result.status,
         source_count=live_result.source_count,
+        parsed_count=live_result.parsed_count,
+        skipped_count=live_result.skipped_count,
+        failed_count=live_result.failed_count,
         item_count=len(current_snapshot.items),
         new_count=len(diff_result.new_items),
         changed_count=len(diff_result.changed_items),
         removed_count=len(diff_result.removed_items),
         unchanged_count=diff_result.unchanged_count,
         project_impact_count=len(impacts),
+        source_diagnostics=source_diagnostics,
         notes=notes,
     )
     write_json(
@@ -193,12 +216,21 @@ def run_real_radar_report(
         {
             "schema_version": 1,
             "result": result.to_dict(),
-            "live_snapshot": live_result.to_dict(),
+            "live_snapshot": live_result_data,
+            "source_diagnostics": source_diagnostics,
             "diff_result": diff_result.to_dict(),
             "report_status": report_status,
         },
     )
     return result
+
+
+def _real_report_status(report_input: ReportInput, live_result: dict[str, Any]) -> str:
+    source_count = live_result.get("source_count")
+    parsed_count = live_result.get("parsed_count")
+    if isinstance(source_count, int) and source_count > 0 and parsed_count == 0:
+        return NO_PARSED_ITEMS_STATUS
+    return render_report_status(report_input)
 
 
 def _combined_snapshot_from_paths(
@@ -244,14 +276,15 @@ def _run_notes(live_status: str, first_observation: bool) -> list[str]:
 def _render_real_full_report(
     report_input: ReportInput,
     live_result: dict[str, Any],
+    report_status: str,
+    source_diagnostics: list[dict[str, Any]],
 ) -> str:
-    status = render_report_status(report_input)
     lines = [
         f"# AI Release Radar Real Report - {report_input.run_id}",
         "",
         "## 1. Executive Summary",
         "",
-        f"- [F] Report status: {status}.",
+        f"- [F] Report status: {report_status}.",
         f"- [F] Generated at: {report_input.generated_at}.",
         f"- [F] Sources checked: {live_result.get('source_count')}.",
         f"- [F] Live snapshot status: {live_result.get('status')}.",
@@ -274,6 +307,10 @@ def _render_real_full_report(
         f"- [F] Parsed sources: {live_result.get('parsed_count')}.",
         f"- [F] Skipped sources: {live_result.get('skipped_count')}.",
         f"- [F] Failed sources: {live_result.get('failed_count')}.",
+        "",
+        "## 2.1 Source Parser Diagnostics",
+        "",
+        *_render_source_diagnostics(source_diagnostics),
         "",
         "## 3. Observed Items",
         "",
@@ -332,11 +369,12 @@ def _render_real_full_report(
 def _render_real_compact_report(
     report_input: ReportInput,
     live_result: dict[str, Any],
+    report_status: str,
 ) -> str:
     lines = [
         f"# AI Release Radar Compact Real Report - {report_input.run_id}",
         "",
-        f"- [F] status: {render_report_status(report_input)}.",
+        f"- [F] status: {report_status}.",
         f"- [F] sources checked: {live_result.get('source_count')}.",
         f"- [F] parsed sources: {live_result.get('parsed_count')}.",
         f"- [F] items found: {len(report_input.items_by_id)}.",
@@ -360,6 +398,25 @@ def _render_real_compact_report(
         lines.append("- [PROP] No project action before manual review.")
     lines.append("- [PROP] 0190) Review first real radar output and source coverage.")
     return _join_lines(lines)
+
+
+def _render_source_diagnostics(source_diagnostics: list[dict[str, Any]]) -> list[str]:
+    if not source_diagnostics:
+        return ["- [F] No source diagnostics available."]
+    lines: list[str] = []
+    for source in source_diagnostics:
+        error = source.get("error")
+        lines.append(
+            "- [F] "
+            f"`{source.get('source_id')}`; "
+            f"type={source.get('source_type')}; "
+            f"fetch_status={source.get('fetch_status')}; "
+            f"http_status_code={source.get('http_status_code')}; "
+            f"parser_status={source.get('parser_status')}; "
+            f"item_count={source.get('item_count')}; "
+            f"error={error if error is not None else 'none'}."
+        )
+    return lines
 
 
 def _changed_item_ids(report_input: ReportInput) -> list[str]:

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0190) First Real Output Review and Parser Coverage Hardening
+
+- [F] Aggiunto stato `NO_PARSED_ITEMS` per real-run con fonti presenti ma zero fonti parsate. Fonte: `radar/real_run.py`.
+- [F] Aggiunta diagnostica source/parser nei risultati live snapshot e real-run. Fonte: `radar/live_snapshot.py`, `radar/real_run.py`.
+- [F] Aggiunto `max_bytes` opzionale per fonte nel registry e nel fetcher. Fonte: `radar/source_registry.py`, `radar/source_fetcher.py`.
+- [F] Collegata in modo piu' robusto la fonte `github_api_openai_codex_releases` al parser GitHub Releases API tramite limite per-fonte. Fonte: `config/sources/openai_sources.json`, `radar/live_snapshot.py`.
+- [F] Aggiunti test offline per routing GitHub API, zero parsed items, diagnostica e limite per-fonte. Fonte: `tests/test_live_snapshot.py`, `tests/test_real_run.py`, `tests/test_source_fetcher.py`, `tests/test_source_registry.py`.
+- [F] Aggiunta documentazione tecnica e decisione 0190. Fonte: `docs/architecture/0190_FIRST_REAL_OUTPUT_PARSER_COVERAGE_HARDENING.md`, `docs/decisions/0190_DECISIONS.md`.
+- [F] Auto-merge non consentito per step L2. Fonte: `AGENTS.md`, prompt 0190.
+
 ## 0130) Source Fetcher Skeleton Without Parsing
 
 - [F] Aggiunto source fetcher skeleton. Fonte: `radar/source_fetcher.py`.

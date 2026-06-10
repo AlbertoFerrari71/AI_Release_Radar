@@ -149,7 +149,7 @@ def fetch_sources_content(
             result = fetch_source_content(
                 source,
                 timeout_seconds=timeout_seconds,
-                max_bytes=max_bytes,
+                max_bytes=_effective_max_bytes(source, max_bytes),
             )
         except Exception as exc:  # Defensive boundary around one source only.
             result = _result_from_error(source, exc)
@@ -383,6 +383,13 @@ def _validate_max_bytes(max_bytes: int) -> None:
         raise ValueError("max_bytes must be an integer.")
     if max_bytes < 1:
         raise ValueError("max_bytes must be >= 1.")
+
+
+def _effective_max_bytes(source: SourceDefinition, default_max_bytes: int) -> int:
+    if source.max_bytes is None:
+        return default_max_bytes
+    _validate_max_bytes(source.max_bytes)
+    return source.max_bytes
 
 
 def _validate_max_sources(max_sources: int | None) -> None:

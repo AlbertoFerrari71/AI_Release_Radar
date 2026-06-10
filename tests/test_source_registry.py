@@ -41,6 +41,7 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertIsNone(source.expected_status_codes)
         self.assertTrue(source.allow_redirects)
         self.assertIsNone(source.timeout_seconds)
+        self.assertIsNone(source.max_bytes)
         self.assertTrue(source.live_check_enabled)
         self.assertFalse(source.manual_review_required)
 
@@ -50,6 +51,7 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertEqual(source.expected_status_codes, [200])
         self.assertTrue(source.allow_redirects)
         self.assertEqual(source.timeout_seconds, 8.0)
+        self.assertIsNone(source.max_bytes)
         self.assertTrue(source.live_check_enabled)
         self.assertFalse(source.manual_review_required)
 
@@ -58,8 +60,18 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertIsNone(source.expected_status_codes)
         self.assertTrue(source.allow_redirects)
         self.assertIsNone(source.timeout_seconds)
+        self.assertIsNone(source.max_bytes)
         self.assertTrue(source.live_check_enabled)
         self.assertFalse(source.manual_review_required)
+
+    def test_optional_max_bytes_is_loaded_and_serialized(self):
+        source_data = dict(self.valid_source_dict())
+        source_data["max_bytes"] = 5242880
+
+        source = load_source_registry(self.registry_for(source_data))[0]
+
+        self.assertEqual(source.max_bytes, 5242880)
+        self.assertEqual(source.to_dict()["max_bytes"], 5242880)
 
     def test_missing_mandatory_field_fails(self):
         source = self.valid_source_dict()
@@ -105,6 +117,12 @@ class SourceRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "timeout_seconds"):
             load_source_registry(self.registry_for(source))
 
+    def test_invalid_max_bytes_fails(self):
+        source = dict(self.valid_source_dict())
+        source["max_bytes"] = 0
+        with self.assertRaisesRegex(ValueError, "max_bytes"):
+            load_source_registry(self.registry_for(source))
+
     def test_registry_is_sorted_deterministically(self):
         valid = read_json(VALID_FIXTURE_PATH)
         shuffled = dict(valid)
@@ -124,6 +142,8 @@ class SourceRegistryTests(unittest.TestCase):
         source_ids = {source.source_id for source in sources}
         self.assertIn("openai_codex_changelog", source_ids)
         self.assertIn("github_api_openai_codex_releases", source_ids)
+        max_bytes_by_source_id = {source.source_id: source.max_bytes for source in sources}
+        self.assertEqual(max_bytes_by_source_id["github_api_openai_codex_releases"], 5242880)
         self.assertGreaterEqual(len(sources), 11)
 
     def valid_source_dict(self):

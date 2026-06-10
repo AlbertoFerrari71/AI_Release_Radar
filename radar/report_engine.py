@@ -11,7 +11,13 @@ from radar.project_impact import IMPACT_RANK, ProjectImpact
 from radar.scoring import RelevanceScore
 
 
-REPORT_STATUSES = ("NO_CHANGE", "CHANGES_FOUND", "ACTION_RECOMMENDED", "CRITICAL")
+REPORT_STATUSES = (
+    "NO_CHANGE",
+    "NO_PARSED_ITEMS",
+    "CHANGES_FOUND",
+    "ACTION_RECOMMENDED",
+    "CRITICAL",
+)
 NEXT_STEP_RECOMMENDATION = "0090) CLI Dry Run"
 _MISSING_SCORE = -1
 

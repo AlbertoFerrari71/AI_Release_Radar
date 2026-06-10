@@ -284,6 +284,26 @@ class SourceFetcherTests(unittest.TestCase):
             ["source_a", "source_b", "source_c"],
         )
 
+    def test_fetch_sources_content_uses_source_level_max_bytes_when_available(self):
+        sources = [
+            self.source("source_default"),
+            self.source("source_override", max_bytes=64),
+        ]
+        max_bytes_by_source_id = {}
+
+        def fake_fetch(source, timeout_seconds=None, max_bytes=4096):
+            max_bytes_by_source_id[source.source_id] = max_bytes
+            return self.result(source.source_id, ok=True, status_code=200)
+
+        with unittest.mock.patch(
+            "radar.source_fetcher.fetch_source_content",
+            side_effect=fake_fetch,
+        ):
+            fetch_sources_content(sources, timeout_seconds=2.0, max_bytes=16)
+
+        self.assertEqual(max_bytes_by_source_id["source_default"], 16)
+        self.assertEqual(max_bytes_by_source_id["source_override"], 64)
+
     def test_summarize_fetched_sources_counts_core_outcomes(self):
         summary = summarize_fetched_sources(self.sample_results())
 
@@ -387,6 +407,7 @@ class SourceFetcherTests(unittest.TestCase):
         live: bool = True,
         expected_status_codes: list[int] | None = None,
         allow_redirects: bool = True,
+        max_bytes: int | None = None,
     ) -> SourceDefinition:
         return SourceDefinition(
             source_id=source_id,
@@ -402,6 +423,7 @@ class SourceFetcherTests(unittest.TestCase):
             notes="Offline test source.",
             expected_status_codes=expected_status_codes or [200],
             allow_redirects=allow_redirects,
+            max_bytes=max_bytes,
             live_check_enabled=live,
         )
 
