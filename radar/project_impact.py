@@ -18,6 +18,12 @@ IMPACT_RANK: dict[str, int] = {
     "high": 3,
     "critical": 4,
 }
+ACTION_TYPES: tuple[str, ...] = ("direct_action", "monitor_only", "no_action")
+ACTION_TYPE_RANK: dict[str, int] = {
+    "no_action": 0,
+    "monitor_only": 1,
+    "direct_action": 2,
+}
 
 IMAGE_VISION_PROJECTS = {
     "agglodetect",
@@ -28,6 +34,56 @@ IMAGE_VISION_PROJECTS = {
 CODEX_AGENTS_PROJECTS = {
     "ai_software_factory",
     "codex_skills",
+}
+CODEX_WORKFLOW_CATEGORIES = {
+    "codex_agents_md",
+    "codex_app",
+    "codex_cli",
+    "codex_cloud",
+    "codex_mcp",
+    "codex_plugins",
+    "codex_review",
+    "codex_skills",
+    "codex_windows",
+}
+DIRECT_ACTION_CATEGORIES_BY_PROJECT = {
+    "ai_software_factory": CODEX_WORKFLOW_CATEGORIES
+    | {"api_platform", "billing", "deprecation", "security"},
+    "codex_skills": CODEX_WORKFLOW_CATEGORIES | {"security"},
+    "family_photo_organizer": {"image_vision", "security"},
+    "agglodetect": {"image_vision"},
+    "diamsign": {"image_vision", "security"},
+    "controllo_gestione_esolver": {"data_analysis", "security"},
+    "mansionario_vivo": {"security"},
+}
+GENERIC_MONITOR_CATEGORIES = CODEX_WORKFLOW_CATEGORIES | {
+    "api_platform",
+    "deprecation",
+    "gpt_models",
+}
+DIRECT_NEXT_STEP_BY_PROJECT = {
+    "ai_software_factory": (
+        "open a compatibility review only if CLI, sandbox, approvals, "
+        "AGENTS.md, or output formats changed"
+    ),
+    "codex_skills": (
+        "check as-common-codex-* and validator/catalog behavior only if "
+        "commands or runtime behavior changed"
+    ),
+    "family_photo_organizer": (
+        "run the read-only safety checklist only if image, local-file, "
+        "privacy, or permission behavior changed"
+    ),
+    "agglodetect": "run fixture image pipeline tests only when image behavior is confirmed",
+    "diamsign": "review mobile/security assumptions only when vision or security changed",
+    "controllo_gestione_esolver": (
+        "run export or read-only data workflow regression tests only when "
+        "data/Python/VBA behavior changed"
+    ),
+    "mansionario_vivo": (
+        "run FastAPI and deploy-readiness regression tests only when web, "
+        "security, or local automation behavior changed"
+    ),
 }
 
 
@@ -41,9 +97,17 @@ class ProjectImpact:
     impact_level: str
     reasons: list[str]
     suggested_actions: list[str]
+    action_type: str = "direct_action"
+
+    def __post_init__(self) -> None:
+        if self.impact_level not in IMPACT_RANK:
+            raise ValueError(f"unsupported impact_level: {self.impact_level}")
+        if self.action_type not in ACTION_TYPE_RANK:
+            raise ValueError(f"unsupported action_type: {self.action_type}")
 
     def to_dict(self) -> dict[str, object]:
         return {
+            "action_type": self.action_type,
             "impact_level": self.impact_level,
             "item_id": self.item_id,
             "project_key": self.project_key,
@@ -116,6 +180,12 @@ def load_project_map(data: object) -> dict[str, object]:
 def _max_level(current: str, minimum: str) -> str:
     if IMPACT_RANK[minimum] > IMPACT_RANK[current]:
         return minimum
+    return current
+
+
+def _min_level(current: str, maximum: str) -> str:
+    if IMPACT_RANK[maximum] < IMPACT_RANK[current]:
+        return maximum
     return current
 
 
@@ -199,6 +269,94 @@ def _apply_special_rules(
     return impact_level, reasons
 
 
+def _action_type_for_impact(
+    project: dict[str, object],
+    classification: ItemClassification,
+) -> tuple[str, str]:
+    project_key = str(project["project_key"])
+    category = classification.category
+    direct_categories = DIRECT_ACTION_CATEGORIES_BY_PROJECT.get(project_key, set())
+    if category in direct_categories:
+        return "direct_action", f"category {category} is direct for {project_key}"
+    if category == "security" and bool(project["sensitive"]):
+        return "direct_action", "security is direct for sensitive project"
+    if category in GENERIC_MONITOR_CATEGORIES:
+        return "monitor_only", f"category {category} is monitor-only for {project_key}"
+    return "no_action", f"category {category} has no direct action rule for {project_key}"
+
+
+def _adjust_level_for_action_type(impact_level: str, action_type: str) -> tuple[str, list[str]]:
+    if action_type == "direct_action":
+        return impact_level, []
+    if action_type == "monitor_only":
+        adjusted = _min_level(impact_level, "low")
+        if adjusted != impact_level:
+            return adjusted, [f"monitor_only caps impact level from {impact_level} to low"]
+        return adjusted, []
+    adjusted = _min_level(impact_level, "low")
+    if adjusted != impact_level:
+        return adjusted, [f"no_action caps impact level from {impact_level} to low"]
+    return adjusted, []
+
+
+def _actions_for_impact(
+    project: dict[str, object],
+    item: Item,
+    classification: ItemClassification,
+    score: RelevanceScore,
+    action_type: str,
+) -> list[str]:
+    title = _readable_action_item_title(item)
+    project_key = str(project["project_key"])
+    project_name = str(project["project_name"])
+    category = classification.category
+    if action_type == "direct_action":
+        primary_action = str(project["suggested_actions"][0])
+        next_step = DIRECT_NEXT_STEP_BY_PROJECT.get(
+            project_key,
+            "open a scoped compatibility review before changing project code",
+        )
+        return [
+            (
+                f"{title} detected. Direct action for {project_name}: "
+                f"{primary_action}. Reason: {category} matches this project with "
+                f"score {score.score}. Next step: {next_step}."
+            )
+        ]
+    if action_type == "monitor_only":
+        return [
+            (
+                f"{title} detected. Monitor-only for {project_name}: keep the "
+                f"project visible for {category}, but do not open implementation "
+                "work without a direct project signal. Next step: re-check during "
+                "the next manual radar review."
+            )
+        ]
+    return [
+        (
+            f"{title} detected. No project action for {project_name}: {category} "
+            "does not match a direct project rule. Next step: do not open a task "
+            "unless a later source confirms project-specific impact."
+        )
+    ]
+
+
+def _readable_action_item_title(item: object) -> str:
+    title = getattr(item, "title", "")
+    if isinstance(title, str) and title.strip():
+        return title.strip()
+    item_id = getattr(item, "item_id", "unknown item")
+    return f"Untitled radar item {item_id}"
+
+
+def _actions_are_compatible_with_action_type(actions: list[str], action_type: str) -> bool:
+    if action_type == "direct_action":
+        return all("Direct action" in action for action in actions)
+    if action_type == "monitor_only":
+        return all("Monitor-only" in action for action in actions)
+    return all("No project action" in action for action in actions)
+
+
 def impact_item_for_projects(
     item: Item,
     classification: ItemClassification,
@@ -232,18 +390,27 @@ def impact_item_for_projects(
         if impact_level == "none":
             continue
 
+        action_type, action_reason = _action_type_for_impact(project, classification)
+        impact_level, action_level_reasons = _adjust_level_for_action_type(
+            impact_level,
+            action_type,
+        )
         reasons = relevance_reasons + [
             base_reason,
             f"score {score.score}",
             f"severity {classification.severity}",
-        ] + special_reasons
-        actions = list(project["suggested_actions"])
+            action_reason,
+        ] + special_reasons + action_level_reasons
+        actions = _actions_for_impact(project, item, classification, score, action_type)
+        if not _actions_are_compatible_with_action_type(actions, action_type):
+            raise ValueError("suggested actions must match action_type.")
         impacts.append(
             ProjectImpact(
                 item_id=item.item_id,
                 project_key=str(project["project_key"]),
                 project_name=str(project["project_name"]),
                 impact_level=impact_level,
+                action_type=action_type,
                 reasons=reasons,
                 suggested_actions=actions,
             )
@@ -275,6 +442,7 @@ def _sort_impacts(impacts: list[ProjectImpact]) -> list[ProjectImpact]:
         key=lambda impact: (
             impact.item_id,
             -IMPACT_RANK[impact.impact_level],
+            -ACTION_TYPE_RANK[impact.action_type],
             impact.project_key,
         ),
     )

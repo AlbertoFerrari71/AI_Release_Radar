@@ -175,6 +175,8 @@ class CliTests(unittest.TestCase):
 
             self.assertEqual(code, 0)
             self.assertIn("AI Release Radar real run completed", stdout.getvalue())
+            self.assertIn(cli.REAL_RUN_NEXT_STEP_RECOMMENDATION, stdout.getvalue())
+            self.assertNotIn("0190) Review first real radar output", stdout.getvalue())
             self.assertEqual(run_mock.call_args.args[0], str(cli.DEFAULT_SOURCE_REGISTRY_PATH))
             self.assertEqual(run_mock.call_args.kwargs["timeout_seconds"], 30.0)
             self.assertEqual(run_mock.call_args.kwargs["max_sources"], 11)

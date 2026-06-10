@@ -3,7 +3,7 @@
 ## Decisioni Tecniche
 
 - [F] Il mapping impatto progetto e' implementato in `radar/project_impact.py`. Fonte: `radar/project_impact.py`.
-- [F] `ProjectImpact` contiene `item_id`, `project_key`, `project_name`, `impact_level`, `reasons` e `suggested_actions`. Fonte: `radar/project_impact.py`.
+- [F] `ProjectImpact` contiene `item_id`, `project_key`, `project_name`, `impact_level`, `action_type`, `reasons` e `suggested_actions`. Fonte: `radar/project_impact.py`.
 - [F] `ProjectImpact` e' esportato da `radar/__init__.py`. Fonte: `radar/__init__.py`.
 - [F] Le fixture 0070 sono in `examples/fixtures/0070_*`. Fonte: `examples/fixtures/0070_project_map.json`, `examples/fixtures/0070_impact_items.json`, `examples/fixtures/0070_impact_classifications.json`, `examples/fixtures/0070_impact_scores.json`, `examples/fixtures/0070_impact_expected.json`.
 
@@ -20,7 +20,9 @@
 - [F] Il livello impatto usa severita' classificata e score di rilevanza. Fonte: `radar/project_impact.py`.
 - [F] I livelli sono ordinati come `critical > high > medium > low > none`. Fonte: `radar/project_impact.py`.
 - [F] Gli impatti `none` non sono inclusi nell'output finale. Fonte: `radar/project_impact.py`.
-- [F] L'output e' ordinato in modo deterministico per `item_id`, `impact_level` e `project_key`. Fonte: `radar/project_impact.py`.
+- [F] L'output e' ordinato in modo deterministico per `item_id`, `impact_level`, `action_type` e `project_key`. Fonte: `radar/project_impact.py`.
+- [F] Dal passaggio V1.1 0260, `action_type` distingue `direct_action`, `monitor_only` e `no_action`. Fonte: `radar/project_impact.py`.
+- [INT] Questa distinzione riduce azioni forti su progetti dove il segnale e' solo generico. Fonte: `radar/project_impact.py`, `tests/test_project_impact.py`.
 
 ## Gestione Progetti Sensibili
 

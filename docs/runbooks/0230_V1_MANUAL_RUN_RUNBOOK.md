@@ -14,6 +14,7 @@
 - [F] Il profilo manuale mantiene `--output-dir` obbligatorio. Fonte: `radar/cli.py`.
 - [F] Il profilo manuale imposta 11 fonti massime, timeout 30 secondi e `max_bytes` 2000000 quando quei parametri sono omessi. Fonte: `radar/cli.py`.
 - [F] Il run scrive full report, compact report, run summary, run index entry e `runs_index.jsonl`. Fonte: `radar/real_run.py`.
+- [F] Il run summary include scorecard, conteggi `direct_action`, `monitor_only`, `no_action` e conteggio fonti unsupported. Fonte: `radar/real_run.py`.
 
 ## Cosa Non Fa Ancora
 
@@ -49,6 +50,7 @@ python -m radar.cli real-run --profile manual --output-dir $out
 ## Come Leggere Il Compact Report
 
 - [F] Il compact report mostra status, conteggi source, conteggi item, top item e top action. Fonte: `radar/real_run.py`.
+- [F] Il compact report mostra lo stato scorecard. Fonte: `radar/real_run.py`.
 - [F] Le azioni top usano titolo e URL quando disponibili, non solo `item_id`. Fonte: `radar/real_run.py`, `tests/test_real_run.py`.
 - [INT] Usare il compact report per decidere se aprire il full report e quali progetti controllare per primi. Fonte: `radar/real_run.py`.
 
@@ -56,7 +58,15 @@ python -m radar.cli real-run --profile manual --output-dir $out
 
 - [F] Il full report include executive summary, note run, source diagnostics, item osservati, impatti progetto, rischi e prossimo step. Fonte: `radar/real_run.py`.
 - [F] Ogni item osservato mostra titolo/versione, provider, `source_id`, URL, data pubblicazione, categoria, severita' e score quando disponibili. Fonte: `radar/real_run.py`, `tests/test_real_run.py`.
-- [F] La diagnostica source mostra `fetch_status`, HTTP status, `parser_status`, item count ed errore. Fonte: `radar/live_snapshot.py`, `radar/real_run.py`.
+- [F] La diagnostica source mostra `diagnostic_status`, `manual_review_required`, `fetch_status`, HTTP status, `parser_status`, `error_code`, item count e follow-up. Fonte: `radar/live_snapshot.py`, `radar/real_run.py`.
+- [F] Il full report include `Report Review Scorecard`. Fonte: `radar/real_run.py`, `radar/report_scorecard.py`.
+
+## Come Leggere Gli Action Type
+
+- [F] `direct_action` indica un segnale diretto per il progetto. Fonte: `radar/project_impact.py`.
+- [F] `monitor_only` mantiene il progetto visibile ma non apre lavoro implementativo senza segnale diretto. Fonte: `radar/project_impact.py`.
+- [F] `no_action` indica che non va aperto un task di progetto. Fonte: `radar/project_impact.py`.
+- [INT] Per una release Codex generica, progetti non-Codex possono restare monitor-only invece di ricevere azioni tecniche forti. Fonte: `radar/project_impact.py`, `tests/test_project_impact.py`.
 
 ## Interpretazione Status
 
@@ -69,14 +79,22 @@ python -m radar.cli real-run --profile manual --output-dir $out
 ## Fonti 403
 
 - [F] Una fonte che restituisce HTTP 403 viene trattata come fetch non riuscito o unexpected status nel percorso live. Fonte: `radar/source_fetcher.py`, `radar/live_snapshot.py`.
+- [F] La diagnostica V1.1 marca 401/403 come `manual_review_required`. Fonte: `radar/live_snapshot.py`, `tests/test_live_snapshot.py`.
 - [INT] Se una fonte 403 non blocca tutte le fonti, leggere `source_diagnostics` e non interpretare automaticamente il run come falso verde. Fonte: `radar/live_snapshot.py`, `radar/real_run.py`.
 - [PROP] Per fonti 403 ripetute, valutare registry note, source alternativa strutturata o esclusione temporanea in uno step dedicato.
 
 ## Parser Unsupported
 
 - [F] Le fonti non supportate sono marcate `parser_skipped_unsupported_source`. Fonte: `radar/live_snapshot.py`.
+- [F] La diagnostica V1.1 espone `fetched_but_unsupported` per fonti fetchate ma non parsate. Fonte: `radar/live_snapshot.py`.
 - [F] Molte fonti OpenAI HTML restano fetchate ma non parsate. Fonte: `docs/architecture/0190_FIRST_REAL_OUTPUT_PARSER_COVERAGE_HARDENING.md`.
 - [PROP] Prima di introdurre un parser HTML live, preferire una fonte machine-readable o un parser conservativo con fixture offline.
+
+## Scorecard E Confronto
+
+- [F] La scorecard valuta titoli, link fonte, parsed source count, source diagnostics, azioni progetto, top actions, noise control e next step. Fonte: `radar/report_scorecard.py`.
+- [F] Il confronto offline V1/V1.1 e' disponibile in `radar/run_comparison.py`. Fonte: `radar/run_comparison.py`.
+- [INT] Usare il confronto per verificare se V1.1 riduce azioni dirette generiche e rende esplicite le azioni monitor-only.
 
 ## Checklist Prima Dello Scheduler
 
@@ -84,12 +102,11 @@ python -m radar.cli real-run --profile manual --output-dir $out
 - [PROP] Prima dello scheduler verificare: output Bridge stabile, `runs_index.jsonl` valido, zero falsi verdi, gestione 403 documentata, parser coverage sufficiente, test full PASS, runbook aggiornato.
 - [PROP] Lo scheduler deve restare fuori scope finche' un prompt dedicato non autorizza L3.
 
-## Criteri Per 0240-0270
+## Criteri Dopo V1.1
 
-- [PROP] 0240 dovrebbe decidere una priorita' tra parser coverage e source registry quality.
-- [PROP] 0250 dovrebbe aggiungere una utility operativa di lettura indice o report storico se serve a uso manuale.
-- [PROP] 0260 dovrebbe consolidare smoke live ripetibili fuori repo.
-- [PROP] 0270 dovrebbe preparare il readiness gate per scheduler, senza attivarlo.
+- [PROP] 0310 dovrebbe rivedere un real-run V1.1 fuori repo e confrontarlo con la baseline V1.
+- [PROP] Se il confronto mostra rumore residuo alto, privilegiare parser/source coverage prima dello scheduler.
+- [PROP] Se il confronto e' buono, preparare un readiness gate scheduler dedicato senza attivarlo nello stesso step.
 
 ## Limiti Noti
 

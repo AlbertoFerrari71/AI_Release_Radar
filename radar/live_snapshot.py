@@ -269,18 +269,65 @@ def _source_summary(
     item_count: int,
     error: str | None,
 ) -> dict[str, Any]:
+    diagnostic_status = _source_diagnostic_status(source, fetched, parser_status)
     return {
         "source_id": source.source_id,
         "provider": source.provider,
         "source_type": source.source_type,
+        "manual_review_required": source.manual_review_required,
+        "diagnostic_status": diagnostic_status,
         "fetch_status": fetched.status if fetched is not None else "missing",
         "http_status_code": (
             fetched.http_status_code or fetched.status_code if fetched is not None else None
         ),
         "parser_status": parser_status,
+        "error_code": fetched.error_code if fetched is not None else None,
         "item_count": item_count,
+        "recommended_follow_up": _source_follow_up(diagnostic_status),
         "error": error,
     }
+
+
+def _source_diagnostic_status(
+    source: SourceDefinition,
+    fetched: FetchedSourceContent | None,
+    parser_status: str,
+) -> str:
+    if parser_status == "parsed":
+        return "parsed"
+    if fetched is None:
+        return "fetch_failed"
+    if _fetch_requires_manual_review(fetched) or source.manual_review_required:
+        return "manual_review_required"
+    if not fetched.ok:
+        return "fetch_failed"
+    if parser_status == "parser_skipped_unsupported_source":
+        return "fetched_but_unsupported"
+    if parser_status == "parser_skipped_truncated":
+        return "fetched_but_truncated"
+    if parser_status == "parser_skipped_no_content":
+        return "fetched_but_empty"
+    if parser_status == "parser_failed":
+        return "parser_failed"
+    return "not_parsed"
+
+
+def _fetch_requires_manual_review(fetched: FetchedSourceContent) -> bool:
+    http_status = fetched.http_status_code or fetched.status_code
+    return http_status in {401, 403}
+
+
+def _source_follow_up(diagnostic_status: str) -> str:
+    follow_up = {
+        "parsed": "use_parsed_items",
+        "fetched_but_unsupported": "keep_diagnostic_no_parser",
+        "manual_review_required": "manual_review_source",
+        "fetch_failed": "check_fetch_status_before_parser_work",
+        "fetched_but_truncated": "increase_limit_only_if_source_is_priority",
+        "fetched_but_empty": "check_source_manually",
+        "parser_failed": "fix_parser_or_fixture_before_trusting_source",
+    }
+    return follow_up.get(diagnostic_status, "no_automated_action")
 
 
 def _run_status(*, source_count: int, failed_count: int, errors: list[str]) -> str:

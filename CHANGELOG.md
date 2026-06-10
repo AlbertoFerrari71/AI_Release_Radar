@@ -1,5 +1,16 @@
 # Changelog
 
+## 0240-0300) Actionable Radar V1.1
+
+- [F] Aggiunta matrice di priorita' fonti e decisione V1.1 su fonti P0/P1/P2/P3. Fonte: `docs/architecture/0240_SOURCE_COVERAGE_PRIORITIZATION.md`.
+- [F] Rafforzate source diagnostics con `diagnostic_status`, `manual_review_required`, `error_code` e follow-up deterministico. Fonte: `radar/live_snapshot.py`, `tests/test_live_snapshot.py`.
+- [F] Migliorata qualita' project impact con `action_type` separato da `impact_level`. Fonte: `radar/project_impact.py`, `tests/test_project_impact.py`.
+- [F] Migliorate le azioni consigliate con titolo, motivo di rilevanza e prossimo passo. Fonte: `radar/project_impact.py`.
+- [F] Aggiunta report scorecard offline e integrazione nel real-run. Fonte: `radar/report_scorecard.py`, `radar/real_run.py`, `tests/test_report_scorecard.py`.
+- [F] Aggiunto confronto offline V1/V1.1 per run summary. Fonte: `radar/run_comparison.py`, `tests/test_run_comparison.py`.
+- [F] Aggiunti closure pack e decisioni V1.1. Fonte: `docs/architecture/0300_ACTIONABLE_RADAR_V1_1_CLOSURE_PACK.md`, `docs/decisions/0300_DECISIONS.md`.
+- [F] Nessuno scheduler, nessuna nuova dipendenza, nessun LLM automatico e nessun `LAST-*` o `latest-*` introdotto. Fonte: `radar/real_run.py`, `pyproject.toml`, `tests/`.
+
 ## 0200-0230) V1 Manual Run Stabilization
 
 - [F] Migliorata leggibilita' dei report reali full e compact con titolo/versione, source label, provider, URL, data, categoria, severita', score e motivi di impatto. Fonte: `radar/real_run.py`, `tests/test_real_run.py`.

@@ -14,6 +14,11 @@ from radar.live_snapshot import FetchSourcesCallable, run_live_snapshot
 from radar.models import RunIndexEntry, SourceSnapshot
 from radar.project_impact import impact_scores_for_projects, load_project_map
 from radar.report_engine import ReportInput, render_report_status
+from radar.report_scorecard import (
+    ReportScorecard,
+    evaluate_report_scorecard,
+    render_scorecard_markdown,
+)
 from radar.run_index import append_run_index_entry
 from radar.scoring import score_diff_items
 from radar.source_fetcher import fetch_sources_content
@@ -30,6 +35,9 @@ COMBINED_SOURCE_ID = "0180_real_radar_run"
 COMBINED_PROVIDER = "mixed"
 DEFAULT_REAL_RUN_MAX_BYTES = 5 * 1024 * 1024
 NO_PARSED_ITEMS_STATUS = "NO_PARSED_ITEMS"
+REAL_RUN_NEXT_STEP_RECOMMENDATION = (
+    "0300) Review Actionable Radar V1.1 closure before any scheduler work."
+)
 
 
 @dataclass(frozen=True)
@@ -55,6 +63,11 @@ class RealRadarRunResult:
     removed_count: int
     unchanged_count: int
     project_impact_count: int
+    direct_action_count: int
+    monitor_only_action_count: int
+    no_action_count: int
+    unsupported_source_count: int
+    report_scorecard_status: str
     source_diagnostics: list[dict[str, Any]]
     notes: list[str]
 
@@ -79,6 +92,16 @@ class RealRadarRunResult:
             "removed_count": self.removed_count,
             "unchanged_count": self.unchanged_count,
             "project_impact_count": self.project_impact_count,
+            "direct_action_count": self.direct_action_count,
+            "monitor_only_action_count": self.monitor_only_action_count,
+            "no_action_count": self.no_action_count,
+            "unsupported_source_count": self.unsupported_source_count,
+            "project_action_counts": {
+                "direct_action": self.direct_action_count,
+                "monitor_only": self.monitor_only_action_count,
+                "no_action": self.no_action_count,
+            },
+            "report_scorecard_status": self.report_scorecard_status,
             "source_diagnostics": [dict(source) for source in self.source_diagnostics],
             "notes": list(self.notes),
         }
@@ -152,6 +175,14 @@ def run_real_radar_report(
     live_result_data = live_result.to_dict()
     source_diagnostics = list(live_result_data.get("source_diagnostics", []))
     report_status = _real_report_status(report_input, live_result_data)
+    project_action_counts = _project_action_counts(impacts)
+    unsupported_source_count = _unsupported_source_count(source_diagnostics)
+    report_scorecard = evaluate_report_scorecard(
+        report_input,
+        live_result=live_result_data,
+        source_diagnostics=source_diagnostics,
+        next_step=REAL_RUN_NEXT_STEP_RECOMMENDATION,
+    )
 
     full_report_path = target_dir / REPORT_FULL_FILENAME
     compact_report_path = target_dir / REPORT_COMPACT_FILENAME
@@ -166,11 +197,17 @@ def run_real_radar_report(
             live_result_data,
             report_status,
             source_diagnostics,
+            report_scorecard,
         ),
     )
     _write_text(
         compact_report_path,
-        _render_real_compact_report(report_input, live_result_data, report_status),
+        _render_real_compact_report(
+            report_input,
+            live_result_data,
+            report_status,
+            report_scorecard,
+        ),
     )
 
     run_index_entry = RunIndexEntry(
@@ -220,6 +257,11 @@ def run_real_radar_report(
         removed_count=len(diff_result.removed_items),
         unchanged_count=diff_result.unchanged_count,
         project_impact_count=len(impacts),
+        direct_action_count=project_action_counts["direct_action"],
+        monitor_only_action_count=project_action_counts["monitor_only"],
+        no_action_count=project_action_counts["no_action"],
+        unsupported_source_count=unsupported_source_count,
+        report_scorecard_status=report_scorecard.status,
         source_diagnostics=source_diagnostics,
         notes=notes,
     )
@@ -232,6 +274,7 @@ def run_real_radar_report(
             "source_diagnostics": source_diagnostics,
             "diff_result": diff_result.to_dict(),
             "report_status": report_status,
+            "report_scorecard": report_scorecard.to_dict(),
         },
     )
     return result
@@ -243,6 +286,28 @@ def _real_report_status(report_input: ReportInput, live_result: dict[str, Any]) 
     if isinstance(source_count, int) and source_count > 0 and parsed_count == 0:
         return NO_PARSED_ITEMS_STATUS
     return render_report_status(report_input)
+
+
+def _project_action_counts(impacts: list[Any]) -> dict[str, int]:
+    counts = {
+        "direct_action": 0,
+        "monitor_only": 0,
+        "no_action": 0,
+    }
+    for impact in impacts:
+        action_type = getattr(impact, "action_type", None)
+        if action_type in counts:
+            counts[action_type] += 1
+    return counts
+
+
+def _unsupported_source_count(source_diagnostics: list[dict[str, Any]]) -> int:
+    return sum(
+        1
+        for source in source_diagnostics
+        if source.get("diagnostic_status") == "fetched_but_unsupported"
+        or source.get("parser_status") == "parser_skipped_unsupported_source"
+    )
 
 
 def _combined_snapshot_from_paths(
@@ -290,6 +355,7 @@ def _render_real_full_report(
     live_result: dict[str, Any],
     report_status: str,
     source_diagnostics: list[dict[str, Any]],
+    report_scorecard: ReportScorecard,
 ) -> str:
     lines = [
         f"# AI Release Radar Real Report - {report_input.run_id}",
@@ -319,6 +385,7 @@ def _render_real_full_report(
         f"- [F] Parsed sources: {live_result.get('parsed_count')}.",
         f"- [F] Skipped sources: {live_result.get('skipped_count')}.",
         f"- [F] Failed sources: {live_result.get('failed_count')}.",
+        f"- [F] Source diagnostic statuses: {_diagnostic_count_line(source_diagnostics)}.",
         "",
         "## 2.1 Source Parser Diagnostics",
         "",
@@ -364,6 +431,7 @@ def _render_real_full_report(
                     f"- [F] {impact.project_name}: {impact.impact_level} impact for {item_ref}.",
                     f"  - [F] project_key: {impact.project_key}.",
                     f"  - [F] item_id: `{impact.item_id}`.",
+                    f"  - [F] action_type: {impact.action_type}.",
                     f"  - [F] score: {score.score if score is not None else 'n/a'}.",
                     f"  - [INT] impact_reason: {'; '.join(impact.reasons)}.",
                     f"  - [PROP] recommended_actions: {'; '.join(impact.suggested_actions)}.",
@@ -381,9 +449,13 @@ def _render_real_full_report(
             "- [F] Unsupported sources are skipped rather than parsed heuristically.",
             "- [INT] First observation reports treat all parsed items as new when no previous snapshot is provided.",
             "",
-            "## 6. Recommended Next Codex Step",
+            "## 6. Report Review Scorecard",
             "",
-            "- [PROP] 0240) Decide the next manual V1 hardening step before any scheduler work.",
+            *render_scorecard_markdown(report_scorecard),
+            "",
+            "## 7. Recommended Next Codex Step",
+            "",
+            f"- [PROP] {REAL_RUN_NEXT_STEP_RECOMMENDATION}",
         ]
     )
     return _join_lines(lines)
@@ -393,11 +465,13 @@ def _render_real_compact_report(
     report_input: ReportInput,
     live_result: dict[str, Any],
     report_status: str,
+    report_scorecard: ReportScorecard,
 ) -> str:
     lines = [
         f"# AI Release Radar Compact Real Report - {report_input.run_id}",
         "",
         f"- [F] status: {report_status}.",
+        f"- [F] scorecard: {report_scorecard.status}.",
         f"- [F] sources checked: {live_result.get('source_count')}.",
         f"- [F] parsed sources: {live_result.get('parsed_count')}.",
         f"- [F] items found: {len(report_input.items_by_id)}.",
@@ -441,11 +515,12 @@ def _render_real_compact_report(
             lines.append(
                 f"- [PROP] {impact.project_name}: {impact.suggested_actions[0]} "
                 f"for {item_ref} ({impact.impact_level}; "
+                f"{impact.action_type}; "
                 f"score {score.score if score is not None else 'n/a'}; reason: {reason})."
             )
     else:
         lines.append("- [PROP] No project action before manual review.")
-    lines.append("- [PROP] 0240) Decide the next manual V1 hardening step before any scheduler work.")
+    lines.append(f"- [PROP] {REAL_RUN_NEXT_STEP_RECOMMENDATION}")
     return _join_lines(lines)
 
 
@@ -461,13 +536,27 @@ def _render_source_diagnostics(source_diagnostics: list[dict[str, Any]]) -> list
             f"{_source_label(source_id)} (`{source_id}`); "
             f"provider={source.get('provider')}; "
             f"type={source.get('source_type')}; "
+            f"diagnostic_status={source.get('diagnostic_status')}; "
+            f"manual_review_required={source.get('manual_review_required')}; "
             f"fetch_status={source.get('fetch_status')}; "
             f"http_status_code={source.get('http_status_code')}; "
             f"parser_status={source.get('parser_status')}; "
+            f"error_code={source.get('error_code')}; "
             f"item_count={source.get('item_count')}; "
+            f"follow_up={source.get('recommended_follow_up')}; "
             f"error={error if error is not None else 'none'}."
         )
     return lines
+
+
+def _diagnostic_count_line(source_diagnostics: list[dict[str, Any]]) -> str:
+    if not source_diagnostics:
+        return "none"
+    counts: dict[str, int] = {}
+    for source in source_diagnostics:
+        status = str(source.get("diagnostic_status") or "unknown")
+        counts[status] = counts.get(status, 0) + 1
+    return "; ".join(f"{status}={counts[status]}" for status in sorted(counts))
 
 
 def _readable_item_title(item: object) -> str:
