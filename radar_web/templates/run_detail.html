@@ -51,6 +51,14 @@
           <span class="label">prompt suggestions</span>
           <strong>{{ run.prompt_suggestions_count }}</strong>
         </article>
+        <article class="metric">
+          <span class="label">suggestions status</span>
+          <strong>{{ detail.prompt_suggestions_status }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">no auto-action</span>
+          <strong>{{ detail.no_auto_action }}</strong>
+        </article>
       </section>
 
       <div class="detail-grid">
@@ -119,6 +127,20 @@
               <li>
                 <span class="item-title">{{ action.title }}</span>
                 <span class="item-meta">{{ action.target_project }} · {{ action.risk_class }} · {{ action.reason }}</span>
+              </li>
+              {% else %}
+              <li>NO_DATA</li>
+              {% endfor %}
+            </ul>
+          </section>
+
+          <section class="panel">
+            <h2>Blocked Actions</h2>
+            <ul class="item-list">
+              {% for action in detail.blocked_actions %}
+              <li>
+                <span class="item-title">{{ action.title }}</span>
+                <span class="item-meta">{{ action.triage_class }} · {{ action.target_project }} · {{ action.reason }}</span>
               </li>
               {% else %}
               <li>NO_DATA</li>

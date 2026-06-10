@@ -45,6 +45,7 @@ class RunCandidate:
     parsed_count: int | None = None
     direct_action_count: int = 0
     monitor_only_action_count: int = 0
+    blocked_action_count: int = 0
     manual_review_queue_count: int = 0
     prompt_suggestions_count: int = 0
     files: dict[str, str] = field(default_factory=dict)
@@ -67,6 +68,7 @@ class RunCandidate:
             "parsed_count": self.parsed_count,
             "direct_action_count": self.direct_action_count,
             "monitor_only_action_count": self.monitor_only_action_count,
+            "blocked_action_count": self.blocked_action_count,
             "manual_review_queue_count": self.manual_review_queue_count,
             "prompt_suggestions_count": self.prompt_suggestions_count,
             "files": dict(self.files),
@@ -133,6 +135,12 @@ def load_run_detail(runs_root: str | Path, run_id: str) -> dict[str, Any] | None
             for entry in triage_entries
             if _mapping(entry).get("triage_class") == "codex_prompt_candidate"
         ],
+        "blocked_actions": [
+            entry
+            for entry in triage_entries
+            if _mapping(entry).get("triage_class")
+            in {"blocked_by_coverage", "blocked_by_manual_review"}
+        ],
         "monitor_only_summary": [
             entry for entry in triage_entries if _mapping(entry).get("triage_class") == "monitor"
         ],
@@ -186,6 +194,7 @@ def _candidate_from_dir(run_dir: Path) -> RunCandidate:
     daily_quality = _mapping(summary_data.get("daily_quality_gate_v2"))
     action_triage = _mapping(summary_data.get("action_triage"))
     prompt_suggestions = _mapping(summary_data.get("prompt_suggestions"))
+    triage_counts = _mapping(action_triage.get("counts"))
     index_path = run_dir / "runs_index.jsonl"
     if index_path.exists():
         try:
@@ -215,6 +224,10 @@ def _candidate_from_dir(run_dir: Path) -> RunCandidate:
         parsed_count=_int_or_none(real_run.get("parsed_count")),
         direct_action_count=_int(real_run.get("direct_action_count")),
         monitor_only_action_count=_int(real_run.get("monitor_only_action_count")),
+        blocked_action_count=(
+            _int(triage_counts.get("blocked_by_coverage"))
+            + _int(triage_counts.get("blocked_by_manual_review"))
+        ),
         manual_review_queue_count=_int(summary_data.get("manual_review_queue_count")),
         prompt_suggestions_count=_int(
             summary_data.get("prompt_suggestions_count")

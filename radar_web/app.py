@@ -93,6 +93,7 @@ def create_app(config: DashboardConfig | None = None) -> FastAPI:
         detail = _run_detail_or_404(dashboard_config, run_id)
         return {
             "hag_report": detail["hag_report"],
+            "blocked_actions": detail["blocked_actions"],
             "prompt_suggestions": detail["prompt_suggestions"],
             "prompt_suggestions_status": detail["prompt_suggestions_status"],
             "no_auto_action": detail["no_auto_action"],

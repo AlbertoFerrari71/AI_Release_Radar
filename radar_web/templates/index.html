@@ -69,9 +69,37 @@
               <dt>prompt suggestions</dt>
               <dd>{{ latest.prompt_suggestions_count if latest else 0 }}</dd>
             </div>
+            <div>
+              <dt>blocked actions</dt>
+              <dd>{{ latest.blocked_action_count if latest else 0 }}</dd>
+            </div>
           </dl>
         </div>
 
+        <div class="panel">
+          <h2>Human Approval Gate</h2>
+          <dl class="facts">
+            <div>
+              <dt>HAG status</dt>
+              <dd><span class="badge {{ latest.hag_status | status_class if latest else 'status-no-data' }}">{{ latest.hag_status if latest else 'NO_DATA' }}</span></dd>
+            </div>
+            <div>
+              <dt>suggestions</dt>
+              <dd>suggested_only</dd>
+            </div>
+            <div>
+              <dt>no auto-action</dt>
+              <dd>true</dd>
+            </div>
+            <div>
+              <dt>blocked</dt>
+              <dd>{{ latest.blocked_action_count if latest else 0 }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="split">
         <div class="panel">
           <h2>Scheduler</h2>
           <dl class="facts">
@@ -111,6 +139,7 @@
                 <th>quality</th>
                 <th>sources</th>
                 <th>actions</th>
+                <th>blocked</th>
                 <th>review</th>
                 <th>prompts</th>
               </tr>
@@ -124,12 +153,13 @@
                 <td><span class="badge {{ run.daily_quality_gate_status | status_class }}">{{ run.daily_quality_gate_status }}</span></td>
                 <td>{{ run.parsed_count if run.parsed_count is not none else 'n/a' }}/{{ run.source_count if run.source_count is not none else 'n/a' }}</td>
                 <td>{{ run.direct_action_count }}</td>
+                <td>{{ run.blocked_action_count }}</td>
                 <td>{{ run.manual_review_queue_count }}</td>
                 <td>{{ run.prompt_suggestions_count }}</td>
               </tr>
               {% else %}
               <tr>
-                <td colspan="8" class="empty">NO_DATA</td>
+                <td colspan="9" class="empty">NO_DATA</td>
               </tr>
               {% endfor %}
             </tbody>
