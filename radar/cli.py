@@ -11,6 +11,7 @@ from radar.live_url_check import (
     check_sources_live,
     verification_results_to_dict,
 )
+from radar.live_snapshot import run_live_snapshot as run_live_snapshot_workflow
 from radar.report_engine import (
     ReportInput,
     load_report_input,
@@ -41,6 +42,9 @@ CHECK_URLS_NEXT_STEP_RECOMMENDATION = (
 )
 FETCH_SOURCES_NEXT_STEP_RECOMMENDATION = (
     "0140) Source Fetcher Review and Content Safety Hardening"
+)
+LIVE_SNAPSHOT_NEXT_STEP_RECOMMENDATION = (
+    "0180) First Real Radar Report - Manual Run"
 )
 
 
@@ -160,6 +164,23 @@ def run_fetch_sources(
     }
 
 
+def run_live_snapshot(
+    source_registry: str,
+    output_dir: str,
+    timeout_seconds: float | None = None,
+    max_sources: int | None = None,
+    max_bytes: int = 65536,
+) -> dict[str, object]:
+    """Run explicit controlled live snapshot generation."""
+    return run_live_snapshot_workflow(
+        source_registry=source_registry,
+        output_dir=output_dir,
+        timeout_seconds=timeout_seconds,
+        max_sources=max_sources,
+        max_bytes=max_bytes,
+    ).to_dict()
+
+
 def build_summary(
     *,
     status: str,
@@ -232,6 +253,29 @@ def build_fetch_sources_summary(
         f"Results JSON: {results_json}",
         f"Summary: {summary}",
         f"Next step: {FETCH_SOURCES_NEXT_STEP_RECOMMENDATION}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_live_snapshot_summary(result_data: object) -> str:
+    """Build the console summary for controlled live snapshot generation."""
+    if not isinstance(result_data, dict):
+        raise ValueError("result_data must be a dict.")
+    lines = [
+        "AI Release Radar live snapshot completed",
+        "Mode: explicit live read-only snapshot generation",
+        f"Status: {result_data.get('status')}",
+        f"Run ID: {result_data.get('run_id')}",
+        f"Sources: {result_data.get('source_count')}",
+        f"Snapshots: {result_data.get('snapshot_count')}",
+        f"Parsed: {result_data.get('parsed_count')}",
+        f"Skipped: {result_data.get('skipped_count')}",
+        f"Failed: {result_data.get('failed_count')}",
+        f"Output dir: {result_data.get('output_dir')}",
+        f"Run summary: {result_data.get('run_summary_path')}",
+        f"Run index entry: {result_data.get('run_index_entry_path')}",
+        f"Runs index: {result_data.get('runs_index_path')}",
+        f"Next step: {LIVE_SNAPSHOT_NEXT_STEP_RECOMMENDATION}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -321,6 +365,38 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=4096,
         help="Maximum number of response body bytes to read per source.",
     )
+    live_snapshot = subparsers.add_parser(
+        "live-snapshot",
+        help="Run explicit live read-only snapshot generation from a source registry.",
+    )
+    live_snapshot.add_argument(
+        "--source-registry",
+        required=True,
+        help=f"Source registry JSON path. Default project registry: {DEFAULT_SOURCE_REGISTRY_PATH}",
+    )
+    live_snapshot.add_argument(
+        "--output-dir",
+        required=True,
+        help="Explicit outside-repository directory where live snapshot outputs are written.",
+    )
+    live_snapshot.add_argument(
+        "--max-sources",
+        type=int,
+        default=None,
+        help="Optional maximum number of enabled registry sources to snapshot.",
+    )
+    live_snapshot.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=None,
+        help="Optional per-source timeout in seconds. Registry value or safe default is used when omitted.",
+    )
+    live_snapshot.add_argument(
+        "--max-bytes",
+        type=int,
+        default=65536,
+        help="Maximum number of response body bytes to read per source.",
+    )
     return parser
 
 
@@ -360,6 +436,16 @@ def main(argv: list[str] | None = None) -> int:
             )
             summary = Path(result["summary"]).read_text(encoding="utf-8")
             sys.stdout.write(summary)
+            return 0
+        if args.command == "live-snapshot":
+            result = run_live_snapshot(
+                args.source_registry,
+                args.output_dir,
+                timeout_seconds=args.timeout_seconds,
+                max_sources=args.max_sources,
+                max_bytes=args.max_bytes,
+            )
+            sys.stdout.write(build_live_snapshot_summary(result))
             return 0
         parser.error(f"unsupported command: {args.command}")
     except SystemExit as exc:

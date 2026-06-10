@@ -2,6 +2,7 @@ import inspect
 import io
 import tempfile
 import unittest
+import unittest.mock
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
@@ -21,11 +22,17 @@ class CliTests(unittest.TestCase):
         parser = cli.build_arg_parser()
         self.assertIn("dry-run", parser.format_help())
         self.assertIn("check-urls", parser.format_help())
+        self.assertIn("live-snapshot", parser.format_help())
         stdout = io.StringIO()
         with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
             parser.parse_args(["dry-run", "--help"])
         self.assertEqual(exc.exception.code, 0)
         self.assertIn("--output-dir", stdout.getvalue())
+        stdout = io.StringIO()
+        with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
+            parser.parse_args(["live-snapshot", "--help"])
+        self.assertEqual(exc.exception.code, 0)
+        self.assertIn("--source-registry", stdout.getvalue())
 
     def test_main_dry_run_returns_zero(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -57,6 +64,43 @@ class CliTests(unittest.TestCase):
                     )
             self.assertEqual(code, 0)
             self.assertIn("AI Release Radar live URL check completed", stdout.getvalue())
+
+    def test_main_live_snapshot_with_mock_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stdout = io.StringIO()
+            with unittest.mock.patch.object(
+                cli,
+                "run_live_snapshot",
+                return_value={
+                    "run_id": "0170-test",
+                    "status": "success",
+                    "source_count": 1,
+                    "snapshot_count": 1,
+                    "parsed_count": 1,
+                    "skipped_count": 0,
+                    "failed_count": 0,
+                    "output_dir": tmp,
+                    "run_summary_path": str(Path(tmp) / "0170-Live_Snapshot_Run_Summary.json"),
+                    "run_index_entry_path": str(
+                        Path(tmp) / "0170-Live_Snapshot_Run_Index_Entry.json"
+                    ),
+                    "runs_index_path": str(Path(tmp) / "runs_index.jsonl"),
+                },
+            ):
+                with redirect_stdout(stdout):
+                    code = cli.main(
+                        [
+                            "live-snapshot",
+                            "--source-registry",
+                            str(REPO_ROOT / "config" / "sources" / "openai_sources.json"),
+                            "--output-dir",
+                            tmp,
+                            "--max-sources",
+                            "1",
+                        ]
+                    )
+            self.assertEqual(code, 0)
+            self.assertIn("AI Release Radar live snapshot completed", stdout.getvalue())
 
     def test_dry_run_creates_full_compact_and_summary(self):
         with tempfile.TemporaryDirectory() as tmp:
