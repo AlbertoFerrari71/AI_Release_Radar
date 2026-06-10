@@ -1,0 +1,58 @@
+[
+  {
+    "id": 140,
+    "tag_name": "v0.140.0",
+    "name": "Codex CLI v0.140.0",
+    "html_url": "https://github.com/openai/codex/releases/tag/v0.140.0",
+    "url": "https://api.github.com/repos/openai/codex/releases/140",
+    "published_at": "2026-06-10T08:00:00Z",
+    "created_at": "2026-06-10T07:30:00Z",
+    "updated_at": "2026-06-10T09:00:00Z",
+    "body": "Adds safer agent workflow defaults and improves CLI diagnostics.",
+    "draft": false,
+    "prerelease": false,
+    "target_commitish": "main"
+  },
+  {
+    "id": 139,
+    "tag_name": "v0.139.0-beta.1",
+    "name": null,
+    "html_url": "https://github.com/openai/codex/releases/tag/v0.139.0-beta.1",
+    "url": "https://api.github.com/repos/openai/codex/releases/139",
+    "published_at": "2026-06-09T08:00:00Z",
+    "created_at": "2026-06-09T07:30:00Z",
+    "updated_at": "2026-06-09T09:00:00Z",
+    "body": null,
+    "draft": false,
+    "prerelease": true,
+    "target_commitish": "main"
+  },
+  {
+    "id": 141,
+    "tag_name": "v0.141.0-draft",
+    "name": "Codex CLI v0.141.0 draft",
+    "html_url": "https://github.com/openai/codex/releases/tag/v0.141.0-draft",
+    "url": "https://api.github.com/repos/openai/codex/releases/141",
+    "published_at": null,
+    "created_at": "2026-06-11T06:00:00Z",
+    "updated_at": "2026-06-11T07:00:00Z",
+    "body": "Draft release notes for fixture coverage.",
+    "draft": true,
+    "prerelease": false,
+    "target_commitish": "main"
+  },
+  {
+    "id": 140,
+    "tag_name": "v0.140.0",
+    "name": "Codex CLI v0.140.0 duplicate older copy",
+    "html_url": "https://github.com/openai/codex/releases/tag/v0.140.0",
+    "url": "https://api.github.com/repos/openai/codex/releases/140",
+    "published_at": "2026-06-10T08:00:00Z",
+    "created_at": "2026-06-10T07:30:00Z",
+    "updated_at": "2026-06-10T08:30:00Z",
+    "body": "Older duplicate fixture entry.",
+    "draft": false,
+    "prerelease": false,
+    "target_commitish": "main"
+  }
+]
