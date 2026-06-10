@@ -70,6 +70,32 @@ class RadarWebAppTests(unittest.TestCase):
                 self.assertEqual(len(runs), 1)
                 self.assertIn("AI Release Radar", client.get("/").text)
 
+    def test_operator_smoke_covers_run_detail_and_sub_endpoints(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            run_id = next((bridge / "runs").iterdir()).name
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+
+                endpoints = [
+                    "/",
+                    "/health",
+                    "/api/status",
+                    "/api/runs",
+                    f"/runs/{run_id}",
+                    f"/api/runs/{run_id}",
+                    f"/api/runs/{run_id}/compact",
+                    f"/api/runs/{run_id}/gate",
+                    f"/api/runs/{run_id}/hag",
+                    f"/api/runs/{run_id}/dashboard",
+                    "/api/scheduler",
+                ]
+                for endpoint in endpoints:
+                    with self.subTest(endpoint=endpoint):
+                        response = client.get(endpoint)
+                        self.assertEqual(response.status_code, 200)
+
     def test_manual_trigger_uses_only_daily_sim_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             bridge = Path(tmpdir) / "bridge"
