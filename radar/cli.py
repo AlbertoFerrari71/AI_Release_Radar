@@ -282,6 +282,9 @@ def run_daily_sim(
         "daily_sim_summary": str(summary_path),
         "automation_gate_json": str(gate_json_path),
         "automation_gate_markdown": str(gate_markdown_path),
+        "manual_review_queue": gate.manual_review_queue,
+        "manual_review_queue_count": len(gate.manual_review_queue),
+        "scheduler_readiness_recommendation": gate.scheduler_readiness_recommendation,
         "real_run": result,
         "automation_gate": gate.to_dict(),
         "scheduler_activated": False,
@@ -469,8 +472,14 @@ def build_daily_sim_summary(result_data: object) -> str:
         f"Monitor-only actions: {real_run.get('monitor_only_action_count')}",
         f"Manual review required: {gate_metrics.get('manual_review_required_count')}",
         f"Unsupported sources: {real_run.get('unsupported_source_count')}",
+        f"Manual review queue: {result_data.get('manual_review_queue_count')}",
+        f"Report scorecard: {gate_metrics.get('report_scorecard_status')}",
         f"Automation gate: {result_data.get('automation_gate_status')}",
         f"Recommendation: {result_data.get('recommendation')}",
+        (
+            "Scheduler readiness: "
+            f"{result_data.get('scheduler_readiness_recommendation')}"
+        ),
         f"Output dir: {result_data.get('output_dir')}",
         f"Run summary: {real_run.get('run_summary')}",
         f"Gate report: {result_data.get('automation_gate_markdown')}",

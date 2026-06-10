@@ -265,6 +265,38 @@ class AutomationGateTests(unittest.TestCase):
             self.assertEqual(gate.status, PASS_WITH_WARNINGS)
             self.assertIn("manual_review_required_present: count=3", gate.warnings)
 
+    def test_gate_includes_manual_review_queue(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = self.write_run_output(
+                Path(tmp),
+                result_overrides={
+                    "source_count": 3,
+                    "parsed_count": 1,
+                    "manual_review_required_count": 1,
+                    "unsupported_source_count": 1,
+                    "direct_action_count": 1,
+                    "monitor_only_action_count": 0,
+                    "no_action_count": 1,
+                },
+                diagnostics=[
+                    self.diagnostic("parsed"),
+                    self.diagnostic("manual_review_required", manual=True),
+                    self.diagnostic("fetched_but_unsupported", coverage_priority="P1"),
+                ],
+            )
+
+            gate = evaluate_automation_gate(output_dir)
+            markdown = render_automation_gate_markdown(gate)
+
+            self.assertEqual(gate.status, ACTION_REVIEW_REQUIRED)
+            self.assertEqual(gate.metrics["manual_review_queue_count"], 3)
+            self.assertEqual(len(gate.manual_review_queue), 3)
+            self.assertTrue(
+                any(entry["reason"] == "direct_actions_present" for entry in gate.manual_review_queue)
+            )
+            self.assertIn("## Manual Review Queue", markdown)
+            self.assertIn("reason=manual_review_required", markdown)
+
     def write_run_output(
         self,
         root: Path,
@@ -357,6 +389,7 @@ class AutomationGateTests(unittest.TestCase):
         *,
         manual: bool = False,
         http_status_code: int = 200,
+        coverage_priority: str = "P3",
     ) -> dict[str, object]:
         return {
             "source_id": f"source_{status}",
@@ -370,6 +403,9 @@ class AutomationGateTests(unittest.TestCase):
             "error_code": None,
             "item_count": 1 if status == "parsed" else 0,
             "recommended_follow_up": "test",
+            "registry_recommended_follow_up": "keep_diagnostic_no_parser",
+            "coverage_priority": coverage_priority,
+            "scheduler_readiness": "hold",
             "error": None,
         }
 

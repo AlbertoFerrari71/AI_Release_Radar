@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from radar.json_utils import read_json
+from radar.manual_review_queue import build_manual_review_queue
 from radar.run_index import validate_run_index
 
 
@@ -44,6 +45,7 @@ class AutomationGateResult:
     warnings: list[str]
     required_outputs: dict[str, str]
     scheduler_readiness_recommendation: str
+    manual_review_queue: list[dict[str, object]]
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -57,6 +59,7 @@ class AutomationGateResult:
             "failures": list(self.failures),
             "warnings": list(self.warnings),
             "required_outputs": dict(self.required_outputs),
+            "manual_review_queue": [dict(entry) for entry in self.manual_review_queue],
         }
 
 
@@ -100,8 +103,22 @@ def evaluate_automation_gate(
     _check_required_outputs(required_outputs, failures)
     _check_run_index(required_outputs.get("runs_index"), failures)
     _check_metric_rules(metrics, failures, warnings)
+    manual_review_queue = build_manual_review_queue(
+        result=result,
+        source_diagnostics=source_diagnostics,
+        metrics=metrics,
+    )
+    metrics["manual_review_queue_count"] = len(manual_review_queue)
 
-    return _build_result(target_dir, summary_path, metrics, failures, warnings, required_outputs)
+    return _build_result(
+        target_dir,
+        summary_path,
+        metrics,
+        failures,
+        warnings,
+        required_outputs,
+        manual_review_queue,
+    )
 
 
 def render_automation_gate_markdown(gate: AutomationGateResult) -> str:
@@ -134,6 +151,20 @@ def render_automation_gate_markdown(gate: AutomationGateResult) -> str:
         lines.extend(f"- [F] {warning}" for warning in gate.warnings)
     else:
         lines.append("- [F] none")
+    lines.extend(["", "## Manual Review Queue", ""])
+    if gate.manual_review_queue:
+        for entry in gate.manual_review_queue:
+            lines.append(
+                "- [F] "
+                f"type={entry.get('type')}; "
+                f"source_id={entry.get('source_id')}; "
+                f"reason={entry.get('reason')}; "
+                f"severity={entry.get('severity')}; "
+                f"blocking_for_scheduler={entry.get('blocking_for_scheduler')}; "
+                f"recommended_follow_up={entry.get('recommended_follow_up')}."
+            )
+    else:
+        lines.append("- [F] none")
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
@@ -144,6 +175,7 @@ def _build_result(
     failures: list[str],
     warnings: list[str],
     required_outputs: dict[str, str],
+    manual_review_queue: list[dict[str, object]] | None = None,
 ) -> AutomationGateResult:
     status = _status_from_findings(metrics, failures, warnings)
     return AutomationGateResult(
@@ -160,6 +192,7 @@ def _build_result(
             failures,
             warnings,
         ),
+        manual_review_queue=list(manual_review_queue or []),
     )
 
 
@@ -422,6 +455,7 @@ def _empty_metrics() -> dict[str, object]:
         "report_scorecard_status": None,
         "source_diagnostic_count": 0,
         "parsed_ratio": 0.0,
+        "manual_review_queue_count": 0,
     }
 
 
