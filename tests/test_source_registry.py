@@ -44,6 +44,12 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertIsNone(source.max_bytes)
         self.assertTrue(source.live_check_enabled)
         self.assertFalse(source.manual_review_required)
+        self.assertEqual(source.parser_strategy, "unsupported_diagnostic")
+        self.assertEqual(source.coverage_priority, "P3")
+        self.assertEqual(source.expected_failure_mode, "html_unsupported")
+        self.assertEqual(source.recommended_follow_up, "keep_diagnostic_no_parser")
+        self.assertFalse(source.machine_readable_preferred)
+        self.assertEqual(source.scheduler_readiness, "hold")
 
     def test_new_format_registry_valid(self):
         fixture = read_json(HARDENING_FIXTURE_PATH)["new_format_registry"]
@@ -54,6 +60,9 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertIsNone(source.max_bytes)
         self.assertTrue(source.live_check_enabled)
         self.assertFalse(source.manual_review_required)
+        self.assertEqual(source.parser_strategy, "unsupported_diagnostic")
+        self.assertEqual(source.coverage_priority, "P3")
+        self.assertEqual(source.scheduler_readiness, "hold")
 
     def test_optional_fields_have_sensible_defaults(self):
         source = SourceDefinition.from_dict(self.valid_source_dict())
@@ -63,6 +72,12 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertIsNone(source.max_bytes)
         self.assertTrue(source.live_check_enabled)
         self.assertFalse(source.manual_review_required)
+        self.assertEqual(source.parser_strategy, "unsupported_diagnostic")
+        self.assertEqual(source.coverage_priority, "P3")
+        self.assertEqual(source.expected_failure_mode, "html_unsupported")
+        self.assertEqual(source.recommended_follow_up, "keep_diagnostic_no_parser")
+        self.assertFalse(source.machine_readable_preferred)
+        self.assertEqual(source.scheduler_readiness, "hold")
 
     def test_optional_max_bytes_is_loaded_and_serialized(self):
         source_data = dict(self.valid_source_dict())
@@ -123,6 +138,12 @@ class SourceRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "max_bytes"):
             load_source_registry(self.registry_for(source))
 
+    def test_invalid_registry_quality_metadata_fails(self):
+        source = dict(self.valid_source_dict())
+        source["parser_strategy"] = "html_css_selector"
+        with self.assertRaisesRegex(ValueError, "parser_strategy"):
+            load_source_registry(self.registry_for(source))
+
     def test_registry_is_sorted_deterministically(self):
         valid = read_json(VALID_FIXTURE_PATH)
         shuffled = dict(valid)
@@ -142,8 +163,45 @@ class SourceRegistryTests(unittest.TestCase):
         source_ids = {source.source_id for source in sources}
         self.assertIn("openai_codex_changelog", source_ids)
         self.assertIn("github_api_openai_codex_releases", source_ids)
+        for source in sources:
+            self.assertIn(source.parser_strategy, {
+                "codex_changelog_markdown",
+                "future_candidate",
+                "github_api_releases",
+                "manual_review_only",
+                "unsupported_diagnostic",
+            })
+            self.assertIn(source.coverage_priority, {"P0", "P1", "P2", "P3"})
+            self.assertIn(source.scheduler_readiness, {"ready", "warn", "hold"})
+            self.assertTrue(source.expected_failure_mode)
+            self.assertTrue(source.recommended_follow_up)
         max_bytes_by_source_id = {source.source_id: source.max_bytes for source in sources}
         self.assertEqual(max_bytes_by_source_id["github_api_openai_codex_releases"], 5242880)
+        parser_strategy_by_source_id = {
+            source.source_id: source.parser_strategy for source in sources
+        }
+        coverage_priority_by_source_id = {
+            source.source_id: source.coverage_priority for source in sources
+        }
+        scheduler_readiness_by_source_id = {
+            source.source_id: source.scheduler_readiness for source in sources
+        }
+        self.assertEqual(
+            parser_strategy_by_source_id["github_api_openai_codex_releases"],
+            "github_api_releases",
+        )
+        self.assertEqual(
+            coverage_priority_by_source_id["github_api_openai_codex_releases"],
+            "P0",
+        )
+        self.assertEqual(
+            scheduler_readiness_by_source_id["github_api_openai_codex_releases"],
+            "ready",
+        )
+        self.assertEqual(
+            parser_strategy_by_source_id["openai_codex_changelog"],
+            "codex_changelog_markdown",
+        )
         self.assertGreaterEqual(len(sources), 11)
 
     def valid_source_dict(self):
