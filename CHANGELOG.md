@@ -1,5 +1,15 @@
 # Changelog
 
+## 0320-0400) Automation Readiness and Daily Run Simulation
+
+- [F] Aggiunta pianificazione Source Coverage V1.2 e decisione documentata sulla seconda fonte strutturata senza parser HTML fragile. Fonte: `docs/architecture/0320_SOURCE_COVERAGE_V1_2_PLANNING.md`, `docs/architecture/0330_SECOND_STRUCTURED_SOURCE_CANDIDATE.md`.
+- [F] Aggiunto automation run contract e Bridge retrieval contract. Fonte: `docs/architecture/0340_AUTOMATION_RUN_CONTRACT.md`, `docs/architecture/0370_BRIDGE_RETRIEVAL_CONTRACT.md`.
+- [F] Aggiunto comando `daily-sim` per simulazione controllata senza scheduler. Fonte: `radar/cli.py`, `tests/test_cli.py`.
+- [F] Aggiunto automation gate deterministico con failure injection offline. Fonte: `radar/automation_gate.py`, `tests/test_automation_gate.py`.
+- [F] Aggiunta readiness review 0390 e closure pack 0400. Fonte: `docs/reviews/0390_DAILY_RUN_READINESS_REVIEW.md`, `docs/architecture/0400_AUTOMATION_READINESS_CLOSURE_PACK.md`, `docs/decisions/0400_DECISIONS.md`.
+- [F] Nessuno scheduler, task Windows, LLM automatico, nuova dipendenza, `LAST-*` o `latest-*` introdotto. Fonte: `radar/cli.py`, `pyproject.toml`, `AGENTS.md`.
+- [PROP] Prossimo blocco consigliato: `0410) Source Coverage V1.2 Implementation`. Fonte: `docs/decisions/0400_DECISIONS.md`.
+
 ## 0310) Manual V1.1 Real Smoke Review
 
 - [F] Aggiunta review del run reale V1.1 prodotto fuori repository. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.

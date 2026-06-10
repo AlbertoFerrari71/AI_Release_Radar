@@ -26,12 +26,20 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [INT] Dopo la review 0310, la scorecard PASS va letta come qualita' report, non come readiness scheduler o copertura fonti sufficiente. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.
 - [PROP] Il prossimo blocco consigliato e' source coverage V1.2 prima dello scheduler. Fonte: `docs/decisions/0310_DECISIONS.md`.
 
+## Automation readiness simulation
+
+- [F] `daily-sim` esegue una simulazione daily controllata senza creare scheduler. Fonte: `radar/cli.py`.
+- [F] `daily-sim` genera una directory datata fuori repository e valuta `automation_gate_status`. Fonte: `radar/cli.py`, `radar/automation_gate.py`.
+- [F] Il closure pack 0400 conclude `HOLD` per scheduler reale e consente solo simulazione controllata con review umana. Fonte: `docs/architecture/0400_AUTOMATION_READINESS_CLOSURE_PACK.md`, `docs/reviews/0390_DAILY_RUN_READINESS_REVIEW.md`.
+- [PROP] Il prossimo blocco consigliato e' `0410) Source Coverage V1.2 Implementation`. Fonte: `docs/decisions/0400_DECISIONS.md`.
+
 ## Comandi principali
 
 ```powershell
 python -m radar.cli --help
 python -m radar.cli real-run --help
 python -m radar.cli real-run --profile manual --output-dir "<directory-fuori-repo>"
+python -m radar.cli daily-sim --output-root "<Bridge-runs-fuori-repo>"
 ```
 
 - [F] Non esiste scheduler attivo nella V1 manuale. Fonte: `radar/cli.py`, `AGENTS.md`.
