@@ -7,6 +7,9 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 import radar.cli as cli
+from radar.json_utils import read_json, write_json
+from radar.models import RunIndexEntry
+from radar.run_index import append_run_index_entry
 from radar.url_verifier import UrlVerificationResult
 
 
@@ -227,6 +230,49 @@ class CliTests(unittest.TestCase):
             self.assertEqual(run_mock.call_args.kwargs["timeout_seconds"], 30.0)
             self.assertEqual(run_mock.call_args.kwargs["max_sources"], 11)
             self.assertEqual(run_mock.call_args.kwargs["max_bytes"], 2_000_000)
+
+    def test_run_daily_sim_propagates_gate_warnings_and_manual_review_queue(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with unittest.mock.patch.object(
+                cli,
+                "run_real_run",
+                side_effect=self.write_action_review_required_real_run,
+            ):
+                result = cli.run_daily_sim(
+                    output_root=tmp,
+                    stamp="20260610_130000",
+                )
+
+            self.assertEqual(result["automation_gate_status"], "ACTION_REVIEW_REQUIRED")
+            self.assertEqual(result["scheduler_activated"], False)
+            self.assertEqual(result["windows_task_created"], False)
+            self.assertEqual(result["llm_called"], False)
+            self.assertEqual(result["scheduler_readiness_recommendation"], "HOLD")
+            self.assertGreater(result["manual_review_queue_count"], 0)
+            self.assertTrue(Path(result["daily_sim_summary"]).is_file())
+            self.assertTrue(Path(result["automation_gate_json"]).is_file())
+            self.assertTrue(Path(result["automation_gate_markdown"]).is_file())
+            gate = read_json(result["automation_gate_json"])
+            self.assertEqual(gate["status"], "ACTION_REVIEW_REQUIRED")
+            self.assertGreater(gate["metrics"]["manual_review_queue_count"], 0)
+            self.assertTrue(
+                any(
+                    warning.startswith("low_source_coverage")
+                    for warning in gate["warnings"]
+                )
+            )
+            self.assertTrue(
+                any(
+                    entry["reason"] == "direct_actions_present"
+                    for entry in gate["manual_review_queue"]
+                )
+            )
+            summary = read_json(result["daily_sim_summary"])
+            self.assertEqual(summary["manual_review_queue_count"], result["manual_review_queue_count"])
+            self.assertEqual(
+                summary["scheduler_readiness_recommendation"],
+                "HOLD",
+            )
 
     def test_main_daily_sim_with_mock_returns_zero(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -478,6 +524,125 @@ class CliTests(unittest.TestCase):
             final_url="https://developers.openai.com/codex/changelog",
             error=None,
         )
+
+    def write_action_review_required_real_run(self, source_registry, output_dir, **kwargs):
+        target_dir = Path(output_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        result = {
+            "run_id": "0180-daily-sim-action-review",
+            "status": "CHANGES_FOUND",
+            "output_dir": str(target_dir),
+            "report_full": str(target_dir / "0180-Report_Full.md"),
+            "report_compact": str(target_dir / "0180-Report_Compact.md"),
+            "run_summary": str(target_dir / "0180-Run_Summary.json"),
+            "run_index_entry": str(target_dir / "0180-Run_Index_Entry.json"),
+            "runs_index": str(target_dir / "runs_index.jsonl"),
+            "live_snapshot_status": "success",
+            "source_count": 11,
+            "parsed_count": 1,
+            "skipped_count": 10,
+            "failed_count": 0,
+            "item_count": 10,
+            "new_count": 10,
+            "changed_count": 0,
+            "removed_count": 0,
+            "unchanged_count": 0,
+            "project_impact_count": 60,
+            "direct_action_count": 10,
+            "monitor_only_action_count": 50,
+            "no_action_count": 0,
+            "unsupported_source_count": 9,
+            "manual_review_required_count": 1,
+            "report_scorecard_status": "PASS",
+        }
+        diagnostics = [
+            {
+                "source_id": "github_api_openai_codex_releases",
+                "provider": "github",
+                "source_type": "github_api",
+                "manual_review_required": False,
+                "diagnostic_status": "parsed",
+                "fetch_status": "fetched",
+                "http_status_code": 200,
+                "parser_status": "parsed",
+                "error_code": None,
+                "item_count": 10,
+                "recommended_follow_up": "use_parsed_items",
+                "registry_recommended_follow_up": "use_parsed_items_after_gate",
+                "coverage_priority": "P0",
+                "scheduler_readiness": "ready",
+                "error": None,
+            },
+            {
+                "source_id": "openai_release_notes_hub",
+                "provider": "openai",
+                "source_type": "official_release_notes",
+                "manual_review_required": True,
+                "diagnostic_status": "manual_review_required",
+                "fetch_status": "rejected",
+                "http_status_code": 403,
+                "parser_status": "fetch_failed",
+                "error_code": "unexpected_status",
+                "item_count": 0,
+                "recommended_follow_up": "manual_review_source",
+                "registry_recommended_follow_up": "manual_review_source",
+                "coverage_priority": "P2",
+                "scheduler_readiness": "hold",
+                "error": "unexpected_status:403",
+            },
+            *[
+                {
+                    "source_id": f"unsupported_source_{index}",
+                    "provider": "openai",
+                    "source_type": "official_docs",
+                    "manual_review_required": False,
+                    "diagnostic_status": "fetched_but_unsupported",
+                    "fetch_status": "fetched",
+                    "http_status_code": 200,
+                    "parser_status": "parser_skipped_unsupported_source",
+                    "error_code": None,
+                    "item_count": 0,
+                    "recommended_follow_up": "keep_diagnostic_no_parser",
+                    "registry_recommended_follow_up": "keep_diagnostic_no_parser",
+                    "coverage_priority": "P3",
+                    "scheduler_readiness": "hold",
+                    "error": None,
+                }
+                for index in range(1, 10)
+            ],
+        ]
+        Path(result["report_full"]).write_text("full report\n", encoding="utf-8")
+        Path(result["report_compact"]).write_text("compact report\n", encoding="utf-8")
+        entry = RunIndexEntry(
+            run_id=str(result["run_id"]),
+            step="0180",
+            status=str(result["status"]),
+            started_at="2026-06-10T13:00:00Z",
+            finished_at="2026-06-10T13:00:00Z",
+            duration_seconds=0.0,
+            report_full=str(result["report_full"]),
+            report_compact=str(result["report_compact"]),
+            snapshot_dir=str(target_dir),
+            notes="Daily sim CLI test fixture.",
+            source_count=int(result["source_count"]),
+            parsed_count=int(result["parsed_count"]),
+            item_count=int(result["item_count"]),
+            failed_count=int(result["failed_count"]),
+            skipped_count=int(result["skipped_count"]),
+            timestamp="2026-06-10T13:00:00Z",
+        )
+        write_json(result["run_index_entry"], entry)
+        append_run_index_entry(result["runs_index"], entry)
+        write_json(
+            result["run_summary"],
+            {
+                "schema_version": 1,
+                "result": result,
+                "source_diagnostics": diagnostics,
+                "report_scorecard": {"status": "PASS"},
+            },
+        )
+        return result
 
 
 if __name__ == "__main__":
