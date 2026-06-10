@@ -6,8 +6,10 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from radar_web.config import DashboardConfig, default_config
 from radar_web.models import ApiMessage, DashboardStatus
@@ -17,6 +19,9 @@ from radar_web.run_locator import find_latest_run, list_recent_runs, load_run_de
 def create_app(config: DashboardConfig | None = None) -> FastAPI:
     """Create the local dashboard app."""
     dashboard_config = config or default_config()
+    package_root = Path(__file__).resolve().parent
+    templates = Jinja2Templates(directory=str(package_root / "templates"))
+    templates.env.filters["status_class"] = status_class
     app = FastAPI(
         title="AI Release Radar Local Dashboard",
         version="0.1.0",
@@ -24,20 +29,24 @@ def create_app(config: DashboardConfig | None = None) -> FastAPI:
         redoc_url=None,
     )
     app.state.dashboard_config = dashboard_config
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(package_root / "static")),
+        name="static",
+    )
 
     @app.get("/", response_class=HTMLResponse)
-    def index() -> str:
-        status = build_status(dashboard_config).to_dict()
-        latest = status.get("latest_run") or {}
-        latest_run_id = latest.get("run_id", "NO_DATA") if isinstance(latest, dict) else "NO_DATA"
-        latest_status = latest.get("status", "NO_DATA") if isinstance(latest, dict) else "NO_DATA"
-        return (
-            "<!doctype html><html><head><title>AI Release Radar</title></head>"
-            "<body><h1>AI Release Radar</h1>"
-            f"<p>Latest run: {latest_run_id}</p>"
-            f"<p>Status: {latest_status}</p>"
-            '<p><a href="/api/status">API status</a></p>'
-            "</body></html>"
+    def index(request: Request) -> Any:
+        runs = list_recent_runs(dashboard_config.runs_root, limit=20)
+        status = build_status(dashboard_config, runs=runs).to_dict()
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            {
+                "status": status,
+                "latest": status.get("latest_run"),
+                "runs": [run.to_dict() for run in runs],
+            },
         )
 
     @app.get("/health")
@@ -108,10 +117,14 @@ def create_app(config: DashboardConfig | None = None) -> FastAPI:
     return app
 
 
-def build_status(config: DashboardConfig) -> DashboardStatus:
+def build_status(
+    config: DashboardConfig,
+    *,
+    runs: list[Any] | None = None,
+) -> DashboardStatus:
     """Build a top-level read-only dashboard status."""
-    runs = list_recent_runs(config.runs_root, limit=20)
-    latest = runs[0].to_dict() if runs else None
+    recent_runs = runs if runs is not None else list_recent_runs(config.runs_root, limit=20)
+    latest = recent_runs[0].to_dict() if recent_runs else None
     warnings = list(config.validate_output_root())
     if not config.runs_root.exists():
         warnings.append("runs_root_missing")
@@ -119,7 +132,7 @@ def build_status(config: DashboardConfig) -> DashboardStatus:
         status=latest.get("status", "NO_DATA") if isinstance(latest, dict) else "NO_DATA",
         bridge_runs_root=str(config.runs_root),
         latest_run=latest,
-        recent_run_count=len(runs),
+        recent_run_count=len(recent_runs),
         scheduler=read_scheduler_status_placeholder(config),
         warnings=tuple(sorted(set(warnings))),
     )
@@ -146,6 +159,22 @@ def _run_detail_or_404(config: DashboardConfig, run_id: str) -> dict[str, Any]:
             ).to_dict(),
         )
     return detail
+
+
+def status_class(value: object) -> str:
+    """Map status values to CSS status classes."""
+    status = str(value or "NO_DATA").upper()
+    if status == "PASS":
+        return "status-pass"
+    if status == "PASS_WITH_WARNINGS":
+        return "status-warn"
+    if status == "ACTION_REVIEW_REQUIRED":
+        return "status-review"
+    if status in {"HOLD", "HOLD_FOR_HUMAN_APPROVAL", "HUMAN_APPROVAL_REQUIRED"}:
+        return "status-hold"
+    if status in {"FAIL", "FAIL_STOP"}:
+        return "status-fail"
+    return "status-no-data"
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
