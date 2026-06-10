@@ -24,6 +24,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("check-urls", parser.format_help())
         self.assertIn("live-snapshot", parser.format_help())
         self.assertIn("real-run", parser.format_help())
+        self.assertIn("daily-sim", parser.format_help())
         stdout = io.StringIO()
         with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
             parser.parse_args(["dry-run", "--help"])
@@ -40,6 +41,11 @@ class CliTests(unittest.TestCase):
         self.assertEqual(exc.exception.code, 0)
         self.assertIn("--project-map", stdout.getvalue())
         self.assertIn("--profile", stdout.getvalue())
+        stdout = io.StringIO()
+        with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
+            parser.parse_args(["daily-sim", "--help"])
+        self.assertEqual(exc.exception.code, 0)
+        self.assertIn("--output-root", stdout.getvalue())
 
     def test_main_dry_run_returns_zero(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -181,6 +187,82 @@ class CliTests(unittest.TestCase):
             self.assertEqual(run_mock.call_args.kwargs["timeout_seconds"], 30.0)
             self.assertEqual(run_mock.call_args.kwargs["max_sources"], 11)
             self.assertEqual(run_mock.call_args.kwargs["max_bytes"], 2_000_000)
+
+    def test_run_daily_sim_with_mock_creates_dated_output_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with unittest.mock.patch.object(
+                cli,
+                "run_real_run",
+                return_value={
+                    "run_id": "0180-daily-sim",
+                    "status": "CHANGES_FOUND",
+                    "source_count": 11,
+                    "parsed_count": 1,
+                    "item_count": 10,
+                    "direct_action_count": 10,
+                    "monitor_only_action_count": 50,
+                    "unsupported_source_count": 10,
+                    "report_full": str(Path(tmp) / "run" / "0180-Report_Full.md"),
+                    "report_compact": str(Path(tmp) / "run" / "0180-Report_Compact.md"),
+                    "run_summary": str(Path(tmp) / "run" / "0180-Run_Summary.json"),
+                    "runs_index": str(Path(tmp) / "run" / "runs_index.jsonl"),
+                },
+            ) as run_mock:
+                result = cli.run_daily_sim(
+                    output_root=tmp,
+                    stamp="20260610_120000",
+                )
+
+            self.assertEqual(result["status"], "CHANGES_FOUND")
+            self.assertIn("0320_0400_daily_sim_20260610_120000", result["output_dir"])
+            self.assertTrue(Path(result["daily_sim_summary"]).is_file())
+            self.assertEqual(run_mock.call_args.args[0], str(cli.DEFAULT_SOURCE_REGISTRY_PATH))
+            self.assertIn(
+                "0320_0400_daily_sim_20260610_120000",
+                run_mock.call_args.args[1],
+            )
+            self.assertEqual(run_mock.call_args.kwargs["timeout_seconds"], 30.0)
+            self.assertEqual(run_mock.call_args.kwargs["max_sources"], 11)
+            self.assertEqual(run_mock.call_args.kwargs["max_bytes"], 2_000_000)
+
+    def test_main_daily_sim_with_mock_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stdout = io.StringIO()
+            with unittest.mock.patch.object(
+                cli,
+                "run_daily_sim",
+                return_value={
+                    "status": "CHANGES_FOUND",
+                    "output_dir": str(Path(tmp) / "run"),
+                    "daily_sim_summary": str(
+                        Path(tmp) / "run" / cli.DAILY_SIM_SUMMARY_FILENAME
+                    ),
+                    "next_step": cli.DAILY_SIM_NEXT_STEP_RECOMMENDATION,
+                    "real_run": {
+                        "run_id": "0180-daily-sim",
+                        "source_count": 11,
+                        "parsed_count": 1,
+                        "item_count": 10,
+                        "direct_action_count": 10,
+                        "monitor_only_action_count": 50,
+                        "unsupported_source_count": 10,
+                        "run_summary": str(Path(tmp) / "run" / "0180-Run_Summary.json"),
+                    },
+                },
+            ):
+                with redirect_stdout(stdout):
+                    code = cli.main(["daily-sim", "--output-root", tmp])
+
+            self.assertEqual(code, 0)
+            self.assertIn("AI Release Radar daily simulation completed", stdout.getvalue())
+            self.assertIn("No scheduler: confirmed", stdout.getvalue())
+
+    def test_daily_sim_rejects_output_root_inside_repo(self):
+        with self.assertRaisesRegex(ValueError, "outside repository"):
+            cli.run_daily_sim(
+                output_root=str(REPO_ROOT / "tmp_daily_sim_output"),
+                stamp="20260610_120000",
+            )
 
     def test_main_real_run_requires_source_registry_without_profile(self):
         with tempfile.TemporaryDirectory() as tmp:

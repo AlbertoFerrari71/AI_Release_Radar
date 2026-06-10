@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import sys
 from pathlib import Path
 
@@ -56,6 +57,9 @@ REAL_RUN_MANUAL_PROFILE = "manual"
 REAL_RUN_MANUAL_TIMEOUT_SECONDS = 30.0
 REAL_RUN_MANUAL_MAX_SOURCES = 11
 REAL_RUN_MANUAL_MAX_BYTES = 2_000_000
+DAILY_SIM_OUTPUT_PREFIX = "0320_0400_daily_sim"
+DAILY_SIM_SUMMARY_FILENAME = "0350-Daily_Sim_Summary.json"
+DAILY_SIM_NEXT_STEP_RECOMMENDATION = "0360) Automation Gate Policy"
 
 
 def build_dry_run_report_input() -> ReportInput:
@@ -212,6 +216,64 @@ def run_real_run(
     ).to_dict()
 
 
+def run_daily_sim(
+    *,
+    output_root: str,
+    source_registry: str | None = None,
+    project_map: str | None = None,
+    previous_snapshot_dir: str | None = None,
+    timeout_seconds: float | None = None,
+    max_sources: int | None = None,
+    max_bytes: int | None = None,
+    stamp: str | None = None,
+) -> dict[str, object]:
+    """Run a controlled daily simulation without creating any scheduler."""
+    root = _outside_repo_output_root(output_root, label="daily-sim output_root")
+    effective_stamp = stamp if stamp is not None else _utc_stamp()
+    if not effective_stamp.strip():
+        raise ValueError("daily-sim stamp must not be empty.")
+    target_dir = root / f"{DAILY_SIM_OUTPUT_PREFIX}_{effective_stamp}"
+    if target_dir.exists():
+        raise ValueError(f"daily-sim output directory already exists: {target_dir}")
+
+    (
+        resolved_source_registry,
+        resolved_timeout_seconds,
+        resolved_max_sources,
+        resolved_max_bytes,
+    ) = resolve_real_run_config(
+        source_registry=source_registry,
+        profile=REAL_RUN_MANUAL_PROFILE,
+        timeout_seconds=timeout_seconds,
+        max_sources=max_sources,
+        max_bytes=max_bytes,
+    )
+    result = run_real_run(
+        resolved_source_registry,
+        str(target_dir),
+        project_map=project_map if project_map is not None else str(DEFAULT_PROJECT_MAP_PATH),
+        previous_snapshot_dir=previous_snapshot_dir,
+        timeout_seconds=resolved_timeout_seconds,
+        max_sources=resolved_max_sources,
+        max_bytes=resolved_max_bytes,
+    )
+    summary_path = target_dir / DAILY_SIM_SUMMARY_FILENAME
+    summary_data: dict[str, object] = {
+        "schema_version": 1,
+        "mode": "daily-sim",
+        "status": result.get("status"),
+        "output_dir": str(target_dir),
+        "daily_sim_summary": str(summary_path),
+        "real_run": result,
+        "scheduler_activated": False,
+        "windows_task_created": False,
+        "llm_called": False,
+        "next_step": DAILY_SIM_NEXT_STEP_RECOMMENDATION,
+    }
+    write_json(summary_path, summary_data)
+    return summary_data
+
+
 def resolve_real_run_config(
     *,
     source_registry: str | None,
@@ -361,6 +423,37 @@ def build_real_run_summary(result_data: object) -> str:
         f"Run summary: {result_data.get('run_summary')}",
         f"Runs index: {result_data.get('runs_index')}",
         f"Next step: {REAL_RUN_NEXT_STEP_RECOMMENDATION}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_daily_sim_summary(result_data: object) -> str:
+    """Build the console summary for a controlled daily simulation."""
+    if not isinstance(result_data, dict):
+        raise ValueError("result_data must be a dict.")
+    real_run = result_data.get("real_run")
+    if not isinstance(real_run, dict):
+        raise ValueError("daily-sim result_data must include real_run dict.")
+    lines = [
+        "AI Release Radar daily simulation completed",
+        "Mode: controlled daily run simulation",
+        f"Status: {result_data.get('status')}",
+        f"Run ID: {real_run.get('run_id')}",
+        f"Sources: {real_run.get('source_count')}",
+        f"Parsed: {real_run.get('parsed_count')}",
+        f"Items: {real_run.get('item_count')}",
+        f"Direct actions: {real_run.get('direct_action_count')}",
+        f"Monitor-only actions: {real_run.get('monitor_only_action_count')}",
+        f"Manual review required: pending gate evaluation",
+        f"Unsupported sources: {real_run.get('unsupported_source_count')}",
+        "Automation gate: pending 0360 policy",
+        f"Output dir: {result_data.get('output_dir')}",
+        f"Run summary: {real_run.get('run_summary')}",
+        f"Daily sim summary: {result_data.get('daily_sim_summary')}",
+        "No scheduler: confirmed",
+        "No Windows task: confirmed",
+        "No LLM: confirmed",
+        f"Next step: {result_data.get('next_step')}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -537,6 +630,50 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Global maximum response body bytes per source; registry max_bytes overrides when set.",
     )
+    daily_sim = subparsers.add_parser(
+        "daily-sim",
+        help="Run a controlled daily simulation without creating a scheduler.",
+    )
+    daily_sim.add_argument(
+        "--output-root",
+        required=True,
+        help="Explicit outside-repository root where the dated daily simulation directory is created.",
+    )
+    daily_sim.add_argument(
+        "--source-registry",
+        default=None,
+        help=(
+            "Optional source registry JSON path. Defaults to the manual real-run registry."
+        ),
+    )
+    daily_sim.add_argument(
+        "--project-map",
+        default=str(DEFAULT_PROJECT_MAP_PATH),
+        help="Project map JSON path used for impact mapping.",
+    )
+    daily_sim.add_argument(
+        "--previous-snapshot-dir",
+        default=None,
+        help="Optional directory with previous 0170-Snapshot_*.json files.",
+    )
+    daily_sim.add_argument(
+        "--max-sources",
+        type=int,
+        default=None,
+        help="Optional maximum number of enabled registry sources to fetch.",
+    )
+    daily_sim.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=None,
+        help="Optional per-source timeout in seconds. Manual profile default is used when omitted.",
+    )
+    daily_sim.add_argument(
+        "--max-bytes",
+        type=int,
+        default=None,
+        help="Global maximum response body bytes per source; manual profile default is used when omitted.",
+    )
     return parser
 
 
@@ -614,6 +751,18 @@ def main(argv: list[str] | None = None) -> int:
             )
             sys.stdout.write(build_real_run_summary(result))
             return 0
+        if args.command == "daily-sim":
+            result = run_daily_sim(
+                output_root=args.output_root,
+                source_registry=args.source_registry,
+                project_map=args.project_map,
+                previous_snapshot_dir=args.previous_snapshot_dir,
+                timeout_seconds=args.timeout_seconds,
+                max_sources=args.max_sources,
+                max_bytes=args.max_bytes,
+            )
+            sys.stdout.write(build_daily_sim_summary(result))
+            return 0
         parser.error(f"unsupported command: {args.command}")
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 1
@@ -633,6 +782,24 @@ def _is_path_within(path: Path, root: Path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _outside_repo_output_root(output_root: str, *, label: str) -> Path:
+    target = Path(output_root).expanduser().resolve()
+    if _is_path_within(target, REPO_ROOT):
+        raise ValueError(f"{label} must be outside repository.")
+    if _has_forbidden_path_part(target):
+        raise ValueError(f"{label} must not use LAST-* or latest-* names.")
+    target.mkdir(parents=True, exist_ok=True)
+    return target
+
+
+def _has_forbidden_path_part(path: Path) -> bool:
+    return any(part.startswith("LAST-") or part.startswith("latest-") for part in path.parts)
+
+
+def _utc_stamp() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
 
 if __name__ == "__main__":
