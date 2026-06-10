@@ -4,20 +4,30 @@
     "text/html": 1,
     "text/plain": 2
   },
+  "binary_content": 0,
+  "binary_content_source_ids": [],
+  "content_type_rejected": 0,
+  "content_type_rejected_source_ids": [],
   "disabled": 1,
   "disabled_source_ids": [
     "source_disabled"
   ],
+  "empty_content": 0,
+  "empty_content_source_ids": [],
   "failed": 2,
   "failed_source_ids": [
     "source_disabled",
     "source_failed"
   ],
+  "network_error": 0,
+  "network_error_source_ids": [],
   "ok": 2,
   "ok_source_ids": [
     "source_ok",
     "source_truncated"
   ],
+  "oversized_content": 0,
+  "oversized_content_source_ids": [],
   "redirect_not_allowed": 0,
   "redirect_not_allowed_source_ids": [],
   "status_code_counts": {
