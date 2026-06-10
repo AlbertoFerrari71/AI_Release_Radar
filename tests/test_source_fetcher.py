@@ -1,6 +1,7 @@
 import inspect
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 from urllib.error import URLError
 
@@ -32,13 +33,20 @@ class SourceFetcherTests(unittest.TestCase):
             {
                 "source_id": "source_ok",
                 "url": "https://example.invalid/source_ok",
+                "status": "fetched",
                 "ok": True,
+                "http_status_code": 200,
                 "status_code": 200,
                 "final_url": "https://example.invalid/source_ok",
                 "content_type": "text/plain",
+                "encoding": None,
                 "content_length": 5,
+                "fetched_at": None,
+                "content_preview_or_path_policy": None,
                 "body_sample": "hello",
                 "truncated": False,
+                "error_code": None,
+                "error_message_sanitized": None,
                 "error": None,
             },
         )
@@ -55,9 +63,15 @@ class SourceFetcherTests(unittest.TestCase):
 
         self.assertTrue(result.ok)
         self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.http_status_code, 200)
+        self.assertEqual(result.status, "fetched")
         self.assertEqual(result.content_type, "text/plain")
+        self.assertEqual(result.encoding, "utf-8")
         self.assertEqual(result.content_length, 11)
+        self.assertIsNotNone(result.fetched_at)
+        self.assertEqual(result.content_preview_or_path_policy, "inline_preview_only")
         self.assertEqual(result.body_sample, "hello world")
+        self.assertIsNone(result.error_code)
         self.assertFalse(result.truncated)
 
     def test_fetch_single_source_error_with_mock_exception(self):
@@ -70,9 +84,12 @@ class SourceFetcherTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertIsNone(result.status_code)
         self.assertIsNone(result.body_sample)
-        self.assertIn("URLError", result.error)
+        self.assertEqual(result.error, "url_error")
+        self.assertEqual(result.error_code, "url_error")
+        self.assertEqual(result.status, "network_error")
+        self.assertIn("URLError", result.error_message_sanitized)
 
-    def test_max_bytes_limits_body_sample(self):
+    def test_max_bytes_rejects_oversized_response_without_preview(self):
         response = FakeResponse(
             b"abcdef",
             headers={"content-type": "text/plain", "content-length": "6"},
@@ -85,8 +102,13 @@ class SourceFetcherTests(unittest.TestCase):
                 max_bytes=3,
             )
 
-        self.assertEqual(result.body_sample, "abc")
-        self.assertEqual(len(result.body_sample), 3)
+        self.assertFalse(result.ok)
+        self.assertIsNone(result.body_sample)
+        self.assertEqual(result.error_code, "response_too_large")
+        self.assertEqual(
+            result.content_preview_or_path_policy,
+            "preview_omitted_response_too_large",
+        )
 
     def test_truncated_true_when_content_exceeds_max_bytes(self):
         response = FakeResponse(
@@ -102,6 +124,92 @@ class SourceFetcherTests(unittest.TestCase):
             )
 
         self.assertTrue(result.truncated)
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error_code, "response_too_large")
+
+    def test_large_html_response_uses_specific_error_code(self):
+        response = FakeResponse(
+            b"<html>abcdef</html>",
+            headers={"content-type": "text/html", "content-length": "19"},
+        )
+
+        with unittest.mock.patch("radar.source_fetcher.urlopen", return_value=response):
+            result = fetch_source_content(
+                self.source("source_large_html"),
+                timeout_seconds=2.0,
+                max_bytes=8,
+            )
+
+        self.assertFalse(result.ok)
+        self.assertTrue(result.truncated)
+        self.assertEqual(result.error_code, "html_too_large")
+        self.assertIsNone(result.body_sample)
+
+    def test_unsupported_content_type_rejects_binary_response(self):
+        response = FakeResponse(
+            b"\x89PNG\r\n",
+            headers={"content-type": "image/png", "content-length": "6"},
+        )
+
+        with unittest.mock.patch("radar.source_fetcher.urlopen", return_value=response):
+            result = fetch_source_content(self.source("source_binary"), timeout_seconds=2.0)
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error_code, "unsupported_content_type")
+        self.assertEqual(
+            result.content_preview_or_path_policy,
+            "preview_omitted_unsupported_content_type",
+        )
+        self.assertIsNone(result.body_sample)
+
+    def test_empty_content_is_rejected(self):
+        response = FakeResponse(
+            b"",
+            headers={"content-type": "text/plain", "content-length": "0"},
+        )
+
+        with unittest.mock.patch("radar.source_fetcher.urlopen", return_value=response):
+            result = fetch_source_content(self.source("source_empty"), timeout_seconds=2.0)
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error_code, "empty_content")
+        self.assertIsNone(result.body_sample)
+
+    def test_invalid_declared_encoding_is_rejected(self):
+        response = FakeResponse(
+            b"hello",
+            headers={
+                "content-type": "text/plain; charset=not-a-real-encoding",
+                "content-length": "5",
+            },
+        )
+
+        with unittest.mock.patch("radar.source_fetcher.urlopen", return_value=response):
+            result = fetch_source_content(
+                self.source("source_bad_encoding"),
+                timeout_seconds=2.0,
+            )
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error_code, "invalid_encoding")
+        self.assertIsNone(result.body_sample)
+
+    def test_redirect_not_allowed_is_rejected(self):
+        response = FakeResponse(
+            b"hello",
+            url="https://example.invalid/redirected",
+            headers={"content-type": "text/plain", "content-length": "5"},
+        )
+
+        with unittest.mock.patch("radar.source_fetcher.urlopen", return_value=response):
+            result = fetch_source_content(
+                self.source("source_redirect", allow_redirects=False),
+                timeout_seconds=2.0,
+            )
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error_code, "redirect_not_allowed")
+        self.assertEqual(result.final_url, "https://example.invalid/redirected")
 
     def test_disabled_source_returns_disabled_result_without_network(self):
         with unittest.mock.patch("radar.source_fetcher.urlopen") as mocked:
@@ -110,6 +218,8 @@ class SourceFetcherTests(unittest.TestCase):
         mocked.assert_not_called()
         self.assertFalse(result.ok)
         self.assertEqual(result.error, "live_check_disabled")
+        self.assertEqual(result.error_code, "live_check_disabled")
+        self.assertEqual(result.status, "disabled")
         self.assertIsNone(result.body_sample)
 
     def test_fetch_sources_content_does_not_crash_when_one_source_fails(self):
@@ -129,9 +239,11 @@ class SourceFetcherTests(unittest.TestCase):
         ):
             results = fetch_sources_content(sources, timeout_seconds=2.0)
 
-        errors = {result.source_id: result.error for result in results}
-        self.assertEqual(errors["source_a"], "RuntimeError: simulated source failure")
-        self.assertIsNone(errors["source_b"])
+        error_codes = {result.source_id: result.error_code for result in results}
+        messages = {result.source_id: result.error_message_sanitized for result in results}
+        self.assertEqual(error_codes["source_a"], "fetch_error")
+        self.assertIn("RuntimeError", messages["source_a"])
+        self.assertIsNone(error_codes["source_b"])
 
     def test_fetch_sources_content_sorts_results_by_source_id(self):
         sources = [
@@ -256,6 +368,7 @@ class SourceFetcherTests(unittest.TestCase):
         *,
         live: bool = True,
         expected_status_codes: list[int] | None = None,
+        allow_redirects: bool = True,
     ) -> SourceDefinition:
         return SourceDefinition(
             source_id=source_id,
@@ -270,6 +383,7 @@ class SourceFetcherTests(unittest.TestCase):
             verification_status="verified_url_format",
             notes="Offline test source.",
             expected_status_codes=expected_status_codes or [200],
+            allow_redirects=allow_redirects,
             live_check_enabled=live,
         )
 
