@@ -23,6 +23,8 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Le azioni consigliate includono titolo, motivo di rilevanza e prossimo passo deterministico. Fonte: `radar/project_impact.py`.
 - [F] Il report reale include una scorecard e il run summary serializza i conteggi action type. Fonte: `radar/real_run.py`, `radar/report_scorecard.py`.
 - [F] Il closure pack V1.1 e' `docs/architecture/0300_ACTIONABLE_RADAR_V1_1_CLOSURE_PACK.md`. Fonte: `docs/architecture/0300_ACTIONABLE_RADAR_V1_1_CLOSURE_PACK.md`.
+- [INT] Dopo la review 0310, la scorecard PASS va letta come qualita' report, non come readiness scheduler o copertura fonti sufficiente. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.
+- [PROP] Il prossimo blocco consigliato e' source coverage V1.2 prima dello scheduler. Fonte: `docs/decisions/0310_DECISIONS.md`.
 
 ## Comandi principali
 

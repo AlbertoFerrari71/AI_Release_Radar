@@ -95,6 +95,7 @@ python -m radar.cli real-run --profile manual --output-dir $out
 - [F] La scorecard valuta titoli, link fonte, parsed source count, source diagnostics, azioni progetto, top actions, noise control e next step. Fonte: `radar/report_scorecard.py`.
 - [F] Il confronto offline V1/V1.1 e' disponibile in `radar/run_comparison.py`. Fonte: `radar/run_comparison.py`.
 - [INT] Usare il confronto per verificare se V1.1 riduce azioni dirette generiche e rende esplicite le azioni monitor-only.
+- [INT] Dopo la review 0310, leggere `PASS` come qualita' report e verificare separatamente copertura fonti e rumore azioni prima di pianificare scheduler. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.
 
 ## Checklist Prima Dello Scheduler
 
@@ -104,8 +105,8 @@ python -m radar.cli real-run --profile manual --output-dir $out
 
 ## Criteri Dopo V1.1
 
-- [PROP] 0310 dovrebbe rivedere un real-run V1.1 fuori repo e confrontarlo con la baseline V1.
-- [PROP] Se il confronto mostra rumore residuo alto, privilegiare parser/source coverage prima dello scheduler.
+- [F] 0310 ha rivisto un real-run V1.1 fuori repo e ha documentato la review in `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.
+- [PROP] Con `parsed_count=1` su 11 fonti nel run analizzato, privilegiare parser/source coverage prima dello scheduler. Fonte: `docs/decisions/0310_DECISIONS.md`.
 - [PROP] Se il confronto e' buono, preparare un readiness gate scheduler dedicato senza attivarlo nello stesso step.
 
 ## Limiti Noti

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0310) Manual V1.1 Real Smoke Review
+
+- [F] Aggiunta review del run reale V1.1 prodotto fuori repository. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.
+- [F] Documentata critica alla scorecard: PASS valido come qualita' report, non come readiness complessiva con `parsed_count=1` su 11 fonti. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`, `docs/decisions/0310_DECISIONS.md`.
+- [F] Confermata la raccomandazione di non procedere subito allo scheduler. Fonte: `docs/decisions/0310_DECISIONS.md`.
+- [PROP] Prossimo blocco consigliato: `0320) Source Coverage V1.2 - aumentare fonti parsate / migliorare registry`. Fonte: `docs/decisions/0310_DECISIONS.md`.
+
 ## 0240-0300) Actionable Radar V1.1
 
 - [F] Aggiunta matrice di priorita' fonti e decisione V1.1 su fonti P0/P1/P2/P3. Fonte: `docs/architecture/0240_SOURCE_COVERAGE_PRIORITIZATION.md`.
