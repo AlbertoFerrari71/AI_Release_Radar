@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import radar.parsers as parsers_module
 from radar.parsers import (
+    parse_github_releases_api_fixture,
     parse_json_items_fixture,
     parse_simple_html_release_fixture,
     parse_simple_text_release_fixture,
@@ -21,6 +22,12 @@ FIXTURES_DIR = REPO_ROOT / "examples" / "fixtures"
 
 def _load_json_fixture() -> dict:
     return json.loads((FIXTURES_DIR / "0040_github_releases_fixture.json").read_text())
+
+
+def _load_github_releases_api_fixture() -> list:
+    return json.loads(
+        (FIXTURES_DIR / "0150_github_releases_api_fixture.json").read_text()
+    )
 
 
 def _load_html_fixture() -> str:
@@ -50,6 +57,67 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(len(items), 2)
         self.assertEqual({item.category for item in items}, {"codex_cli"})
         self.assert_items_have_ids_and_hashes(items)
+
+    def test_github_releases_api_fixture_produces_unique_items(self):
+        items = parse_github_releases_api_fixture(
+            "github_codex_releases",
+            "github",
+            _load_github_releases_api_fixture(),
+        )
+        self.assertEqual(len(items), 3)
+        self.assertEqual({item.category for item in items}, {"codex_cli"})
+        self.assertEqual({item.severity for item in items}, {"info", "low"})
+        self.assertIn("Codex CLI v0.140.0", {item.title for item in items})
+        self.assertIn("v0.139.0-beta.1", {item.title for item in items})
+        self.assert_items_have_ids_and_hashes(items)
+
+    def test_github_releases_api_parser_handles_empty_list(self):
+        self.assertEqual(
+            parse_github_releases_api_fixture("github_codex_releases", "github", []),
+            [],
+        )
+
+    def test_github_releases_api_parser_accepts_releases_mapping(self):
+        items = parse_github_releases_api_fixture(
+            "github_codex_releases",
+            "github",
+            {"releases": _load_github_releases_api_fixture()},
+        )
+        self.assertEqual(len(items), 3)
+
+    def test_github_releases_api_parser_handles_missing_name_and_null_body(self):
+        items = parse_github_releases_api_fixture(
+            "github_codex_releases",
+            "github",
+            _load_github_releases_api_fixture(),
+        )
+        prerelease = next(item for item in items if item.title == "v0.139.0-beta.1")
+        self.assertIn("No release body provided", prerelease.evidence)
+        self.assertIn("prerelease=true", prerelease.evidence)
+
+    def test_github_releases_api_parser_deduplicates_by_stable_release_key(self):
+        items = parse_github_releases_api_fixture(
+            "github_codex_releases",
+            "github",
+            _load_github_releases_api_fixture(),
+        )
+        release = next(item for item in items if item.title == "Codex CLI v0.140.0")
+        self.assertIn("github_release_id=140", release.evidence)
+        self.assertNotIn("duplicate older copy", release.title)
+        self.assertNotIn("Older duplicate fixture entry", release.evidence)
+
+    def test_github_releases_api_parser_rejects_invalid_dates(self):
+        fixture = [
+            {
+                "id": 1,
+                "tag_name": "v0.invalid",
+                "published_at": "not-a-date",
+                "draft": False,
+                "prerelease": False,
+            }
+        ]
+        with self.assertRaisesRegex(ValueError, "published_at must be an ISO timestamp"):
+            parse_github_releases_api_fixture("github_codex_releases", "github", fixture)
 
     def test_html_fixture_produces_three_items(self):
         items = parse_simple_html_release_fixture(
@@ -110,9 +178,15 @@ class ParserTests(unittest.TestCase):
             "openai_api",
             _load_text_fixture(),
         )
+        github_release_api_items = parse_github_releases_api_fixture(
+            "github_codex_releases",
+            "github",
+            _load_github_releases_api_fixture(),
+        )
         self.assert_items_sorted(json_items)
         self.assert_items_sorted(html_items)
         self.assert_items_sorted(text_items)
+        self.assert_items_sorted(github_release_api_items)
         self.assertEqual(json_items[0].title, "Codex CLI v0.138.0 fixture release")
 
     def test_parsers_do_not_create_files(self):
@@ -125,6 +199,11 @@ class ParserTests(unittest.TestCase):
                 os.chdir(temp_dir)
                 before = sorted(Path(temp_dir).iterdir())
                 parse_json_items_fixture("json-source", "provider", json_fixture)
+                parse_github_releases_api_fixture(
+                    "github-release-source",
+                    "github",
+                    _load_github_releases_api_fixture(),
+                )
                 parse_simple_html_release_fixture("html-source", "provider", html_fixture)
                 parse_simple_text_release_fixture("text-source", "provider", text_fixture)
                 after = sorted(Path(temp_dir).iterdir())
@@ -143,6 +222,11 @@ class ParserTests(unittest.TestCase):
         text_fixture = _load_text_fixture()
         with patch.object(socket, "create_connection", side_effect=AssertionError("network")):
             parse_json_items_fixture("json-source", "provider", json_fixture)
+            parse_github_releases_api_fixture(
+                "github-release-source",
+                "github",
+                _load_github_releases_api_fixture(),
+            )
             parse_simple_html_release_fixture("html-source", "provider", html_fixture)
             parse_simple_text_release_fixture("text-source", "provider", text_fixture)
 

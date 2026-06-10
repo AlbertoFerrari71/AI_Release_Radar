@@ -20,6 +20,7 @@ _REQUIRED_FIXTURE_FIELDS = (
     "first_seen",
     "confidence",
 )
+_GITHUB_RELEASE_BODY_SUMMARY_MAX_CHARS = 500
 
 
 def _item_sort_key(item: Item) -> tuple[str, str, str]:
@@ -148,6 +149,215 @@ def parse_json_items_fixture(
             )
         )
     return _sorted_items(items)
+
+
+def parse_github_releases_api_fixture(
+    source_id: str,
+    provider: str,
+    fixture_data: object,
+    *,
+    first_seen: str = "2026-06-10",
+) -> list[Item]:
+    """Parse a controlled offline fixture shaped like GitHub Releases API JSON."""
+    normalized_source_id = _require_non_empty_str(source_id, "source_id")
+    normalized_provider = _require_non_empty_str(provider, "provider")
+    normalized_first_seen = _require_non_empty_str(first_seen, "first_seen")
+    raw_releases = _github_releases_list(fixture_data)
+
+    selected: dict[str, tuple[Item, tuple[str, str, str]]] = {}
+    for index, raw_release in enumerate(raw_releases):
+        context = f"releases[{index}]"
+        if not isinstance(raw_release, dict):
+            raise ValueError(f"{context} must be a dict.")
+        item, rank = _github_release_item(
+            source_id=normalized_source_id,
+            provider=normalized_provider,
+            first_seen=normalized_first_seen,
+            raw_release=raw_release,
+            context=context,
+        )
+        existing = selected.get(item.item_id)
+        if existing is None or rank > existing[1]:
+            selected[item.item_id] = (item, rank)
+
+    return _sorted_items([item for item, _rank in selected.values()])
+
+
+def _github_releases_list(fixture_data: object) -> list[object]:
+    if isinstance(fixture_data, list):
+        return list(fixture_data)
+    if isinstance(fixture_data, dict):
+        releases = fixture_data.get("releases")
+        if isinstance(releases, list):
+            return list(releases)
+    raise ValueError("GitHub releases fixture must be a list or a dict with releases list.")
+
+
+def _github_release_item(
+    *,
+    source_id: str,
+    provider: str,
+    first_seen: str,
+    raw_release: dict[str, Any],
+    context: str,
+) -> tuple[Item, tuple[str, str, str]]:
+    release_id = _optional_scalar_text(raw_release.get("id"), f"{context}.id")
+    tag_name = _optional_str_field(raw_release, "tag_name", context)
+    natural_key_value = release_id or tag_name
+    if natural_key_value is None:
+        raise ValueError(f"{context}.id or {context}.tag_name is required.")
+    natural_key = f"github_release:{natural_key_value}"
+
+    name = _optional_str_field(raw_release, "name", context)
+    title = name or tag_name or f"GitHub release {natural_key_value}"
+    html_url = _optional_str_field(raw_release, "html_url", context)
+    api_url = _optional_str_field(raw_release, "url", context)
+    url = html_url or api_url or ""
+    published_at = _github_release_primary_timestamp(raw_release, context)
+    updated_at = _optional_timestamp(raw_release.get("updated_at"), f"{context}.updated_at")
+    draft = _optional_bool_field(raw_release, "draft", context)
+    prerelease = _optional_bool_field(raw_release, "prerelease", context)
+    body_summary = _github_release_body_summary(raw_release.get("body"), context)
+    category = "codex_cli"
+    severity = "info" if not draft else "low"
+    evidence = _github_release_evidence(
+        release_id=release_id,
+        tag_name=tag_name,
+        draft=draft,
+        prerelease=prerelease,
+        updated_at=updated_at,
+        api_url=api_url,
+        body_summary=body_summary,
+    )
+    content_hash = content_hash_for_item_fields(
+        source_id=source_id,
+        provider=provider,
+        category=category,
+        severity=severity,
+        title=title,
+        published_at=published_at,
+        url=url,
+        evidence=evidence,
+    )
+    item = Item(
+        item_id=stable_item_id(source_id, natural_key),
+        source_id=source_id,
+        provider=provider,
+        category=category,
+        severity=severity,
+        title=title,
+        published_at=published_at,
+        url=url,
+        evidence=evidence,
+        content_hash=content_hash,
+        first_seen=first_seen,
+        confidence=0.9 if not draft else 0.7,
+    )
+    rank = (updated_at or published_at, title, content_hash)
+    return item, rank
+
+
+def _optional_scalar_text(value: object, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise ValueError(f"{field_name} must be a string, integer, or null.")
+    if not isinstance(value, (str, int)):
+        raise ValueError(f"{field_name} must be a string, integer, or null.")
+    text = normalize_text(str(value))
+    return text or None
+
+
+def _optional_str_field(
+    raw_release: dict[str, Any],
+    field_name: str,
+    context: str,
+) -> str | None:
+    value = raw_release.get(field_name)
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError(f"{context}.{field_name} must be a string or null.")
+    normalized = normalize_text(value)
+    return normalized or None
+
+
+def _optional_bool_field(
+    raw_release: dict[str, Any],
+    field_name: str,
+    context: str,
+) -> bool:
+    value = raw_release.get(field_name, False)
+    if not isinstance(value, bool):
+        raise ValueError(f"{context}.{field_name} must be a boolean when provided.")
+    return value
+
+
+def _github_release_primary_timestamp(
+    raw_release: dict[str, Any],
+    context: str,
+) -> str:
+    published_at = _optional_timestamp(raw_release.get("published_at"), f"{context}.published_at")
+    if published_at is not None:
+        return published_at
+    created_at = _optional_timestamp(raw_release.get("created_at"), f"{context}.created_at")
+    if created_at is not None:
+        return created_at
+    updated_at = _optional_timestamp(raw_release.get("updated_at"), f"{context}.updated_at")
+    if updated_at is not None:
+        return updated_at
+    raise ValueError(f"{context}.published_at, created_at, or updated_at is required.")
+
+
+def _optional_timestamp(value: object, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be an ISO timestamp string or null.")
+    timestamp = normalize_text(value)
+    if not timestamp:
+        return None
+    try:
+        from datetime import datetime
+
+        datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError(f"{field_name} must be an ISO timestamp string.") from exc
+    return timestamp
+
+
+def _github_release_body_summary(value: object, context: str) -> str:
+    if value is None:
+        return "No release body provided."
+    if not isinstance(value, str):
+        raise ValueError(f"{context}.body must be a string or null.")
+    summary = normalize_text(value)
+    if not summary:
+        return "No release body provided."
+    if len(summary) <= _GITHUB_RELEASE_BODY_SUMMARY_MAX_CHARS:
+        return summary
+    return summary[: _GITHUB_RELEASE_BODY_SUMMARY_MAX_CHARS - 3] + "..."
+
+
+def _github_release_evidence(
+    *,
+    release_id: str | None,
+    tag_name: str | None,
+    draft: bool,
+    prerelease: bool,
+    updated_at: str | None,
+    api_url: str | None,
+    body_summary: str,
+) -> str:
+    metadata = [
+        f"github_release_id={release_id or 'missing'}",
+        f"tag_name={tag_name or 'missing'}",
+        f"draft={str(draft).lower()}",
+        f"prerelease={str(prerelease).lower()}",
+        f"updated_at={updated_at or 'missing'}",
+        f"api_url={api_url or 'missing'}",
+    ]
+    return "GitHub Releases API metadata: " + "; ".join(metadata) + f". Summary: {body_summary}"
 
 
 class _SimpleReleaseHTMLParser(HTMLParser):
