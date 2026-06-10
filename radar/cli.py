@@ -12,6 +12,11 @@ from radar.live_url_check import (
     verification_results_to_dict,
 )
 from radar.live_snapshot import run_live_snapshot as run_live_snapshot_workflow
+from radar.real_run import (
+    DEFAULT_REAL_RUN_MAX_BYTES,
+    DEFAULT_PROJECT_MAP_PATH,
+    run_real_radar_report,
+)
 from radar.report_engine import (
     ReportInput,
     load_report_input,
@@ -45,6 +50,9 @@ FETCH_SOURCES_NEXT_STEP_RECOMMENDATION = (
 )
 LIVE_SNAPSHOT_NEXT_STEP_RECOMMENDATION = (
     "0180) First Real Radar Report - Manual Run"
+)
+REAL_RUN_NEXT_STEP_RECOMMENDATION = (
+    "0190) Review first real radar output and source coverage"
 )
 
 
@@ -181,6 +189,27 @@ def run_live_snapshot(
     ).to_dict()
 
 
+def run_real_run(
+    source_registry: str,
+    output_dir: str,
+    project_map: str | None = None,
+    previous_snapshot_dir: str | None = None,
+    timeout_seconds: float | None = None,
+    max_sources: int | None = None,
+    max_bytes: int = DEFAULT_REAL_RUN_MAX_BYTES,
+) -> dict[str, object]:
+    """Run first manual real radar report generation."""
+    return run_real_radar_report(
+        source_registry=source_registry,
+        output_dir=output_dir,
+        project_map=project_map,
+        previous_snapshot_dir=previous_snapshot_dir,
+        timeout_seconds=timeout_seconds,
+        max_sources=max_sources,
+        max_bytes=max_bytes,
+    ).to_dict()
+
+
 def build_summary(
     *,
     status: str,
@@ -276,6 +305,30 @@ def build_live_snapshot_summary(result_data: object) -> str:
         f"Run index entry: {result_data.get('run_index_entry_path')}",
         f"Runs index: {result_data.get('runs_index_path')}",
         f"Next step: {LIVE_SNAPSHOT_NEXT_STEP_RECOMMENDATION}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_real_run_summary(result_data: object) -> str:
+    """Build the console summary for first manual real radar report generation."""
+    if not isinstance(result_data, dict):
+        raise ValueError("result_data must be a dict.")
+    lines = [
+        "AI Release Radar real run completed",
+        "Mode: explicit live snapshot plus manual report generation",
+        f"Status: {result_data.get('status')}",
+        f"Run ID: {result_data.get('run_id')}",
+        f"Sources: {result_data.get('source_count')}",
+        f"Items: {result_data.get('item_count')}",
+        f"New: {result_data.get('new_count')}",
+        f"Changed: {result_data.get('changed_count')}",
+        f"Removed: {result_data.get('removed_count')}",
+        f"Project impacts: {result_data.get('project_impact_count')}",
+        f"Full report: {result_data.get('report_full')}",
+        f"Compact report: {result_data.get('report_compact')}",
+        f"Run summary: {result_data.get('run_summary')}",
+        f"Runs index: {result_data.get('runs_index')}",
+        f"Next step: {REAL_RUN_NEXT_STEP_RECOMMENDATION}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -397,6 +450,48 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=65536,
         help="Maximum number of response body bytes to read per source.",
     )
+    real_run = subparsers.add_parser(
+        "real-run",
+        help="Run explicit live snapshot plus first manual radar report generation.",
+    )
+    real_run.add_argument(
+        "--source-registry",
+        required=True,
+        help=f"Source registry JSON path. Default project registry: {DEFAULT_SOURCE_REGISTRY_PATH}",
+    )
+    real_run.add_argument(
+        "--output-dir",
+        required=True,
+        help="Explicit outside-repository directory where real run outputs are written.",
+    )
+    real_run.add_argument(
+        "--project-map",
+        default=str(DEFAULT_PROJECT_MAP_PATH),
+        help="Project map JSON path used for impact mapping.",
+    )
+    real_run.add_argument(
+        "--previous-snapshot-dir",
+        default=None,
+        help="Optional directory with previous 0170-Snapshot_*.json files.",
+    )
+    real_run.add_argument(
+        "--max-sources",
+        type=int,
+        default=None,
+        help="Optional maximum number of enabled registry sources to fetch.",
+    )
+    real_run.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=None,
+        help="Optional per-source timeout in seconds. Registry value or safe default is used when omitted.",
+    )
+    real_run.add_argument(
+        "--max-bytes",
+        type=int,
+        default=DEFAULT_REAL_RUN_MAX_BYTES,
+        help="Maximum number of response body bytes to read per source.",
+    )
     return parser
 
 
@@ -446,6 +541,18 @@ def main(argv: list[str] | None = None) -> int:
                 max_bytes=args.max_bytes,
             )
             sys.stdout.write(build_live_snapshot_summary(result))
+            return 0
+        if args.command == "real-run":
+            result = run_real_run(
+                args.source_registry,
+                args.output_dir,
+                project_map=args.project_map,
+                previous_snapshot_dir=args.previous_snapshot_dir,
+                timeout_seconds=args.timeout_seconds,
+                max_sources=args.max_sources,
+                max_bytes=args.max_bytes,
+            )
+            sys.stdout.write(build_real_run_summary(result))
             return 0
         parser.error(f"unsupported command: {args.command}")
     except SystemExit as exc:

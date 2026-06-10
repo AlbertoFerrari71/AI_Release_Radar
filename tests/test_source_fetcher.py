@@ -127,6 +127,24 @@ class SourceFetcherTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(result.error_code, "response_too_large")
 
+    def test_text_under_max_bytes_keeps_full_bounded_body_sample(self):
+        body = ("release notes " * 120).encode("utf-8")
+        response = FakeResponse(
+            body,
+            headers={"content-type": "application/json", "content-length": str(len(body))},
+        )
+
+        with unittest.mock.patch("radar.source_fetcher.urlopen", return_value=response):
+            result = fetch_source_content(
+                self.source("source_long_text"),
+                timeout_seconds=2.0,
+                max_bytes=len(body),
+            )
+
+        self.assertTrue(result.ok)
+        self.assertEqual(result.body_sample, body.decode("utf-8"))
+        self.assertGreater(len(result.body_sample), 1000)
+
     def test_large_html_response_uses_specific_error_code(self):
         response = FakeResponse(
             b"<html>abcdef</html>",

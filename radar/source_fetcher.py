@@ -14,7 +14,6 @@ from radar.source_registry import SourceDefinition
 
 SCHEMA_VERSION = 1
 DEFAULT_TIMEOUT_SECONDS = 10.0
-DEFAULT_MAX_CONTENT_PREVIEW_CHARS = 1000
 MAX_ERROR_MESSAGE_LENGTH = 240
 _USER_AGENT = "AI-Release-Radar-0130/1.0"
 _TEXTUAL_CONTENT_TYPES = {
@@ -617,8 +616,7 @@ def _decode_text_sample(
 
 
 def _content_preview(text: str) -> str:
-    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
-    return normalized[:DEFAULT_MAX_CONTENT_PREVIEW_CHARS]
+    return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def _preview_policy_for_error(error_code: str) -> str:
