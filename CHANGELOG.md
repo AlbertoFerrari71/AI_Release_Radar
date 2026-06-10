@@ -1,5 +1,15 @@
 # Changelog
 
+## 0200-0230) V1 Manual Run Stabilization
+
+- [F] Migliorata leggibilita' dei report reali full e compact con titolo/versione, source label, provider, URL, data, categoria, severita', score e motivi di impatto. Fonte: `radar/real_run.py`, `tests/test_real_run.py`.
+- [F] Aggiunto profilo CLI `real-run --profile manual` mantenendo `--output-dir` esplicito. Fonte: `radar/cli.py`, `tests/test_cli.py`.
+- [F] Rafforzato `runs_index.jsonl` con conteggi source/parser/item/fail/skip, timestamp e validazione offline. Fonte: `radar/models.py`, `radar/run_index.py`, `tests/test_run_index.py`.
+- [F] `real-run` e `live-snapshot` valorizzano i nuovi campi di indice. Fonte: `radar/real_run.py`, `radar/live_snapshot.py`.
+- [F] Aggiunto runbook V1 manuale, closure pack e decisioni 0230. Fonte: `docs/runbooks/0230_V1_MANUAL_RUN_RUNBOOK.md`, `docs/architecture/0230_V1_MANUAL_RUN_CLOSURE_PACK.md`, `docs/decisions/0230_DECISIONS.md`.
+- [F] Nessuno scheduler, nessuna nuova dipendenza, nessun `LAST-*` o `latest-*` introdotto. Fonte: `radar/cli.py`, `pyproject.toml`, `tests/test_cli.py`.
+- [F] Auto-merge non consentito per fase L1/L2 prudenziale. Fonte: `AGENTS.md`, prompt 0200-0230 fornito da Alberto.
+
 ## 0190) First Real Output Review and Parser Coverage Hardening
 
 - [F] Aggiunto stato `NO_PARSED_ITEMS` per real-run con fonti presenti ma zero fonti parsate. Fonte: `radar/real_run.py`.
