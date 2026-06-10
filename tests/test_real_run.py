@@ -47,6 +47,8 @@ class RealRunTests(unittest.TestCase):
             self.assertNotIn("offline fixture only", full_report)
             self.assertIn("## 2.1 Source Parser Diagnostics", full_report)
             self.assertIn("Source diagnostic statuses: parsed=2.", full_report)
+            self.assertIn("## 6. Report Review Scorecard", full_report)
+            self.assertIn("Scorecard status: PASS", full_report)
             self.assertIn("github_api_openai_codex_releases", full_report)
             self.assertIn(
                 "GitHub API OpenAI Codex Releases (`github_api_openai_codex_releases`); "
@@ -62,6 +64,7 @@ class RealRunTests(unittest.TestCase):
                 full_report,
             )
             compact_report = Path(result.report_compact).read_text(encoding="utf-8")
+            self.assertIn("scorecard: PASS", compact_report)
             self.assertIn("## Top Items", compact_report)
             self.assertIn("Codex CLI v0.140.0", compact_report)
             self.assertIn(
@@ -74,6 +77,8 @@ class RealRunTests(unittest.TestCase):
             self.assertEqual(summary["result"]["run_id"], "0180-test-run")
             self.assertEqual(summary["result"]["parsed_count"], 2)
             self.assertEqual(summary["report_status"], result.status)
+            self.assertEqual(summary["result"]["report_scorecard_status"], "PASS")
+            self.assertEqual(summary["report_scorecard"]["status"], "PASS")
             self.assertEqual(summary["source_diagnostics"], summary["live_snapshot"]["source_diagnostics"])
             self.assertEqual(summary["source_diagnostics"], result.source_diagnostics)
             run_index_entry = read_json(result.run_index_entry)
