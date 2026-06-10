@@ -31,6 +31,9 @@ class RealRunTests(unittest.TestCase):
 
             self.assertIn(result.status, {"CHANGES_FOUND", "ACTION_RECOMMENDED"})
             self.assertEqual(result.source_count, 2)
+            self.assertEqual(result.parsed_count, 2)
+            self.assertEqual(result.skipped_count, 0)
+            self.assertEqual(result.failed_count, 0)
             self.assertGreater(result.item_count, 0)
             self.assertEqual(result.new_count, result.item_count)
             self.assertTrue(Path(result.report_full).is_file())
@@ -41,8 +44,14 @@ class RealRunTests(unittest.TestCase):
             full_report = Path(result.report_full).read_text(encoding="utf-8")
             self.assertIn("baseline / first observation", full_report)
             self.assertNotIn("offline fixture only", full_report)
+            self.assertIn("## 2.1 Source Parser Diagnostics", full_report)
+            self.assertIn("github_api_openai_codex_releases", full_report)
             summary = read_json(result.run_summary)
             self.assertEqual(summary["result"]["run_id"], "0180-test-run")
+            self.assertEqual(summary["result"]["parsed_count"], 2)
+            self.assertEqual(summary["report_status"], result.status)
+            self.assertEqual(summary["source_diagnostics"], summary["live_snapshot"]["source_diagnostics"])
+            self.assertEqual(summary["source_diagnostics"], result.source_diagnostics)
 
     def test_real_run_rejects_output_inside_repo(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -110,6 +119,44 @@ class RealRunTests(unittest.TestCase):
             self.assertEqual(second.removed_count, 0)
             self.assertEqual(second.unchanged_count, second.item_count)
 
+    def test_real_run_reports_no_parsed_items_instead_of_no_change(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            registry_path = temp_root / "sources.json"
+            output_dir = temp_root / "0180_first_real_manual_run"
+            write_json(registry_path, self.unsupported_registry())
+
+            result = run_real_radar_report(
+                source_registry=str(registry_path),
+                output_dir=str(output_dir),
+                project_map=str(PROJECT_MAP_PATH),
+                run_id="0180-no-parsed",
+                generated_at="2026-06-10T11:00:00Z",
+                fetcher=self.fake_unsupported_fetcher,
+            )
+
+            self.assertEqual(result.status, "NO_PARSED_ITEMS")
+            self.assertEqual(result.source_count, 1)
+            self.assertEqual(result.parsed_count, 0)
+            self.assertEqual(result.skipped_count, 1)
+            self.assertEqual(result.item_count, 0)
+            full_report = Path(result.report_full).read_text(encoding="utf-8")
+            compact_report = Path(result.report_compact).read_text(encoding="utf-8")
+            self.assertIn("Report status: NO_PARSED_ITEMS", full_report)
+            self.assertIn("status: NO_PARSED_ITEMS", compact_report)
+            summary = read_json(result.run_summary)
+            self.assertEqual(summary["report_status"], "NO_PARSED_ITEMS")
+            self.assertEqual(summary["result"]["status"], "NO_PARSED_ITEMS")
+            diagnostic = summary["source_diagnostics"][0]
+            self.assertEqual(diagnostic["source_id"], "openai_codex_skills")
+            self.assertEqual(diagnostic["source_type"], "official_docs")
+            self.assertEqual(diagnostic["fetch_status"], "fetched")
+            self.assertEqual(
+                diagnostic["parser_status"],
+                "parser_skipped_unsupported_source",
+            )
+            self.assertEqual(diagnostic["item_count"], 0)
+
     def fake_fetcher(self, sources, timeout_seconds=None, max_sources=None, max_bytes=65536):
         github_body = (FIXTURES_DIR / "0150_github_releases_api_fixture.json").read_text(
             encoding="utf-8"
@@ -148,6 +195,33 @@ class RealRunTests(unittest.TestCase):
             )
         return results
 
+    def fake_unsupported_fetcher(self, sources, timeout_seconds=None, max_sources=None, max_bytes=65536):
+        results = []
+        body = "Unsupported source fixture body."
+        for source in sources:
+            results.append(
+                FetchedSourceContent(
+                    source_id=source.source_id,
+                    url=source.url,
+                    ok=True,
+                    status_code=200,
+                    http_status_code=200,
+                    final_url=source.url,
+                    content_type="text/plain",
+                    encoding="utf-8",
+                    content_length=len(body.encode("utf-8")),
+                    fetched_at="2026-06-10T11:00:00Z",
+                    content_preview_or_path_policy="inline_preview_only",
+                    body_sample=body,
+                    truncated=False,
+                    error_code=None,
+                    error_message_sanitized=None,
+                    error=None,
+                    status="fetched",
+                )
+            )
+        return results
+
     def registry(self):
         return {
             "schema_version": 1,
@@ -155,6 +229,15 @@ class RealRunTests(unittest.TestCase):
             "sources": [
                 self.source("openai_codex_changelog", "official_changelog"),
                 self.source("github_api_openai_codex_releases", "github_api", provider="github"),
+            ],
+        }
+
+    def unsupported_registry(self):
+        return {
+            "schema_version": 1,
+            "provider": "openai",
+            "sources": [
+                self.source("openai_codex_skills", "official_docs"),
             ],
         }
 

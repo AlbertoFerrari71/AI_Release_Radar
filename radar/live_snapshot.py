@@ -48,6 +48,7 @@ class LiveSnapshotRunResult:
     run_summary_path: str
     run_index_entry_path: str
     runs_index_path: str
+    source_diagnostics: list[dict[str, Any]]
     errors: list[str]
 
     def to_dict(self) -> dict[str, Any]:
@@ -64,6 +65,7 @@ class LiveSnapshotRunResult:
             "run_summary_path": self.run_summary_path,
             "run_index_entry_path": self.run_index_entry_path,
             "runs_index_path": self.runs_index_path,
+            "source_diagnostics": [dict(source) for source in self.source_diagnostics],
             "errors": list(self.errors),
         }
 
@@ -168,6 +170,7 @@ def run_live_snapshot(
         run_summary_path=str(target_dir / RUN_SUMMARY_FILENAME),
         run_index_entry_path=str(run_index_entry_path),
         runs_index_path=str(runs_index_path),
+        source_diagnostics=source_summaries,
         errors=errors,
     )
     write_json(

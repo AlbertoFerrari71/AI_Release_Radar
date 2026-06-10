@@ -416,7 +416,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--max-bytes",
         type=int,
         default=4096,
-        help="Maximum number of response body bytes to read per source.",
+        help="Global maximum response body bytes per source; registry max_bytes overrides when set.",
     )
     live_snapshot = subparsers.add_parser(
         "live-snapshot",
@@ -448,7 +448,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--max-bytes",
         type=int,
         default=65536,
-        help="Maximum number of response body bytes to read per source.",
+        help="Global maximum response body bytes per source; registry max_bytes overrides when set.",
     )
     real_run = subparsers.add_parser(
         "real-run",
@@ -490,7 +490,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--max-bytes",
         type=int,
         default=DEFAULT_REAL_RUN_MAX_BYTES,
-        help="Maximum number of response body bytes to read per source.",
+        help="Global maximum response body bytes per source; registry max_bytes overrides when set.",
     )
     return parser
 
