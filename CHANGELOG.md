@@ -1,5 +1,15 @@
 # Changelog
 
+## 0410-0500) Source Coverage V1.2 and Scheduler Readiness Final Gate
+
+- [F] Confermata la scelta di non aggiungere una seconda fonte live parsata senza formato stabile, evitando parser HTML fragile. Fonte: `docs/architecture/0410_SOURCE_COVERAGE_V1_2_IMPLEMENTATION.md`.
+- [F] Rafforzato il source registry con metadata quality/readiness e validazione loader. Fonte: `config/sources/openai_sources.json`, `radar/source_registry.py`, `tests/test_source_registry.py`.
+- [F] Esteso l'automation gate con `scheduler_readiness_recommendation` e manual review queue. Fonte: `radar/automation_gate.py`, `radar/manual_review_queue.py`, `tests/test_automation_gate.py`.
+- [F] Esteso `daily-sim` con manual review queue, scheduler readiness summary e regressioni offline. Fonte: `radar/cli.py`, `tests/test_cli.py`.
+- [F] Aggiunti checklist scheduler readiness, scheduler dry-run design, operator runbook, final review e closure pack V1.2. Fonte: `docs/architecture/0460_SCHEDULER_READINESS_CHECKLIST.md`, `docs/architecture/0470_SCHEDULER_DRY_RUN_DESIGN.md`, `docs/runbooks/0480_OPERATOR_RUNBOOK.md`, `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`, `docs/architecture/0500_SOURCE_COVERAGE_AND_SCHEDULER_READINESS_CLOSURE_PACK.md`.
+- [F] Nessuno scheduler reale, task Windows, LLM automatico, nuova dipendenza, `LAST-*` o `latest-*` introdotto. Fonte: `AGENTS.md`, `radar/cli.py`, `pyproject.toml`.
+- [PROP] Prossimo blocco consigliato: `0510) Scheduler Dry-Report L3 Approval` solo con prompt L3 esplicito.
+
 ## 0320-0400) Automation Readiness and Daily Run Simulation
 
 - [F] Aggiunta pianificazione Source Coverage V1.2 e decisione documentata sulla seconda fonte strutturata senza parser HTML fragile. Fonte: `docs/architecture/0320_SOURCE_COVERAGE_V1_2_PLANNING.md`, `docs/architecture/0330_SECOND_STRUCTURED_SOURCE_CANDIDATE.md`.

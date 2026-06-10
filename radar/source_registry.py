@@ -30,6 +30,34 @@ ALLOWED_VERIFICATION_STATUS = {
     "unreachable",
     "disabled",
 }
+ALLOWED_PARSER_STRATEGY = {
+    "codex_changelog_markdown",
+    "future_candidate",
+    "github_api_releases",
+    "manual_review_only",
+    "unsupported_diagnostic",
+}
+ALLOWED_COVERAGE_PRIORITY = {"P0", "P1", "P2", "P3"}
+ALLOWED_EXPECTED_FAILURE_MODE = {
+    "api_rate_or_response_change",
+    "content_type_not_supported",
+    "html_unsupported",
+    "manual_review_403_or_fragile",
+    "none",
+}
+ALLOWED_RECOMMENDED_FOLLOW_UP = {
+    "evaluate_structured_endpoint",
+    "keep_diagnostic_no_parser",
+    "manual_review_source",
+    "prefer_machine_readable_alternative",
+    "use_parsed_items_after_gate",
+}
+ALLOWED_SCHEDULER_READINESS = {"hold", "ready", "warn"}
+DEFAULT_PARSER_STRATEGY = "unsupported_diagnostic"
+DEFAULT_COVERAGE_PRIORITY = "P3"
+DEFAULT_EXPECTED_FAILURE_MODE = "html_unsupported"
+DEFAULT_RECOMMENDED_FOLLOW_UP = "keep_diagnostic_no_parser"
+DEFAULT_SCHEDULER_READINESS = "hold"
 
 MANDATORY_SOURCE_FIELDS = (
     "source_id",
@@ -51,6 +79,12 @@ OPTIONAL_SOURCE_FIELDS = (
     "max_bytes",
     "live_check_enabled",
     "manual_review_required",
+    "parser_strategy",
+    "coverage_priority",
+    "expected_failure_mode",
+    "recommended_follow_up",
+    "machine_readable_preferred",
+    "scheduler_readiness",
 )
 
 _SOURCE_ID_PATTERN = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
@@ -128,6 +162,20 @@ def _optional_bool(data: dict[str, Any], field_name: str, default: bool) -> bool
     return value
 
 
+def _optional_str_choice(
+    data: dict[str, Any],
+    field_name: str,
+    allowed_values: set[str],
+    default: str,
+) -> str:
+    value = data.get(field_name, default)
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be a string.")
+    if value not in allowed_values:
+        raise ValueError(f"{field_name} must be one of {sorted(allowed_values)}.")
+    return value
+
+
 def _optional_float(data: dict[str, Any], field_name: str) -> float | None:
     value = data.get(field_name)
     if value is None:
@@ -175,6 +223,12 @@ class SourceDefinition:
     max_bytes: int | None = None
     live_check_enabled: bool = True
     manual_review_required: bool = False
+    parser_strategy: str = DEFAULT_PARSER_STRATEGY
+    coverage_priority: str = DEFAULT_COVERAGE_PRIORITY
+    expected_failure_mode: str = DEFAULT_EXPECTED_FAILURE_MODE
+    recommended_follow_up: str = DEFAULT_RECOMMENDED_FOLLOW_UP
+    machine_readable_preferred: bool = False
+    scheduler_readiness: str = DEFAULT_SCHEDULER_READINESS
 
     def __post_init__(self) -> None:
         validate_source_definition(self)
@@ -210,6 +264,12 @@ class SourceDefinition:
             "max_bytes": self.max_bytes,
             "live_check_enabled": self.live_check_enabled,
             "manual_review_required": self.manual_review_required,
+            "parser_strategy": self.parser_strategy,
+            "coverage_priority": self.coverage_priority,
+            "expected_failure_mode": self.expected_failure_mode,
+            "recommended_follow_up": self.recommended_follow_up,
+            "machine_readable_preferred": self.machine_readable_preferred,
+            "scheduler_readiness": self.scheduler_readiness,
         }
 
     @classmethod
@@ -233,6 +293,41 @@ class SourceDefinition:
             max_bytes=_optional_positive_int(raw, "max_bytes"),
             live_check_enabled=_optional_bool(raw, "live_check_enabled", True),
             manual_review_required=_optional_bool(raw, "manual_review_required", False),
+            parser_strategy=_optional_str_choice(
+                raw,
+                "parser_strategy",
+                ALLOWED_PARSER_STRATEGY,
+                DEFAULT_PARSER_STRATEGY,
+            ),
+            coverage_priority=_optional_str_choice(
+                raw,
+                "coverage_priority",
+                ALLOWED_COVERAGE_PRIORITY,
+                DEFAULT_COVERAGE_PRIORITY,
+            ),
+            expected_failure_mode=_optional_str_choice(
+                raw,
+                "expected_failure_mode",
+                ALLOWED_EXPECTED_FAILURE_MODE,
+                DEFAULT_EXPECTED_FAILURE_MODE,
+            ),
+            recommended_follow_up=_optional_str_choice(
+                raw,
+                "recommended_follow_up",
+                ALLOWED_RECOMMENDED_FOLLOW_UP,
+                DEFAULT_RECOMMENDED_FOLLOW_UP,
+            ),
+            machine_readable_preferred=_optional_bool(
+                raw,
+                "machine_readable_preferred",
+                False,
+            ),
+            scheduler_readiness=_optional_str_choice(
+                raw,
+                "scheduler_readiness",
+                ALLOWED_SCHEDULER_READINESS,
+                DEFAULT_SCHEDULER_READINESS,
+            ),
         )
 
 
@@ -304,6 +399,27 @@ def validate_source_definition(source: SourceDefinition) -> None:
         raise ValueError("live_check_enabled must be a boolean.")
     if not isinstance(source.manual_review_required, bool):
         raise ValueError("manual_review_required must be a boolean.")
+    if source.parser_strategy not in ALLOWED_PARSER_STRATEGY:
+        raise ValueError(f"parser_strategy must be one of {sorted(ALLOWED_PARSER_STRATEGY)}.")
+    if source.coverage_priority not in ALLOWED_COVERAGE_PRIORITY:
+        raise ValueError(f"coverage_priority must be one of {sorted(ALLOWED_COVERAGE_PRIORITY)}.")
+    if source.expected_failure_mode not in ALLOWED_EXPECTED_FAILURE_MODE:
+        raise ValueError(
+            "expected_failure_mode must be one of "
+            f"{sorted(ALLOWED_EXPECTED_FAILURE_MODE)}."
+        )
+    if source.recommended_follow_up not in ALLOWED_RECOMMENDED_FOLLOW_UP:
+        raise ValueError(
+            "recommended_follow_up must be one of "
+            f"{sorted(ALLOWED_RECOMMENDED_FOLLOW_UP)}."
+        )
+    if not isinstance(source.machine_readable_preferred, bool):
+        raise ValueError("machine_readable_preferred must be a boolean.")
+    if source.scheduler_readiness not in ALLOWED_SCHEDULER_READINESS:
+        raise ValueError(
+            "scheduler_readiness must be one of "
+            f"{sorted(ALLOWED_SCHEDULER_READINESS)}."
+        )
 
 
 def _ordered_sources(sources: list[SourceDefinition]) -> list[SourceDefinition]:

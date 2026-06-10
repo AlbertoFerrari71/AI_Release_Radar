@@ -284,6 +284,12 @@ def _source_summary(
         "error_code": fetched.error_code if fetched is not None else None,
         "item_count": item_count,
         "recommended_follow_up": _source_follow_up(diagnostic_status),
+        "registry_recommended_follow_up": source.recommended_follow_up,
+        "parser_strategy": source.parser_strategy,
+        "coverage_priority": source.coverage_priority,
+        "expected_failure_mode": source.expected_failure_mode,
+        "machine_readable_preferred": source.machine_readable_preferred,
+        "scheduler_readiness": source.scheduler_readiness,
         "error": error,
     }
 

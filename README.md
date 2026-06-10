@@ -33,6 +33,16 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Il closure pack 0400 conclude `HOLD` per scheduler reale e consente solo simulazione controllata con review umana. Fonte: `docs/architecture/0400_AUTOMATION_READINESS_CLOSURE_PACK.md`, `docs/reviews/0390_DAILY_RUN_READINESS_REVIEW.md`.
 - [PROP] Il prossimo blocco consigliato e' `0410) Source Coverage V1.2 Implementation`. Fonte: `docs/decisions/0400_DECISIONS.md`.
 
+## V1.2 source coverage and scheduler readiness
+
+- [F] La V1.2 conferma di non forzare una seconda fonte live parsata senza formato stabile. Fonte: `docs/architecture/0410_SOURCE_COVERAGE_V1_2_IMPLEMENTATION.md`.
+- [F] Il registry include metadata quality/readiness per parser strategy, coverage priority, failure mode, follow-up e scheduler readiness. Fonte: `config/sources/openai_sources.json`, `docs/architecture/0420_REGISTRY_QUALITY_HARDENING.md`.
+- [F] L'automation gate espone `scheduler_readiness_recommendation` e manual review queue. Fonte: `radar/automation_gate.py`, `radar/manual_review_queue.py`.
+- [F] `daily-sim` serializza manual review queue e scheduler readiness nel summary. Fonte: `radar/cli.py`.
+- [F] Il runbook operatore V1.2 e' `docs/runbooks/0480_OPERATOR_RUNBOOK.md`. Fonte: `docs/runbooks/0480_OPERATOR_RUNBOOK.md`.
+- [INT] Readiness finale: `GO_WITH_WARNINGS` per futuro scheduler dry/report supervisionato, `HOLD` per scheduler operativo pieno. Fonte: `docs/reviews/0490_FINAL_SCHEDULER_READINESS_REVIEW.md`.
+- [PROP] Prossimo blocco consigliato: `0510) Scheduler Dry-Report L3 Approval` solo se Alberto autorizza esplicitamente uno step L3.
+
 ## Comandi principali
 
 ```powershell

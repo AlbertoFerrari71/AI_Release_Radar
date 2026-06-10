@@ -118,6 +118,13 @@ python -m radar.cli daily-sim --output-root "D:\FG-SAB Dropbox\Alberto Ferrari\C
 - [F] `daily-sim` non crea scheduler, task Windows, notifiche automatiche o chiamate LLM. Fonte: `radar/cli.py`.
 - [INT] Usare `daily-sim` per raccogliere evidenza Bridge ripetibile prima di qualunque step scheduler. Base: `docs/architecture/0400_AUTOMATION_READINESS_CLOSURE_PACK.md`.
 
+## Manual Review Queue V1.2
+
+- [F] Il gate V1.2 include `manual_review_queue` e `manual_review_queue_count`. Fonte: `radar/automation_gate.py`, `radar/manual_review_queue.py`.
+- [F] `daily-sim` include la queue e `scheduler_readiness_recommendation` in `0350-Daily_Sim_Summary.json`. Fonte: `radar/cli.py`.
+- [F] Il runbook operatore V1.2 e' `docs/runbooks/0480_OPERATOR_RUNBOOK.md`. Fonte: `docs/runbooks/0480_OPERATOR_RUNBOOK.md`.
+- [INT] Se la queue contiene righe bloccanti o la readiness e' `HOLD`/`STOP`, non procedere verso scheduler reale. Base: `docs/architecture/0460_SCHEDULER_READINESS_CHECKLIST.md`.
+
 ## Criteri Dopo V1.1
 
 - [F] 0310 ha rivisto un real-run V1.1 fuori repo e ha documentato la review in `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`. Fonte: `docs/reviews/0310_MANUAL_V1_1_REAL_SMOKE_REVIEW.md`.
