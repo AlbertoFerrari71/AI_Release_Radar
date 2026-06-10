@@ -7,17 +7,22 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from radar_web.config import DashboardConfig, default_config
+from radar_web.manual_trigger import DailySimTrigger
 from radar_web.models import ApiMessage, DashboardStatus
 from radar_web.run_locator import find_latest_run, list_recent_runs, load_run_detail
 from radar_web.scheduler_status import read_scheduler_status
 
 
-def create_app(config: DashboardConfig | None = None) -> FastAPI:
+def create_app(
+    config: DashboardConfig | None = None,
+    *,
+    daily_sim_trigger: DailySimTrigger | None = None,
+) -> FastAPI:
     """Create the local dashboard app."""
     dashboard_config = config or default_config()
     package_root = Path(__file__).resolve().parent
@@ -30,6 +35,7 @@ def create_app(config: DashboardConfig | None = None) -> FastAPI:
         redoc_url=None,
     )
     app.state.dashboard_config = dashboard_config
+    app.state.daily_sim_trigger = daily_sim_trigger or DailySimTrigger(dashboard_config)
     app.mount(
         "/static",
         StaticFiles(directory=str(package_root / "static")),
@@ -116,6 +122,16 @@ def create_app(config: DashboardConfig | None = None) -> FastAPI:
     def api_scheduler() -> dict[str, Any]:
         return read_scheduler_status_placeholder(dashboard_config)
 
+    @app.post("/api/daily-sim/run")
+    def api_daily_sim_run() -> JSONResponse:
+        result = app.state.daily_sim_trigger.run_now()
+        data = result.to_dict()
+        if result.status == "ALREADY_RUNNING":
+            return JSONResponse(data, status_code=409)
+        if result.status == "REFUSED":
+            return JSONResponse(data, status_code=400)
+        return JSONResponse(data)
+
     @app.get("/runs/{run_id}", response_class=HTMLResponse)
     def run_detail(request: Request, run_id: str) -> Any:
         detail = _run_detail_or_404(dashboard_config, run_id)
@@ -148,6 +164,7 @@ def build_status(
         latest_run=latest,
         recent_run_count=len(recent_runs),
         scheduler=read_scheduler_status_placeholder(config),
+        manual_trigger_enabled=True,
         warnings=tuple(sorted(set(warnings))),
     )
 

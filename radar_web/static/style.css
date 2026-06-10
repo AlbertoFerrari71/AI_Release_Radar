@@ -83,6 +83,24 @@ h2 {
   font-weight: 600;
 }
 
+.button.primary {
+  background: #194f90;
+  border-color: #194f90;
+  color: #ffffff;
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .layout {
   max-width: 1240px;
   margin: 0 auto;
