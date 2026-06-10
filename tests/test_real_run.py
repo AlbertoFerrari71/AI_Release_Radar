@@ -46,12 +46,14 @@ class RealRunTests(unittest.TestCase):
             self.assertIn("baseline / first observation", full_report)
             self.assertNotIn("offline fixture only", full_report)
             self.assertIn("## 2.1 Source Parser Diagnostics", full_report)
+            self.assertIn("Source diagnostic statuses: parsed=2.", full_report)
             self.assertIn("github_api_openai_codex_releases", full_report)
             self.assertIn(
                 "GitHub API OpenAI Codex Releases (`github_api_openai_codex_releases`); "
                 "provider=github",
                 full_report,
             )
+            self.assertIn("diagnostic_status=parsed", full_report)
             self.assertIn("title/version: Codex CLI v0.140.0", full_report)
             self.assertIn("provider: github", full_report)
             self.assertIn("published_at: 2026-06-10T08:00:00Z", full_report)
@@ -183,6 +185,11 @@ class RealRunTests(unittest.TestCase):
             self.assertEqual(
                 diagnostic["parser_status"],
                 "parser_skipped_unsupported_source",
+            )
+            self.assertEqual(diagnostic["diagnostic_status"], "fetched_but_unsupported")
+            self.assertEqual(
+                diagnostic["recommended_follow_up"],
+                "keep_diagnostic_no_parser",
             )
             self.assertEqual(diagnostic["item_count"], 0)
 

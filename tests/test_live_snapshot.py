@@ -140,8 +140,80 @@ class LiveSnapshotTests(unittest.TestCase):
                 if source["source_id"] == "openai_codex_skills"
             )
             self.assertEqual(unsupported["source_type"], "official_docs")
+            self.assertFalse(unsupported["manual_review_required"])
+            self.assertEqual(unsupported["diagnostic_status"], "fetched_but_unsupported")
             self.assertEqual(unsupported["parser_status"], "parser_skipped_unsupported_source")
+            self.assertEqual(unsupported["recommended_follow_up"], "keep_diagnostic_no_parser")
             self.assertEqual(unsupported["item_count"], 0)
+
+    def test_run_live_snapshot_marks_manual_review_source_without_parser_noise(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            registry_data = self.registry()
+            registry_data["sources"].append(
+                self.source(
+                    "openai_model_release_notes",
+                    "official_release_notes",
+                    manual_review_required=True,
+                )
+            )
+            registry_path = temp_root / "sources.json"
+            output_dir = temp_root / "0170_manual"
+            write_json(registry_path, registry_data)
+
+            result = run_live_snapshot(
+                source_registry=str(registry_path),
+                output_dir=str(output_dir),
+                run_id="0170-test-run",
+                fetched_at="2026-06-10T10:00:00Z",
+                fetcher=self.fake_fetcher,
+            )
+
+            diagnostic = next(
+                source
+                for source in result.source_diagnostics
+                if source["source_id"] == "openai_model_release_notes"
+            )
+            self.assertTrue(diagnostic["manual_review_required"])
+            self.assertEqual(diagnostic["diagnostic_status"], "manual_review_required")
+            self.assertEqual(diagnostic["parser_status"], "parser_skipped_unsupported_source")
+            self.assertEqual(diagnostic["recommended_follow_up"], "manual_review_source")
+            self.assertEqual(diagnostic["item_count"], 0)
+
+    def test_run_live_snapshot_marks_403_as_manual_review_required(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            registry_path = temp_root / "sources.json"
+            output_dir = temp_root / "0170_manual"
+            write_json(
+                registry_path,
+                {
+                    "schema_version": 1,
+                    "provider": "openai",
+                    "sources": [self.source("openai_codex_cli_reference", "official_docs")],
+                },
+            )
+
+            result = run_live_snapshot(
+                source_registry=str(registry_path),
+                output_dir=str(output_dir),
+                run_id="0170-test-run",
+                fetched_at="2026-06-10T10:00:00Z",
+                fetcher=self.fake_403_fetcher,
+            )
+
+            self.assertEqual(result.status, "partial")
+            self.assertEqual(result.failed_count, 1)
+            diagnostic = result.source_diagnostics[0]
+            self.assertEqual(diagnostic["source_id"], "openai_codex_cli_reference")
+            self.assertFalse(diagnostic["manual_review_required"])
+            self.assertEqual(diagnostic["diagnostic_status"], "manual_review_required")
+            self.assertEqual(diagnostic["fetch_status"], "rejected")
+            self.assertEqual(diagnostic["http_status_code"], 403)
+            self.assertEqual(diagnostic["parser_status"], "fetch_failed")
+            self.assertEqual(diagnostic["error_code"], "unexpected_status")
+            self.assertEqual(diagnostic["recommended_follow_up"], "manual_review_source")
+            self.assertEqual(diagnostic["item_count"], 0)
 
     def fake_fetcher(self, sources, timeout_seconds=None, max_sources=None, max_bytes=65536):
         results = []
@@ -184,6 +256,32 @@ class LiveSnapshotTests(unittest.TestCase):
             )
         return results
 
+    def fake_403_fetcher(self, sources, timeout_seconds=None, max_sources=None, max_bytes=65536):
+        results = []
+        for source in sources:
+            results.append(
+                FetchedSourceContent(
+                    source_id=source.source_id,
+                    url=source.url,
+                    ok=False,
+                    status_code=403,
+                    http_status_code=403,
+                    final_url=source.url,
+                    content_type="text/html",
+                    encoding="utf-8",
+                    content_length=None,
+                    fetched_at="2026-06-10T10:00:00Z",
+                    content_preview_or_path_policy="preview_omitted_error",
+                    body_sample=None,
+                    truncated=False,
+                    error_code="unexpected_status",
+                    error_message_sanitized="Unexpected HTTP status 403.",
+                    error="unexpected_status:403",
+                    status="rejected",
+                )
+            )
+        return results
+
     def registry(self):
         return {
             "schema_version": 1,
@@ -194,7 +292,13 @@ class LiveSnapshotTests(unittest.TestCase):
             ],
         }
 
-    def source(self, source_id: str, source_type: str, provider: str = "openai"):
+    def source(
+        self,
+        source_id: str,
+        source_type: str,
+        provider: str = "openai",
+        manual_review_required: bool = False,
+    ):
         return {
             "source_id": source_id,
             "provider": provider,
@@ -211,7 +315,7 @@ class LiveSnapshotTests(unittest.TestCase):
             "allow_redirects": True,
             "timeout_seconds": 1.0,
             "live_check_enabled": True,
-            "manual_review_required": False,
+            "manual_review_required": manual_review_required,
         }
 
 

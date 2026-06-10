@@ -319,6 +319,7 @@ def _render_real_full_report(
         f"- [F] Parsed sources: {live_result.get('parsed_count')}.",
         f"- [F] Skipped sources: {live_result.get('skipped_count')}.",
         f"- [F] Failed sources: {live_result.get('failed_count')}.",
+        f"- [F] Source diagnostic statuses: {_diagnostic_count_line(source_diagnostics)}.",
         "",
         "## 2.1 Source Parser Diagnostics",
         "",
@@ -461,13 +462,27 @@ def _render_source_diagnostics(source_diagnostics: list[dict[str, Any]]) -> list
             f"{_source_label(source_id)} (`{source_id}`); "
             f"provider={source.get('provider')}; "
             f"type={source.get('source_type')}; "
+            f"diagnostic_status={source.get('diagnostic_status')}; "
+            f"manual_review_required={source.get('manual_review_required')}; "
             f"fetch_status={source.get('fetch_status')}; "
             f"http_status_code={source.get('http_status_code')}; "
             f"parser_status={source.get('parser_status')}; "
+            f"error_code={source.get('error_code')}; "
             f"item_count={source.get('item_count')}; "
+            f"follow_up={source.get('recommended_follow_up')}; "
             f"error={error if error is not None else 'none'}."
         )
     return lines
+
+
+def _diagnostic_count_line(source_diagnostics: list[dict[str, Any]]) -> str:
+    if not source_diagnostics:
+        return "none"
+    counts: dict[str, int] = {}
+    for source in source_diagnostics:
+        status = str(source.get("diagnostic_status") or "unknown")
+        counts[status] = counts.get(status, 0) + 1
+    return "; ".join(f"{status}={counts[status]}" for status in sorted(counts))
 
 
 def _readable_item_title(item: object) -> str:
