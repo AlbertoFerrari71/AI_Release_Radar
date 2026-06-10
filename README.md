@@ -60,6 +60,15 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Cross-project PR, email/notifiche automatiche, chiamate LLM automatiche e auto-azioni restano vietate. Fonte: `docs/reviews/0740_V1_5_GOVERNANCE_AND_RISK_REVIEW.md`.
 - [PROP] Prossimo passo consigliato: `0760) First Real Scheduled Run V1.5 Review`. Fonte: `docs/architecture/0750_SUPERVISED_DAILY_INTELLIGENCE_CLOSURE_PACK.md`.
 
+## Local web dashboard
+
+- [F] La dashboard locale si avvia con `python -m radar_web.app --host 127.0.0.1 --port 8787`. Fonte: `radar_web/app.py`, `docs/runbooks/0850_WEB_DASHBOARD_RUNBOOK.md`.
+- [F] La dashboard legge i run Bridge da `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\runs`. Fonte: `radar_web/config.py`.
+- [F] La home mostra ultimo run, gate, source coverage, HAG, scheduler status e run recenti. Fonte: `radar_web/templates/index.html`.
+- [F] La pagina dettaglio mostra report compact, gate, HAG, dashboard operatore, prompt suggestions e path locali come testo. Fonte: `radar_web/templates/run_detail.html`.
+- [F] Il bottone manuale esegue solo `python -m radar.cli daily-sim --output-root "<Bridge runs root>"`, con lock e timeout. Fonte: `radar_web/manual_trigger.py`.
+- [F] Nessuna email, nessun LLM, nessuna auto-azione, nessun nuovo scheduler e nessun altro repository vengono toccati dalla dashboard. Fonte: `radar_web/manual_trigger.py`, `radar_web/scheduler_status.py`.
+
 ## Comandi principali
 
 ```powershell
@@ -67,6 +76,7 @@ python -m radar.cli --help
 python -m radar.cli real-run --help
 python -m radar.cli real-run --profile manual --output-dir "<directory-fuori-repo>"
 python -m radar.cli daily-sim --output-root "<Bridge-runs-fuori-repo>"
+python -m radar_web.app --host 127.0.0.1 --port 8787
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\alberto.ferrari\source\repos\AI_Release_Radar\scripts\scheduler\ai_release_radar_daily_dry_report.ps1"
 ```
 
