@@ -53,6 +53,29 @@ class RunSummaryComparison:
         }
 
 
+@dataclass(frozen=True)
+class MultiDayRunComparison:
+    """Noise-control comparison across ordered daily run summaries."""
+
+    status: str
+    new_today: list[str]
+    repeated_items: list[str]
+    stale_actions: list[str]
+    persistent_source_warnings: list[str]
+    coverage_unchanged: bool
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": 1,
+            "status": self.status,
+            "new_today": list(self.new_today),
+            "repeated_items": list(self.repeated_items),
+            "stale_actions": list(self.stale_actions),
+            "persistent_source_warnings": list(self.persistent_source_warnings),
+            "coverage_unchanged": self.coverage_unchanged,
+        }
+
+
 def compare_run_summaries(
     before_summary: dict[str, Any],
     after_summary: dict[str, Any],
@@ -90,6 +113,59 @@ def compare_run_summaries(
         metrics=metrics,
         notes=notes or ["all comparison metrics available"],
     )
+
+
+def compare_multi_day_runs(summaries: list[dict[str, Any]]) -> MultiDayRunComparison:
+    """Compare ordered run summaries for repeated items, actions and warnings."""
+    if len(summaries) < 2:
+        raise ValueError("at least two run summaries are required.")
+    previous_summaries = summaries[:-1]
+    latest = summaries[-1]
+    previous_items = set().union(*(_observed_item_ids(summary) for summary in previous_summaries))
+    latest_items = _observed_item_ids(latest)
+    new_today = sorted(latest_items - previous_items)
+    repeated_items = sorted(latest_items & previous_items)
+    stale_actions = _stale_actions(previous_summaries, latest)
+    persistent_warnings = _persistent_source_warnings(previous_summaries, latest)
+    coverage_unchanged = _coverage_tuple(previous_summaries[-1]) == _coverage_tuple(latest)
+    status = "PASS" if new_today or repeated_items or stale_actions or persistent_warnings else "WARN"
+    return MultiDayRunComparison(
+        status=status,
+        new_today=new_today,
+        repeated_items=repeated_items,
+        stale_actions=stale_actions,
+        persistent_source_warnings=persistent_warnings,
+        coverage_unchanged=coverage_unchanged,
+    )
+
+
+def render_multi_day_comparison_markdown(comparison: MultiDayRunComparison) -> str:
+    """Render multi-day noise-control comparison as Markdown."""
+    if not isinstance(comparison, MultiDayRunComparison):
+        raise ValueError("comparison must be a MultiDayRunComparison.")
+    lines = [
+        "# 0690) Multi-Day Run Comparison",
+        "",
+        f"- [F] status: {comparison.status}.",
+        f"- [F] coverage_unchanged: {comparison.coverage_unchanged}.",
+        "",
+        "## New Today",
+        "",
+        *_bullet_lines(comparison.new_today),
+        "",
+        "## Repeated Items",
+        "",
+        *_bullet_lines(comparison.repeated_items),
+        "",
+        "## Stale Actions",
+        "",
+        *_bullet_lines(comparison.stale_actions),
+        "",
+        "## Persistent Source Warnings",
+        "",
+        *_bullet_lines(comparison.persistent_source_warnings),
+    ]
+    return "\n".join(lines).rstrip("\n") + "\n"
 
 
 def render_run_comparison_markdown(comparison: RunSummaryComparison) -> str:
@@ -144,6 +220,90 @@ def _extract_metrics(summary: dict[str, Any]) -> dict[str, int | str | None]:
             result.get("report_scorecard_status", report_scorecard.get("status"))
         ),
     }
+
+
+def _observed_item_ids(summary: dict[str, Any]) -> set[str]:
+    result = _mapping(summary.get("result"))
+    explicit = result.get("item_ids")
+    if isinstance(explicit, list):
+        return {item for item in explicit if isinstance(item, str) and item.strip()}
+    diff_result = _mapping(summary.get("diff_result"))
+    item_ids: set[str] = set()
+    for key in ("new_items", "changed_items", "removed_items", "repeated_items"):
+        values = diff_result.get(key)
+        if isinstance(values, list):
+            item_ids.update(item for item in values if isinstance(item, str) and item.strip())
+    impacts = result.get("project_impacts")
+    if isinstance(impacts, list):
+        for impact in impacts:
+            raw = _mapping(impact)
+            item_id = raw.get("item_id")
+            if isinstance(item_id, str) and item_id.strip():
+                item_ids.add(item_id)
+    return item_ids
+
+
+def _stale_actions(
+    previous_summaries: list[dict[str, Any]],
+    latest: dict[str, Any],
+) -> list[str]:
+    previous_action_ids = set().union(*(_action_ids(summary) for summary in previous_summaries))
+    latest_action_ids = _action_ids(latest)
+    repeated = sorted(previous_action_ids & latest_action_ids)
+    if repeated:
+        return repeated
+    previous_direct = any(
+        (_extract_metrics(summary).get("direct_actions") or 0) > 0
+        for summary in previous_summaries
+    )
+    latest_direct = (_extract_metrics(latest).get("direct_actions") or 0) > 0
+    return ["direct_actions_repeated"] if previous_direct and latest_direct else []
+
+
+def _action_ids(summary: dict[str, Any]) -> set[str]:
+    result = _mapping(summary.get("result"))
+    impacts = result.get("project_impacts")
+    if not isinstance(impacts, list):
+        return set()
+    action_ids: set[str] = set()
+    for impact in impacts:
+        raw = _mapping(impact)
+        if raw.get("action_type") == "direct_action":
+            item_id = _str_or_none(raw.get("item_id"))
+            project_key = _str_or_none(raw.get("project_key"))
+            if item_id and project_key:
+                action_ids.add(f"{project_key}:{item_id}")
+    return action_ids
+
+
+def _persistent_source_warnings(
+    previous_summaries: list[dict[str, Any]],
+    latest: dict[str, Any],
+) -> list[str]:
+    previous = set().union(*(_source_warning_ids(summary) for summary in previous_summaries))
+    current = _source_warning_ids(latest)
+    return sorted(previous & current)
+
+
+def _source_warning_ids(summary: dict[str, Any]) -> set[str]:
+    warnings: set[str] = set()
+    for source in _source_diagnostics(summary):
+        source_id = _str_or_none(source.get("source_id")) or "unknown_source"
+        status = _str_or_none(source.get("diagnostic_status") or source.get("parser_status"))
+        if status and status not in {"parsed", "ok"}:
+            warnings.add(f"{source_id}:{status}")
+    return warnings
+
+
+def _coverage_tuple(summary: dict[str, Any]) -> tuple[int | None, int | None]:
+    metrics = _extract_metrics(summary)
+    return metrics.get("sources_checked"), metrics.get("parsed_sources")
+
+
+def _bullet_lines(values: list[str]) -> list[str]:
+    if not values:
+        return ["- [F] none"]
+    return [f"- [F] {value}" for value in values]
 
 
 def _mapping(value: object) -> dict[str, Any]:

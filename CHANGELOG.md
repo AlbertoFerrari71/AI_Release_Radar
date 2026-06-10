@@ -1,5 +1,15 @@
 # Changelog
 
+## 0610-0750) Supervised Daily Intelligence Loop
+
+- [F] Aggiunti protocollo di review del primo run schedulato e contratto `Radar fatto` per recupero Bridge. Fonte: `docs/architecture/0610_FIRST_SCHEDULED_RUN_REVIEW_PROTOCOL.md`, `docs/architecture/0620_RADAR_DONE_BRIDGE_RETRIEVAL_CONTRACT.md`.
+- [F] Aggiunto daily quality gate v2 con dimensioni readability, source coverage e actionability. Fonte: `radar/daily_quality_gate.py`, `tests/test_daily_quality_gate.py`.
+- [F] Aggiunti action triage, prompt suggestions `suggested_only`, profili progetto, HAG report e dashboard operatore. Fonte: `radar/action_triage.py`, `radar/prompt_suggestions.py`, `radar/project_profiles.py`, `radar/hag_report.py`, `radar/operator_dashboard.py`.
+- [F] Esteso `daily-sim` con output runtime Bridge per quality gate v2, triage, prompt suggestions, HAG, dashboard e supervised loop dry run. Fonte: `radar/cli.py`, `tests/test_cli.py`.
+- [F] Esteso confronto multi-day per item ripetuti, stale actions e warning fonte persistenti. Fonte: `radar/run_comparison.py`, `tests/test_run_comparison.py`.
+- [F] Documentati failure recovery, noise reduction, governance V1.5 e closure pack. Fonte: `docs/architecture/0700_NOISE_REDUCTION_AND_DEDUPLICATION.md`, `docs/architecture/0720_FAILURE_RECOVERY_DRILL.md`, `docs/reviews/0740_V1_5_GOVERNANCE_AND_RISK_REVIEW.md`, `docs/architecture/0750_SUPERVISED_DAILY_INTELLIGENCE_CLOSURE_PACK.md`.
+- [F] Nessuna auto-azione, nessuna email/notifica automatica, nessuna chiamata LLM automatica, nessun nuovo scheduler e nessuna modifica ad altri repository introdotta. Fonte: `radar/cli.py`, `docs/reviews/0740_V1_5_GOVERNANCE_AND_RISK_REVIEW.md`.
+
 ## 0510-0600) Scheduler Dry-Report Controlled Activation
 
 - [F] Registrato consenso L3 esplicito per scheduler dry-report controllato. Fonte: `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.

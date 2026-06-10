@@ -1,0 +1,182 @@
+{
+  "projects": [
+    {
+      "direct_categories": [
+        "api_platform",
+        "codex_agents_md",
+        "codex_cli",
+        "codex_mcp",
+        "codex_plugins",
+        "codex_review",
+        "codex_skills",
+        "codex_windows",
+        "deprecation",
+        "security"
+      ],
+      "ignored_categories": [],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "agents.md",
+        "codex",
+        "sandbox",
+        "workflow"
+      ],
+      "monitor_categories": [
+        "billing",
+        "gpt_models"
+      ],
+      "project_key": "ai_software_factory",
+      "project_name": "AI Software Factory",
+      "prompt_generation_allowed": true,
+      "review_threshold": 60
+    },
+    {
+      "direct_categories": [
+        "codex_agents_md",
+        "codex_cli",
+        "codex_mcp",
+        "codex_plugins",
+        "codex_skills",
+        "codex_windows"
+      ],
+      "ignored_categories": [],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "skill",
+        "skills",
+        "validator"
+      ],
+      "monitor_categories": [
+        "deprecation",
+        "security"
+      ],
+      "project_key": "codex_skills",
+      "project_name": "Codex_Skills",
+      "prompt_generation_allowed": true,
+      "review_threshold": 60
+    },
+    {
+      "direct_categories": [
+        "image_vision",
+        "security"
+      ],
+      "ignored_categories": [
+        "billing"
+      ],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "image",
+        "privacy",
+        "vision"
+      ],
+      "monitor_categories": [
+        "api_platform",
+        "codex_cli",
+        "codex_review"
+      ],
+      "project_key": "family_photo_organizer",
+      "project_name": "Family Photo Organizer",
+      "prompt_generation_allowed": false,
+      "review_threshold": 70
+    },
+    {
+      "direct_categories": [
+        "api_platform",
+        "deprecation",
+        "security"
+      ],
+      "ignored_categories": [
+        "image_vision"
+      ],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "api",
+        "fastapi",
+        "security"
+      ],
+      "monitor_categories": [
+        "codex_cli",
+        "codex_review",
+        "data_analysis"
+      ],
+      "project_key": "mansionario_vivo",
+      "project_name": "Mansionario_Vivo",
+      "prompt_generation_allowed": true,
+      "review_threshold": 70
+    },
+    {
+      "direct_categories": [
+        "image_vision"
+      ],
+      "ignored_categories": [
+        "billing"
+      ],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "csv",
+        "image",
+        "vision"
+      ],
+      "monitor_categories": [
+        "api_platform",
+        "codex_cli",
+        "data_analysis",
+        "gpt_models"
+      ],
+      "project_key": "agglodetect",
+      "project_name": "AggloDetect",
+      "prompt_generation_allowed": true,
+      "review_threshold": 65
+    },
+    {
+      "direct_categories": [
+        "image_vision",
+        "security"
+      ],
+      "ignored_categories": [
+        "billing"
+      ],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "image",
+        "security",
+        "vision"
+      ],
+      "monitor_categories": [
+        "api_platform",
+        "codex_cli",
+        "gpt_models"
+      ],
+      "project_key": "diamsign",
+      "project_name": "DiamSign",
+      "prompt_generation_allowed": true,
+      "review_threshold": 70
+    },
+    {
+      "direct_categories": [
+        "data_analysis",
+        "deprecation",
+        "security"
+      ],
+      "ignored_categories": [
+        "billing",
+        "image_vision"
+      ],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "api",
+        "csv",
+        "spreadsheet"
+      ],
+      "monitor_categories": [
+        "api_platform",
+        "codex_cli"
+      ],
+      "project_key": "controllo_gestione_esolver",
+      "project_name": "ControlloGestioneExcel / eSolver",
+      "prompt_generation_allowed": false,
+      "review_threshold": 75
+    }
+  ],
+  "schema_version": 1
+}

@@ -12,6 +12,12 @@ from radar.automation_gate import (
     evaluate_automation_gate,
     render_automation_gate_markdown,
 )
+from radar.action_triage import triage_daily_actions
+from radar.daily_quality_gate import (
+    evaluate_daily_quality_gate,
+    render_daily_quality_gate_markdown,
+)
+from radar.hag_report import build_hag_report
 from radar.json_utils import read_json, write_json
 from radar.live_url_check import (
     check_sources_live,
@@ -31,11 +37,18 @@ from radar.report_engine import (
     render_full_markdown_report,
     render_report_status,
 )
+from radar.operator_dashboard import render_operator_dashboard
+from radar.project_profiles import load_project_profiles
+from radar.prompt_suggestions import (
+    render_prompt_suggestion_pack_markdown,
+    suggest_codex_prompts,
+)
 from radar.source_registry import load_source_registry_file
 from radar.source_fetcher import (
     fetched_sources_to_dict,
     fetch_sources_content,
 )
+from radar.supervised_loop import render_supervised_action_loop_dry_run
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -66,8 +79,16 @@ DAILY_SIM_OUTPUT_PREFIX = "0320_0400_daily_sim"
 DAILY_SIM_SUMMARY_FILENAME = "0350-Daily_Sim_Summary.json"
 DAILY_SIM_GATE_JSON_FILENAME = "0350-Daily_Sim_Gate.json"
 DAILY_SIM_GATE_MARKDOWN_FILENAME = "0350-Daily_Sim_Gate.md"
+DAILY_QUALITY_GATE_V2_JSON_FILENAME = "0630-Daily_Quality_Gate_V2.json"
+DAILY_QUALITY_GATE_V2_MARKDOWN_FILENAME = "0630-Daily_Quality_Gate_V2.md"
+ACTION_TRIAGE_JSON_FILENAME = "0650-Action_Triage.json"
+PROMPT_SUGGESTIONS_JSON_FILENAME = "0660-Codex_Prompt_Suggestions.json"
+PROMPT_SUGGESTIONS_MARKDOWN_FILENAME = "0660-Codex_Prompt_Suggestions.md"
+HAG_REPORT_MARKDOWN_FILENAME = "0680-Human_Approval_Gate_Report.md"
+DAILY_OPERATOR_DASHBOARD_FILENAME = "0710-Daily_Operator_Dashboard.md"
+SUPERVISED_ACTION_LOOP_DRY_RUN_FILENAME = "0730-Supervised_Action_Loop_Dry_Run.md"
 DAILY_SIM_NEXT_STEP_RECOMMENDATION = (
-    "0410) Source Coverage V1.2 Implementation before any scheduler activation."
+    "0750) Alberto reviews HAG decisions and approves the next supervised step."
 )
 
 
@@ -271,6 +292,57 @@ def run_daily_sim(
     gate_markdown_path = target_dir / DAILY_SIM_GATE_MARKDOWN_FILENAME
     write_json(gate_json_path, gate)
     _write_text(gate_markdown_path, render_automation_gate_markdown(gate))
+    quality_gate = evaluate_daily_quality_gate(gate)
+    quality_gate_json_path = target_dir / DAILY_QUALITY_GATE_V2_JSON_FILENAME
+    quality_gate_markdown_path = target_dir / DAILY_QUALITY_GATE_V2_MARKDOWN_FILENAME
+    write_json(quality_gate_json_path, quality_gate)
+    _write_text(quality_gate_markdown_path, render_daily_quality_gate_markdown(quality_gate))
+    project_profiles = load_project_profiles()
+    triage = triage_daily_actions(
+        {"result": result},
+        automation_gate=gate.to_dict(),
+        daily_quality_gate=quality_gate.to_dict(),
+        project_profiles=project_profiles,
+    )
+    triage_json_path = target_dir / ACTION_TRIAGE_JSON_FILENAME
+    write_json(triage_json_path, triage)
+    prompt_suggestions = suggest_codex_prompts(triage)
+    prompt_suggestions_json_path = target_dir / PROMPT_SUGGESTIONS_JSON_FILENAME
+    prompt_suggestions_markdown_path = target_dir / PROMPT_SUGGESTIONS_MARKDOWN_FILENAME
+    write_json(prompt_suggestions_json_path, prompt_suggestions)
+    _write_text(
+        prompt_suggestions_markdown_path,
+        render_prompt_suggestion_pack_markdown(prompt_suggestions),
+    )
+    hag = build_hag_report(
+        {"result": result},
+        daily_quality_gate=quality_gate.to_dict(),
+        action_triage=triage,
+        prompt_suggestions=prompt_suggestions,
+    )
+    hag_report_path = target_dir / HAG_REPORT_MARKDOWN_FILENAME
+    _write_text(hag_report_path, hag.markdown)
+    dashboard_path = target_dir / DAILY_OPERATOR_DASHBOARD_FILENAME
+    _write_text(
+        dashboard_path,
+        render_operator_dashboard(
+            {"result": result},
+            daily_quality_gate=quality_gate.to_dict(),
+            action_triage=triage.to_dict(),
+            prompt_suggestions=prompt_suggestions.to_dict(),
+            hag_status=hag.status,
+        ),
+    )
+    supervised_loop_path = target_dir / SUPERVISED_ACTION_LOOP_DRY_RUN_FILENAME
+    _write_text(
+        supervised_loop_path,
+        render_supervised_action_loop_dry_run(
+            action_triage=triage.to_dict(),
+            prompt_suggestions=prompt_suggestions.to_dict(),
+            hag_status=hag.status,
+            dashboard_path=str(dashboard_path),
+        ),
+    )
     summary_path = target_dir / DAILY_SIM_SUMMARY_FILENAME
     summary_data: dict[str, object] = {
         "schema_version": 1,
@@ -282,6 +354,20 @@ def run_daily_sim(
         "daily_sim_summary": str(summary_path),
         "automation_gate_json": str(gate_json_path),
         "automation_gate_markdown": str(gate_markdown_path),
+        "daily_quality_gate_v2": quality_gate.to_dict(),
+        "daily_quality_gate_v2_json": str(quality_gate_json_path),
+        "daily_quality_gate_v2_markdown": str(quality_gate_markdown_path),
+        "action_triage": triage.to_dict(),
+        "action_triage_json": str(triage_json_path),
+        "action_triage_status": triage.status,
+        "prompt_suggestions": prompt_suggestions.to_dict(),
+        "prompt_suggestions_json": str(prompt_suggestions_json_path),
+        "prompt_suggestions_markdown": str(prompt_suggestions_markdown_path),
+        "prompt_suggestions_count": len(prompt_suggestions.suggestions),
+        "hag_status": hag.status,
+        "hag_report_markdown": str(hag_report_path),
+        "dashboard_path": str(dashboard_path),
+        "supervised_action_loop_dry_run": str(supervised_loop_path),
         "manual_review_queue": gate.manual_review_queue,
         "manual_review_queue_count": len(gate.manual_review_queue),
         "scheduler_readiness_recommendation": gate.scheduler_readiness_recommendation,
@@ -289,6 +375,9 @@ def run_daily_sim(
         "automation_gate": gate.to_dict(),
         "scheduler_activated": False,
         "windows_task_created": False,
+        "auto_action_executed": False,
+        "other_repository_touched": False,
+        "email_sent": False,
         "llm_called": False,
         "next_step": DAILY_SIM_NEXT_STEP_RECOMMENDATION,
     }
@@ -475,6 +564,14 @@ def build_daily_sim_summary(result_data: object) -> str:
         f"Manual review queue: {result_data.get('manual_review_queue_count')}",
         f"Report scorecard: {gate_metrics.get('report_scorecard_status')}",
         f"Automation gate: {result_data.get('automation_gate_status')}",
+        (
+            "Daily quality gate: "
+            f"{_daily_quality_status(result_data)}"
+        ),
+        f"Action triage: {result_data.get('action_triage_status')}",
+        f"Prompt suggestions: {result_data.get('prompt_suggestions_count')}",
+        f"HAG status: {result_data.get('hag_status')}",
+        f"Dashboard: {result_data.get('dashboard_path')}",
         f"Recommendation: {result_data.get('recommendation')}",
         (
             "Scheduler readiness: "
@@ -486,10 +583,20 @@ def build_daily_sim_summary(result_data: object) -> str:
         f"Daily sim summary: {result_data.get('daily_sim_summary')}",
         "No scheduler: confirmed",
         "No Windows task: confirmed",
+        "No auto-action: confirmed",
+        "No other repo touched: confirmed",
+        "No email: confirmed",
         "No LLM: confirmed",
         f"Next step: {result_data.get('next_step')}",
     ]
     return "\n".join(lines) + "\n"
+
+
+def _daily_quality_status(result_data: dict[str, object]) -> object:
+    quality_gate = result_data.get("daily_quality_gate_v2")
+    if isinstance(quality_gate, dict):
+        return quality_gate.get("overall_daily_review_status")
+    return None
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
