@@ -1,5 +1,16 @@
 # Changelog
 
+## 0130) Source Fetcher Skeleton Without Parsing
+
+- [F] Aggiunto source fetcher skeleton. Fonte: `radar/source_fetcher.py`.
+- [F] Aggiunto `FetchedSourceContent`. Fonte: `radar/source_fetcher.py`.
+- [F] Aggiunto comando CLI `fetch-sources`. Fonte: `radar/cli.py`.
+- [F] Aggiunti test offline/mock. Fonte: `tests/test_source_fetcher.py`.
+- [F] Aggiunto live smoke fuori repo come flusso CLI esplicito. Fonte: `radar/cli.py`, prompt `0130-A) AI Release Radar - Source Fetcher Skeleton Without Parsing`.
+- [F] Nessun parsing live introdotto. Fonte: `radar/source_fetcher.py`, `tests/test_source_fetcher.py`.
+- [F] Nessuno snapshot live introdotto. Fonte: `radar/source_fetcher.py`, `radar/cli.py`.
+- [F] Auto-merge non consentito per step L2. Fonte: `AGENTS.md`, prompt `0130-A) AI Release Radar - Source Fetcher Skeleton Without Parsing`.
+
 ## 0120) Controlled Live URL Check Review and Source Registry Hardening
 
 - [F] Rafforzato source registry. Fonte: `radar/source_registry.py`, `config/sources/openai_sources.json`.

@@ -19,6 +19,10 @@ from radar.report_engine import (
     render_report_status,
 )
 from radar.source_registry import load_source_registry_file
+from radar.source_fetcher import (
+    fetched_sources_to_dict,
+    fetch_sources_content,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -29,9 +33,14 @@ COMPACT_REPORT_FILENAME = "0090_dry_run_report_compact.md"
 SUMMARY_FILENAME = "0090_dry_run_summary.txt"
 CHECK_URLS_RESULTS_FILENAME = "0110_live_url_check_results.json"
 CHECK_URLS_SUMMARY_FILENAME = "0110_live_url_check_summary.txt"
+FETCH_SOURCES_RESULTS_FILENAME = "0130_fetch_sources_results.json"
+FETCH_SOURCES_SUMMARY_FILENAME = "0130_fetch_sources_summary.txt"
 NEXT_STEP_RECOMMENDATION = "0100) OpenAI Source Registry and URL Verification"
 CHECK_URLS_NEXT_STEP_RECOMMENDATION = (
     "0130) Source Fetcher Skeleton Without Parsing"
+)
+FETCH_SOURCES_NEXT_STEP_RECOMMENDATION = (
+    "0140) Source Fetcher Review and Content Safety Hardening"
 )
 
 
@@ -111,6 +120,46 @@ def run_check_urls(
     }
 
 
+def run_fetch_sources(
+    registry: str,
+    output_dir: str,
+    timeout_seconds: float | None = None,
+    max_sources: int | None = None,
+    max_bytes: int = 4096,
+) -> dict[str, str]:
+    """Run the explicit live read-only bounded source content fetch."""
+    target_dir = Path(output_dir).expanduser().resolve()
+    if _is_path_within(target_dir, REPO_ROOT):
+        raise ValueError("fetch-sources output_dir must be outside repository.")
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    sources = load_source_registry_file(registry)
+    results = fetch_sources_content(
+        sources,
+        timeout_seconds=timeout_seconds,
+        max_sources=max_sources,
+        max_bytes=max_bytes,
+    )
+    results_data = fetched_sources_to_dict(results)
+
+    results_path = target_dir / FETCH_SOURCES_RESULTS_FILENAME
+    summary_path = target_dir / FETCH_SOURCES_SUMMARY_FILENAME
+    write_json(results_path, results_data)
+    _write_text(
+        summary_path,
+        build_fetch_sources_summary(
+            results_data["summary"],
+            max_bytes=max_bytes,
+            results_json=str(results_path),
+            summary=str(summary_path),
+        ),
+    )
+    return {
+        "results_json": str(results_path),
+        "summary": str(summary_path),
+    }
+
+
 def build_summary(
     *,
     status: str,
@@ -153,6 +202,36 @@ def build_check_urls_summary(
         f"Results JSON: {results_json}",
         f"Summary: {summary}",
         f"Next step: {CHECK_URLS_NEXT_STEP_RECOMMENDATION}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_fetch_sources_summary(
+    summary_data: object,
+    *,
+    max_bytes: int,
+    results_json: str,
+    summary: str,
+) -> str:
+    """Build the console and file summary for fetch-sources."""
+    if not isinstance(summary_data, dict):
+        raise ValueError("summary_data must be a dict.")
+    lines = [
+        "AI Release Radar source fetch completed",
+        "Mode: live read-only bounded content fetch",
+        f"Total: {summary_data.get('total')}",
+        f"OK: {summary_data.get('ok')}",
+        f"Failed: {summary_data.get('failed')}",
+        f"Disabled: {summary_data.get('disabled')}",
+        f"Truncated: {summary_data.get('truncated')}",
+        f"Unexpected status: {summary_data.get('unexpected_status')}",
+        f"Redirect not allowed: {summary_data.get('redirect_not_allowed')}",
+        f"Max bytes: {max_bytes}",
+        "Parsing: not performed",
+        "Snapshot: not created",
+        f"Results JSON: {results_json}",
+        f"Summary: {summary}",
+        f"Next step: {FETCH_SOURCES_NEXT_STEP_RECOMMENDATION}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -210,6 +289,38 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=10.0,
         help="Per-source timeout in seconds.",
     )
+    fetch_sources = subparsers.add_parser(
+        "fetch-sources",
+        help="Run the explicit live read-only bounded source content fetch.",
+    )
+    fetch_sources.add_argument(
+        "--registry",
+        required=True,
+        help=f"Source registry JSON path. Default project registry: {DEFAULT_SOURCE_REGISTRY_PATH}",
+    )
+    fetch_sources.add_argument(
+        "--output-dir",
+        required=True,
+        help="Explicit directory where bounded source content outputs are written.",
+    )
+    fetch_sources.add_argument(
+        "--max-sources",
+        type=int,
+        default=None,
+        help="Optional maximum number of registry sources to fetch.",
+    )
+    fetch_sources.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=None,
+        help="Optional per-source timeout in seconds. Registry value or safe default is used when omitted.",
+    )
+    fetch_sources.add_argument(
+        "--max-bytes",
+        type=int,
+        default=4096,
+        help="Maximum number of response body bytes to read per source.",
+    )
     return parser
 
 
@@ -239,6 +350,17 @@ def main(argv: list[str] | None = None) -> int:
             summary = Path(result["summary"]).read_text(encoding="utf-8")
             sys.stdout.write(summary)
             return 0
+        if args.command == "fetch-sources":
+            result = run_fetch_sources(
+                args.registry,
+                args.output_dir,
+                timeout_seconds=args.timeout_seconds,
+                max_sources=args.max_sources,
+                max_bytes=args.max_bytes,
+            )
+            summary = Path(result["summary"]).read_text(encoding="utf-8")
+            sys.stdout.write(summary)
+            return 0
         parser.error(f"unsupported command: {args.command}")
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 1
@@ -250,6 +372,14 @@ def main(argv: list[str] | None = None) -> int:
 
 def _write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def _is_path_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
 
 
 if __name__ == "__main__":
