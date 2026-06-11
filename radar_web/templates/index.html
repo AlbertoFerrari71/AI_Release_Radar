@@ -1,115 +1,120 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Release Radar</title>
+    <title>{{ t("app.title") }}</title>
     <link rel="stylesheet" href="/static/style.css">
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>AI Release Radar</h1>
+        <h1>{{ t("dashboard.title") }}</h1>
         <p class="path">{{ status.bridge_runs_root }}</p>
       </div>
       <div class="topbar-actions">
-        <a class="button" href="/actions">Action Center</a>
-        <a class="button" href="/api/status">API</a>
+        <nav class="locale-switcher" aria-label="{{ t('language.label') }}">
+          {% for locale in supported_locales %}
+          <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
+          {% endfor %}
+        </nav>
+        <a class="button" href="{{ url_with_lang('/actions') }}">{{ t("nav.actions") }}</a>
+        <a class="button" href="{{ url_with_lang('/api/status') }}">{{ t("nav.api_status") }}</a>
         <div class="button-stack">
-          <button class="button primary" id="daily-sim-run" type="button">Run daily-sim now</button>
-          <span class="button-note">Manual only / no auto-action / writes to Bridge</span>
+          <button class="button primary" id="daily-sim-run" type="button">{{ t("manual.run_daily_sim") }}</button>
+          <span class="button-note">{{ t("manual.note") }}</span>
         </div>
       </div>
     </header>
 
     <main class="layout">
-      <section class="status-grid" aria-label="Latest run status">
+      <section class="status-grid" aria-label="{{ t('status.status') }}">
         <article class="metric primary">
-          <span class="label">latest run</span>
+          <span class="label">{{ t("dashboard.latest_run") }}</span>
           {% if latest %}
-          <a class="metric-link run-link" href="/runs/{{ latest.run_id }}">{{ latest.run_id }}</a>
+          <a class="metric-link run-link" href="{{ url_with_lang('/runs/' ~ latest.run_id) }}">{{ latest.run_id }}</a>
           {% else %}
-          <strong>NO_DATA</strong>
+          <strong>{{ format_status("NO_DATA") }}</strong>
           {% endif %}
         </article>
         <article class="metric">
-          <span class="label">status</span>
-          <strong class="badge {{ status.status | status_class }}">{{ status.status }}</strong>
+          <span class="label">{{ t("status.status") }}</span>
+          <strong class="badge {{ status.status | status_class }}">{{ format_status(status.status) }}</strong>
         </article>
         <article class="metric">
-          <span class="label">automation gate</span>
-          <strong class="badge {{ latest.automation_gate_status | status_class if latest else 'status-no-data' }}">{{ latest.automation_gate_status if latest else 'NO_DATA' }}</strong>
+          <span class="label">{{ t("status.automation_gate") }}</span>
+          <strong class="badge {{ latest.automation_gate_status | status_class if latest else 'status-no-data' }}">{{ format_status(latest.automation_gate_status if latest else "NO_DATA") }}</strong>
         </article>
         <article class="metric">
-          <span class="label">daily quality gate</span>
-          <strong class="badge {{ latest.daily_quality_gate_status | status_class if latest else 'status-no-data' }}">{{ latest.daily_quality_gate_status if latest else 'NO_DATA' }}</strong>
+          <span class="label">{{ t("status.daily_quality_gate") }}</span>
+          <strong class="badge {{ latest.daily_quality_gate_status | status_class if latest else 'status-no-data' }}">{{ format_status(latest.daily_quality_gate_status if latest else "NO_DATA") }}</strong>
         </article>
         <article class="metric">
-          <span class="label">scheduler readiness</span>
-          <strong class="badge {{ latest.scheduler_readiness | status_class if latest else 'status-no-data' }}">{{ latest.scheduler_readiness if latest else 'NO_DATA' }}</strong>
+          <span class="label">{{ t("status.scheduler_readiness") }}</span>
+          <strong class="badge {{ latest.scheduler_readiness | status_class if latest else 'status-no-data' }}">{{ format_status(latest.scheduler_readiness if latest else "NO_DATA") }}</strong>
         </article>
         <article class="metric">
-          <span class="label">source coverage</span>
-          <strong class="badge {{ latest.source_coverage_status | status_class if latest else 'status-no-data' }}">{{ latest.source_coverage_status if latest else 'NO_DATA' }}</strong>
+          <span class="label">{{ t("status.source_coverage") }}</span>
+          <strong class="badge {{ latest.source_coverage_status | status_class if latest else 'status-no-data' }}">{{ format_status(latest.source_coverage_status if latest else "NO_DATA") }}</strong>
         </article>
         <article class="metric">
-          <span class="label">data completeness</span>
-          <strong class="badge {{ status.data_completeness_status | status_class }}">{{ status.data_completeness_status }}</strong>
+          <span class="label">{{ t("status.data_completeness") }}</span>
+          <strong class="badge {{ status.data_completeness_status | status_class }}">{{ format_status(status.data_completeness_status) }}</strong>
         </article>
       </section>
 
       <section class="split">
         <div class="panel">
-          <h2>Actions</h2>
+          <h2>{{ t("dashboard.actions") }}</h2>
           <dl class="facts">
             <div>
-              <dt>direct</dt>
+              <dt>{{ t("dashboard.direct") }}</dt>
               <dd>{{ latest.direct_action_count if latest else 0 }}</dd>
             </div>
             <div>
-              <dt>monitor-only</dt>
+              <dt>{{ t("dashboard.monitor_only") }}</dt>
               <dd>{{ latest.monitor_only_action_count if latest else 0 }}</dd>
             </div>
             <div>
-              <dt>manual review queue</dt>
+              <dt>{{ t("dashboard.manual_review_queue") }}</dt>
               <dd>{{ latest.manual_review_queue_count if latest else 0 }}</dd>
             </div>
             <div>
-              <dt>prompt suggestions</dt>
+              <dt>{{ t("dashboard.prompt_suggestions") }}</dt>
               <dd>{{ latest.prompt_suggestions_count if latest else 0 }}</dd>
             </div>
             <div>
-              <dt>blocked actions</dt>
+              <dt>{{ t("dashboard.blocked_actions") }}</dt>
               <dd>{{ latest.blocked_action_count if latest else 0 }}</dd>
             </div>
           </dl>
         </div>
 
         <div class="panel emphasis">
-          <h2>Human Approval Gate</h2>
+          <h2>{{ t("hag.title") }}</h2>
           <dl class="facts">
             <div>
-              <dt>HAG status</dt>
-              <dd><span class="badge {{ latest.hag_status | status_class if latest else 'status-no-data' }}">{{ latest.hag_status if latest else 'NO_DATA' }}</span></dd>
+              <dt>{{ t("dashboard.hag_status") }}</dt>
+              <dd><span class="badge {{ latest.hag_status | status_class if latest else 'status-no-data' }}">{{ format_status(latest.hag_status if latest else "NO_DATA") }}</span></dd>
             </div>
             <div>
-              <dt>suggestion mode</dt>
-              <dd><span class="badge status-review">SUGGESTED ONLY - not executed</span></dd>
+              <dt>{{ t("hag.suggestion_mode") }}</dt>
+              <dd><span class="badge status-review">{{ t("hag.suggestion_mode_value") }}</span></dd>
             </div>
             <div>
-              <dt>suggestion status</dt>
-              <dd><span class="badge {{ latest.prompt_suggestions_status | status_class if latest else 'status-no-data' }}">{{ latest.prompt_suggestions_status if latest else 'NO_DATA' }}</span></dd>
+              <dt>{{ t("hag.suggestion_status") }}</dt>
+              <dd><span class="badge {{ latest.prompt_suggestions_status | status_class if latest else 'status-no-data' }}">{{ format_status(latest.prompt_suggestions_status if latest else "NO_DATA") }}</span></dd>
             </div>
             <div>
-              <dt>no auto-action</dt>
-              <dd><span class="badge status-pass">{{ true | yes_no }}</span></dd>
+              <dt>{{ t("hag.no_auto_action") }}</dt>
+              <dd><span class="badge status-pass">{{ format_bool(true) }}</span></dd>
             </div>
             <div>
-              <dt>prompt suggestions</dt>
+              <dt>{{ t("hag.prompt_suggestions") }}</dt>
               <dd>{{ latest.prompt_suggestions_count if latest else 0 }}</dd>
             </div>
             <div>
-              <dt>blocked actions</dt>
+              <dt>{{ t("dashboard.blocked_actions") }}</dt>
               <dd><span class="badge {{ 'HOLD' | status_class if latest and latest.blocked_action_count else 'status-pass' }}">{{ latest.blocked_action_count if latest else 0 }}</span></dd>
             </div>
           </dl>
@@ -118,68 +123,68 @@
 
       <section class="split">
         <div class="panel">
-          <h2>Scheduler</h2>
+          <h2>{{ t("scheduler.title") }}</h2>
           <dl class="facts">
             <div>
-              <dt>task</dt>
+              <dt>{{ t("scheduler.task") }}</dt>
               <dd>{{ status.scheduler.task_name }}</dd>
             </div>
             <div>
-              <dt>state</dt>
-              <dd><span class="badge {{ status.scheduler.status | status_class }}">{{ status.scheduler.status }}</span></dd>
+              <dt>{{ t("scheduler.state") }}</dt>
+              <dd><span class="badge {{ status.scheduler.status | status_class }}">{{ format_status(status.scheduler.status) }}</span></dd>
             </div>
             <div>
-              <dt>interpretation</dt>
-              <dd><span class="badge {{ status.scheduler.interpretation | status_class }}">{{ status.scheduler.interpretation or 'NO_DATA' }}</span></dd>
+              <dt>{{ t("scheduler.interpretation") }}</dt>
+              <dd><span class="badge {{ status.scheduler.interpretation | status_class }}">{{ format_status(status.scheduler.interpretation or "NO_DATA") }}</span></dd>
             </div>
             <div>
-              <dt>read-only</dt>
-              <dd><span class="badge status-pass">{{ status.scheduler.read_only | yes_no }}</span></dd>
+              <dt>{{ t("scheduler.read_only") }}</dt>
+              <dd><span class="badge status-pass">{{ format_bool(status.scheduler.read_only) }}</span></dd>
             </div>
             <div>
-              <dt>last run</dt>
-              <dd>{{ status.scheduler.last_run_time | human_datetime }}</dd>
+              <dt>{{ t("scheduler.last_run") }}</dt>
+              <dd>{{ format_datetime(status.scheduler.last_run_time) }}</dd>
             </div>
             <div>
-              <dt>last result</dt>
-              <dd>{{ status.scheduler.last_task_result if status.scheduler.last_task_result is not none else 'NO_DATA' }}</dd>
+              <dt>{{ t("scheduler.last_result") }}</dt>
+              <dd>{{ status.scheduler.last_task_result if status.scheduler.last_task_result is not none else format_status("NO_DATA") }}</dd>
             </div>
             <div>
-              <dt>next run</dt>
-              <dd>{{ status.scheduler.next_run_time | human_datetime }}</dd>
+              <dt>{{ t("scheduler.next_run") }}</dt>
+              <dd>{{ format_datetime(status.scheduler.next_run_time) }}</dd>
             </div>
             <div>
-              <dt>missed runs</dt>
-              <dd>{{ status.scheduler.number_of_missed_runs if status.scheduler.number_of_missed_runs is not none else 'NO_DATA' }}</dd>
+              <dt>{{ t("scheduler.missed_runs") }}</dt>
+              <dd>{{ status.scheduler.number_of_missed_runs if status.scheduler.number_of_missed_runs is not none else format_status("NO_DATA") }}</dd>
             </div>
           </dl>
         </div>
       </section>
 
       <section class="panel">
-        <h2>Recent Runs</h2>
+        <h2>{{ t("runs.recent") }}</h2>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>run</th>
-                <th>status</th>
-                <th>gate</th>
-                <th>quality</th>
-                <th>sources</th>
-                <th>actions</th>
-                <th>blocked</th>
-                <th>review</th>
-                <th>prompts</th>
+                <th>{{ t("table.run") }}</th>
+                <th>{{ t("table.status") }}</th>
+                <th>{{ t("table.gate") }}</th>
+                <th>{{ t("table.quality") }}</th>
+                <th>{{ t("table.sources") }}</th>
+                <th>{{ t("table.actions") }}</th>
+                <th>{{ t("table.blocked") }}</th>
+                <th>{{ t("table.review") }}</th>
+                <th>{{ t("table.prompts") }}</th>
               </tr>
             </thead>
             <tbody>
               {% for run in runs %}
               <tr>
-                <td><a class="run-link" href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
-                <td><span class="badge {{ run.status | status_class }}">{{ run.status }}</span></td>
-                <td><span class="badge {{ run.automation_gate_status | status_class }}">{{ run.automation_gate_status }}</span></td>
-                <td><span class="badge {{ run.daily_quality_gate_status | status_class }}">{{ run.daily_quality_gate_status }}</span></td>
+                <td><a class="run-link" href="{{ url_with_lang('/runs/' ~ run.run_id) }}">{{ run.run_id }}</a></td>
+                <td><span class="badge {{ run.status | status_class }}">{{ format_status(run.status) }}</span></td>
+                <td><span class="badge {{ run.automation_gate_status | status_class }}">{{ format_status(run.automation_gate_status) }}</span></td>
+                <td><span class="badge {{ run.daily_quality_gate_status | status_class }}">{{ format_status(run.daily_quality_gate_status) }}</span></td>
                 <td>{{ run.parsed_count if run.parsed_count is not none else 'n/a' }}/{{ run.source_count if run.source_count is not none else 'n/a' }}</td>
                 <td>{{ run.direct_action_count }}</td>
                 <td>{{ run.blocked_action_count }}</td>
@@ -188,7 +193,7 @@
               </tr>
               {% else %}
               <tr>
-                <td colspan="9" class="empty">NO_DATA</td>
+                <td colspan="9" class="empty">{{ format_status("NO_DATA") }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -198,7 +203,7 @@
 
       {% if status.warnings %}
       <section class="panel">
-        <h2>Runtime Warnings</h2>
+        <h2>{{ t("warnings.runtime") }}</h2>
         <ul class="warning-list">
           {% for warning in status.warnings %}
           <li>{{ warning }}</li>
@@ -209,7 +214,7 @@
 
       {% if status.data_completeness_warnings %}
       <section class="panel warning-panel">
-        <h2>Data Completeness Warnings</h2>
+        <h2>{{ t("warnings.data_completeness") }}</h2>
         <ul class="warning-list">
           {% for warning in status.data_completeness_warnings %}
           <li>{{ warning }}</li>
@@ -219,7 +224,7 @@
       {% endif %}
 
       <section class="panel" id="daily-sim-result" hidden>
-        <h2>Manual Daily-Sim Trigger</h2>
+        <h2>{{ t("manual.result_title") }}</h2>
         <pre class="report" id="daily-sim-output"></pre>
       </section>
     </main>
@@ -231,9 +236,9 @@
       runButton.addEventListener("click", async () => {
         runButton.disabled = true;
         const originalLabel = runButton.textContent;
-        runButton.textContent = "Running daily-sim...";
+        runButton.textContent = "{{ t('manual.running_label') }}";
         resultPanel.hidden = false;
-        output.textContent = "RUNNING - manual trigger locked";
+        output.textContent = "{{ t('manual.running_status') }}";
         try {
           const response = await fetch("/api/daily-sim/run", { method: "POST" });
           const data = await response.json();

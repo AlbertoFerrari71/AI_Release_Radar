@@ -142,8 +142,8 @@ class RadarWebAppTests(unittest.TestCase):
                 html = TestClient(create_app(config)).get("/").text
 
         self.assertIn("Manual only / no auto-action", html)
-        self.assertIn("10/06/2026 19:01", html)
-        self.assertIn("11/06/2026 07:15", html)
+        self.assertIn("2026-06-10 19:01", html)
+        self.assertIn("2026-06-11 07:15", html)
         self.assertIn("Yes", html)
 
     def test_status_and_home_report_data_completeness_warnings(self):

@@ -76,6 +76,15 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Il closure pack operator-ready V1 e' `docs/architecture/0950_DASHBOARD_V1_OPERATOR_READY_CLOSURE_PACK.md`. Fonte: `docs/architecture/0950_DASHBOARD_V1_OPERATOR_READY_CLOSURE_PACK.md`.
 - [F] Nessuna email, nessun LLM, nessuna auto-azione, nessun nuovo scheduler e nessun altro repository vengono toccati dalla dashboard. Fonte: `radar_web/manual_trigger.py`, `radar_web/scheduler_status.py`.
 
+## Multilingual dashboard and news translation
+
+- [F] La UI dashboard supporta `?lang=en|it|fr|de|es` con cataloghi JSON versionati in `radar_web/locales/`. Fonte: `radar_web/i18n.py`, `radar_web/locales/*.json`.
+- [F] I template home, run detail e Action Center usano helper `t()` e preservano `lang` nei link interni. Fonte: `radar_web/app.py`, `radar_web/templates/index.html`, `radar_web/templates/run_detail.html`, `radar_web/templates/actions.html`.
+- [F] I formati locali per data/ora, status e boolean sono gestiti in modo deterministico senza nuove dipendenze. Fonte: `radar_web/i18n.py`, `pyproject.toml`.
+- [F] Le traduzioni delle news dinamiche sono Bridge-only sotto `translations/<run_id>/` e non sono salvate nel repo. Fonte: `radar/news_translation.py`, `docs/architecture/1190_DYNAMIC_NEWS_TRANSLATION_CONTRACT.md`.
+- [F] Il prompt pack traduzioni viene generato nel Bridge con profilo default `balanced` e non esegue LLM. Fonte: `radar/translation_prompt_pack.py`.
+- [F] Il runbook multilingua e' `docs/runbooks/1250_MULTILINGUAL_RUNBOOK.md`. Fonte: `docs/runbooks/1250_MULTILINGUAL_RUNBOOK.md`.
+
 ## Comandi principali
 
 ```powershell

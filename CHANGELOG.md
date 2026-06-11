@@ -1,5 +1,18 @@
 # Changelog
 
+## 1110-1250) Multilingual Dashboard and News Translation Pipeline
+
+- [F] Aggiunta architettura i18n deterministica per UI dashboard con cataloghi JSON EN/IT/FR/DE/ES. Fonte: `docs/architecture/1110_I18N_ARCHITECTURE_REVIEW.md`, `radar_web/i18n.py`, `radar_web/locales/*.json`.
+- [F] Estratte le principali stringhe UI di home, run detail e Action Center tramite helper `t()`. Fonte: `radar_web/templates/index.html`, `radar_web/templates/run_detail.html`, `radar_web/templates/actions.html`.
+- [F] Aggiunto selettore lingua e preservazione `?lang=` nei link interni. Fonte: `radar_web/app.py`, `radar_web/templates/*.html`, `radar_web/static/style.css`.
+- [F] Aggiunti helper deterministici per date/time, status e bool localizzati. Fonte: `radar_web/i18n.py`, `tests/test_i18n.py`.
+- [F] Aggiunto glossario terminologico EN/IT/FR/DE/ES. Fonte: `docs/i18n/1180_TRANSLATION_GLOSSARY.md`.
+- [F] Aggiunto contratto/cache Bridge-only per traduzioni news dinamiche, con preservation QA per link, versioni, comandi e path. Fonte: `docs/architecture/1190_DYNAMIC_NEWS_TRANSLATION_CONTRACT.md`, `radar/news_translation.py`, `tests/test_news_translation.py`.
+- [F] Aggiunto generatore prompt pack traduzione Bridge-only con profili `cheap`, `balanced`, `quality` e `llm_executed=false`. Fonte: `radar/translation_prompt_pack.py`, `tests/test_translation_prompt_pack.py`.
+- [F] L'Action Center legge cache traduzioni esistenti e mostra fallback originale con badge se la traduzione manca, senza generare traduzioni runtime. Fonte: `radar_web/app.py`, `radar_web/templates/actions.html`.
+- [F] Aggiunti closure pack, decision record e runbook multilingua. Fonte: `docs/architecture/1250_MULTILINGUAL_CLOSURE_PACK.md`, `docs/decisions/1250_DECISIONS.md`, `docs/runbooks/1250_MULTILINGUAL_RUNBOOK.md`.
+- [F] Nessuna nuova dipendenza, nessun nuovo scheduler, nessuna email/notifica automatica, nessuna chiamata LLM runtime, nessuna auto-azione, nessun altro repository e nessun output runtime versionato introdotti. Fonte: `pyproject.toml`, `radar/news_translation.py`, `radar/translation_prompt_pack.py`, `AGENTS.md`.
+
 ## 0960-1100) Daily Radar Operator Loop and Action Dispatch Readiness
 
 - [F] Aggiunta review morning-use 0960 della dashboard V1. Fonte: `docs/reviews/0960_DASHBOARD_MORNING_USE_REVIEW.md`.

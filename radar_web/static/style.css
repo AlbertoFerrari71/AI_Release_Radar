@@ -103,6 +103,35 @@ h2 {
   flex-wrap: wrap;
 }
 
+.locale-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+}
+
+.locale-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.locale-link.active {
+  background: #194f90;
+  color: #ffffff;
+}
+
 .button-stack {
   display: grid;
   gap: 4px;
@@ -517,6 +546,18 @@ th {
 .action-body p {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.translation-original {
+  padding: 10px;
+  background: var(--surface-soft);
+  border-radius: 6px;
+}
+
+.translation-original summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 750;
 }
 
 .button-row {

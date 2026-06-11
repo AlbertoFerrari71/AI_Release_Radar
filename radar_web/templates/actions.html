@@ -1,134 +1,150 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Release Radar - Action Center</title>
+    <title>{{ t("actions.page_title") }}</title>
     <link rel="stylesheet" href="/static/style.css">
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>Action Center</h1>
+        <h1>{{ t("actions.title") }}</h1>
         <p class="path">{{ payload.dispatch_root }}</p>
       </div>
       <div class="topbar-actions">
-        <a class="button" href="/">Dashboard</a>
-        <a class="button" href="/api/actions">API</a>
-        <button class="button primary" id="export-backlog" type="button">Export backlog</button>
+        <nav class="locale-switcher" aria-label="{{ t('language.label') }}">
+          {% for locale in supported_locales %}
+          <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
+          {% endfor %}
+        </nav>
+        <a class="button" href="{{ url_with_lang('/') }}">{{ t("nav.dashboard") }}</a>
+        <a class="button" href="{{ url_with_lang('/api/actions') }}">{{ t("nav.api_actions") }}</a>
+        <button class="button primary" id="export-backlog" type="button">{{ t("actions.export_backlog") }}</button>
       </div>
     </header>
 
     <main class="layout">
-      <section class="status-grid" aria-label="Action Center status">
+      <section class="status-grid" aria-label="{{ t('actions.title') }}">
         <article class="metric primary">
-          <span class="label">run id</span>
-          <strong class="run-link">{{ payload.run_id or 'NO_DATA' }}</strong>
+          <span class="label">{{ t("actions.run_id") }}</span>
+          <strong class="run-link">{{ payload.run_id or format_status("NO_DATA") }}</strong>
         </article>
         <article class="metric">
-          <span class="label">actions</span>
+          <span class="label">{{ t("actions.count") }}</span>
           <strong>{{ payload.all_actions_count }}</strong>
         </article>
         <article class="metric">
-          <span class="label">visible</span>
+          <span class="label">{{ t("actions.visible") }}</span>
           <strong>{{ payload.actions_count }}</strong>
         </article>
         <article class="metric">
-          <span class="label">no auto-action</span>
-          <strong class="badge status-pass">{{ payload.no_auto_action | yes_no }}</strong>
+          <span class="label">{{ t("actions.no_auto_action") }}</span>
+          <strong class="badge status-pass">{{ format_bool(payload.no_auto_action) }}</strong>
         </article>
       </section>
 
       <section class="panel action-toolbar">
-        <nav class="filter-tabs" aria-label="Action filters">
+        <nav class="filter-tabs" aria-label="{{ t('actions.filters_label') }}">
           {% for item in filters %}
-          <a class="filter-tab {% if selected_filter == item %}active{% endif %}" href="/actions?filter={{ item }}">{{ item }}</a>
+          <a class="filter-tab {% if selected_filter == item %}active{% endif %}" href="{{ url_with_lang('/actions', filter=item) }}">{{ format_status(item) }}</a>
           {% endfor %}
         </nav>
       </section>
 
-      <section class="action-grid" aria-label="Action Inbox">
+      <section class="action-grid" aria-label="{{ t('actions.inbox') }}">
         {% for action in actions %}
         <article class="action-card">
           <div class="action-card-header">
             <div>
-              <span class="label">Action Inbox</span>
-              <h2>{{ action.title }}</h2>
+              <span class="label">{{ t("actions.inbox") }}</span>
+              <h2>{{ action.localized_title }}</h2>
             </div>
-            <span class="badge {{ action.priority | status_class }}">{{ action.priority }}</span>
+            <span class="badge {{ action.priority | status_class }}">{{ format_status(action.priority) }}</span>
           </div>
 
           <dl class="facts compact-facts">
             <div>
-              <dt>project</dt>
+              <dt>{{ t("actions.project") }}</dt>
               <dd>{{ action.project_name }}</dd>
             </div>
             <div>
-              <dt>project key</dt>
+              <dt>{{ t("actions.project_key") }}</dt>
               <dd>{{ action.project_key or 'unknown' }}</dd>
             </div>
             <div>
-              <dt>risk</dt>
+              <dt>{{ t("actions.risk") }}</dt>
               <dd><span class="badge {{ action.risk_level | status_class }}">{{ action.risk_level }}</span></dd>
             </div>
             <div>
-              <dt>decision</dt>
-              <dd><span class="badge {{ action.decision_status | status_class }}">{{ action.decision_status }}</span></dd>
+              <dt>{{ t("actions.decision") }}</dt>
+              <dd><span class="badge {{ action.decision_status | status_class }}">{{ format_status(action.decision_status) }}</span></dd>
             </div>
             <div>
-              <dt>safety</dt>
-              <dd><span class="badge {{ action.safety_status | status_class }}">{{ action.safety_status }}</span></dd>
+              <dt>{{ t("actions.safety") }}</dt>
+              <dd><span class="badge {{ action.safety_status | status_class }}">{{ format_status(action.safety_status) }}</span></dd>
             </div>
             <div>
-              <dt>trend</dt>
-              <dd><span class="badge {{ action.trend_status | status_class }}">{{ action.trend_status }}</span></dd>
+              <dt>{{ t("actions.trend") }}</dt>
+              <dd><span class="badge {{ action.trend_status | status_class }}">{{ format_status(action.trend_status) }}</span></dd>
             </div>
             <div>
-              <dt>noise</dt>
-              <dd><span class="badge {{ action.noise_status | status_class }}">{{ action.noise_status }}</span></dd>
+              <dt>{{ t("actions.noise") }}</dt>
+              <dd><span class="badge {{ action.noise_status | status_class }}">{{ format_status(action.noise_status) }}</span></dd>
             </div>
             <div>
-              <dt>score</dt>
+              <dt>{{ t("actions.score") }}</dt>
               <dd>{{ action.priority_score }}</dd>
+            </div>
+            <div>
+              <dt>{{ t("actions.translation") }}</dt>
+              <dd><span class="badge {{ action.translation.badge | status_class }}">{{ t("actions.translation_" ~ action.translation.badge) }}</span></dd>
             </div>
           </dl>
 
           <div class="action-body">
-            <p>{{ action.summary }}</p>
-            <p><strong>Routing:</strong> {{ action.routing_reasons | join('; ') }}</p>
-            <p><strong>Next:</strong> {{ action.recommended_next_step }}</p>
+            <p>{{ action.localized_summary }}</p>
+            {% if action.translation.badge != "source" %}
+            <details class="translation-original">
+              <summary>{{ t("actions.translation_original") }}</summary>
+              <p><strong>{{ action.source_title }}</strong></p>
+              <p>{{ action.source_summary }}</p>
+            </details>
+            {% endif %}
+            <p><strong>{{ t("actions.routing") }}:</strong> {{ action.routing_reasons | join('; ') }}</p>
+            <p><strong>{{ t("actions.next") }}:</strong> {{ action.recommended_next_step }}</p>
             {% if action.noise_reasons %}
-            <p><strong>Suppression:</strong> {{ action.noise_reasons | join('; ') }}</p>
+            <p><strong>{{ t("actions.suppression") }}:</strong> {{ action.noise_reasons | join('; ') }}</p>
             {% endif %}
             {% if action.suggested_prompt_path %}
-            <p class="path"><strong>Prompt:</strong> {{ action.suggested_prompt_path }}</p>
+            <p class="path"><strong>{{ t("actions.prompt") }}:</strong> {{ action.suggested_prompt_path }}</p>
             {% endif %}
           </div>
 
           <div class="button-row" data-action-id="{{ action.action_id }}">
-            <button class="button decision-button" data-decision="approve_prompt" type="button">Approve prompt</button>
-            <button class="button decision-button" data-decision="defer" type="button">Defer</button>
-            <button class="button decision-button" data-decision="ignore" type="button">Ignore</button>
-            <button class="button decision-button" data-decision="backlog" type="button">Backlog</button>
-            <button class="button decision-button" data-decision="request_review" type="button">Request review</button>
+            <button class="button decision-button" data-decision="approve_prompt" type="button">{{ t("actions.approve_prompt") }}</button>
+            <button class="button decision-button" data-decision="defer" type="button">{{ t("actions.defer") }}</button>
+            <button class="button decision-button" data-decision="ignore" type="button">{{ t("actions.ignore") }}</button>
+            <button class="button decision-button" data-decision="backlog" type="button">{{ t("actions.backlog") }}</button>
+            <button class="button decision-button" data-decision="request_review" type="button">{{ t("actions.request_review") }}</button>
             <button
               class="button primary prompt-button"
               type="button"
-              {% if not action.prompt_generation_allowed %}disabled title="Requires Approve prompt or Request review"{% endif %}
-            >Generate prompt pack</button>
+              {% if not action.prompt_generation_allowed %}disabled title="{{ t('actions.generate_prompt_disabled') }}"{% endif %}
+            >{{ t("actions.generate_prompt_pack") }}</button>
           </div>
         </article>
         {% else %}
         <article class="panel">
-          <h2>Action Inbox</h2>
-          <p>NO_DATA</p>
+          <h2>{{ t("actions.inbox") }}</h2>
+          <p>{{ t("actions.empty") }}</p>
         </article>
         {% endfor %}
       </section>
 
       {% if payload.warnings %}
       <section class="panel warning-panel">
-        <h2>Warnings</h2>
+        <h2>{{ t("actions.warnings") }}</h2>
         <ul class="warning-list">
           {% for warning in payload.warnings %}
           <li>{{ warning }}</li>
@@ -138,7 +154,7 @@
       {% endif %}
 
       <section class="panel" id="action-result" hidden>
-        <h2>Action Result</h2>
+        <h2>{{ t("actions.result") }}</h2>
         <pre class="report" id="action-output"></pre>
       </section>
     </main>
