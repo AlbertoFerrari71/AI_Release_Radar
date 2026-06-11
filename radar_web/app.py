@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 from pathlib import Path
+import re
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -14,7 +16,7 @@ from fastapi.templating import Jinja2Templates
 from radar_web.config import DashboardConfig, default_config
 from radar_web.manual_trigger import DailySimTrigger
 from radar_web.models import ApiMessage, DashboardStatus
-from radar_web.run_locator import find_latest_run, list_recent_runs, load_run_detail
+from radar_web.run_locator import inspect_runs_root, list_recent_runs, load_run_detail
 from radar_web.scheduler_status import read_scheduler_status
 
 
@@ -28,6 +30,8 @@ def create_app(
     package_root = Path(__file__).resolve().parent
     templates = Jinja2Templates(directory=str(package_root / "templates"))
     templates.env.filters["status_class"] = status_class
+    templates.env.filters["human_datetime"] = human_datetime
+    templates.env.filters["yes_no"] = yes_no
     app = FastAPI(
         title="AI Release Radar Local Dashboard",
         version="0.1.0",
@@ -156,14 +160,26 @@ def build_status(
     recent_runs = runs if runs is not None else list_recent_runs(config.runs_root, limit=20)
     latest = recent_runs[0].to_dict() if recent_runs else None
     warnings = list(config.validate_output_root())
+    if not config.bridge_root.exists():
+        warnings.append("bridge_root_missing")
     if not config.runs_root.exists():
         warnings.append("runs_root_missing")
+    warnings.extend(inspect_runs_root(config.runs_root))
+    data_warnings = list(warnings)
+    if isinstance(latest, dict):
+        data_warnings.extend(str(warning) for warning in latest.get("warnings", []))
+    data_warnings = sorted(set(data_warnings))
     return DashboardStatus(
         status=latest.get("status", "NO_DATA") if isinstance(latest, dict) else "NO_DATA",
         bridge_runs_root=str(config.runs_root),
         latest_run=latest,
         recent_run_count=len(recent_runs),
         scheduler=read_scheduler_status_placeholder(config),
+        data_completeness_status=_data_completeness_status(
+            has_runs=bool(recent_runs),
+            warnings=data_warnings,
+        ),
+        data_completeness_warnings=tuple(data_warnings),
         manual_trigger_enabled=True,
         warnings=tuple(sorted(set(warnings))),
     )
@@ -172,6 +188,12 @@ def build_status(
 def read_scheduler_status_placeholder(config: DashboardConfig) -> dict[str, Any]:
     """Return read-only scheduler status for the configured task."""
     return read_scheduler_status(config.scheduler_task_name)
+
+
+def _data_completeness_status(*, has_runs: bool, warnings: list[str]) -> str:
+    if not has_runs:
+        return "NO_DATA"
+    return "PASS_WITH_WARNINGS" if warnings else "PASS"
 
 
 def _run_detail_or_404(config: DashboardConfig, run_id: str) -> dict[str, Any]:
@@ -190,13 +212,11 @@ def _run_detail_or_404(config: DashboardConfig, run_id: str) -> dict[str, Any]:
 def status_class(value: object) -> str:
     """Map status values to CSS status classes."""
     status = str(value or "NO_DATA").upper()
-    if status == "PASS":
+    if status in {"PASS", "READY", "OK", "YES", "NO_ACTION_REQUIRED"}:
         return "status-pass"
-    if status == "READY":
-        return "status-pass"
-    if status == "RUNNING":
+    if status in {"RUNNING", "SUGGESTED_ONLY"}:
         return "status-review"
-    if status == "PASS_WITH_WARNINGS":
+    if status in {"PASS_WITH_WARNINGS", "WARN", "WARNING"}:
         return "status-warn"
     if status == "ACTION_REVIEW_REQUIRED":
         return "status-review"
@@ -205,6 +225,29 @@ def status_class(value: object) -> str:
     if status in {"FAIL", "FAIL_STOP"}:
         return "status-fail"
     return "status-no-data"
+
+
+def human_datetime(value: object) -> str:
+    """Format ISO-like datetimes for the operator UI."""
+    if value is None:
+        return "NO_DATA"
+    text = str(value).strip()
+    if not text or text == "NO_DATA":
+        return "NO_DATA"
+    normalized = text.replace("Z", "+00:00")
+    normalized = re.sub(r"(\.\d{6})\d+([+-]\d{2}:\d{2})$", r"\1\2", normalized)
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return text
+    return parsed.strftime("%d/%m/%Y %H:%M")
+
+
+def yes_no(value: object) -> str:
+    """Render booleans as operator-readable text."""
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    return str(value) if value is not None else "NO_DATA"
 
 
 def build_arg_parser() -> argparse.ArgumentParser:

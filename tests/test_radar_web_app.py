@@ -17,6 +17,7 @@ SCHEDULER_NO_DATA = {
     "status": "NO_DATA",
     "task_name": "AIReleaseRadar_DailyDryReport",
     "read_only": True,
+    "interpretation": "NO_DATA",
     "warnings": [],
 }
 
@@ -68,7 +69,131 @@ class RadarWebAppTests(unittest.TestCase):
                 self.assertEqual(client.get("/api/status").json()["status"], "PASS")
                 runs = client.get("/api/runs").json()["runs"]
                 self.assertEqual(len(runs), 1)
-                self.assertIn("AI Release Radar", client.get("/").text)
+                html = client.get("/").text
+                self.assertIn("AI Release Radar", html)
+                self.assertIn("SUGGESTED ONLY - not executed", html)
+
+    def test_operator_smoke_covers_run_detail_and_sub_endpoints(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            run_id = next((bridge / "runs").iterdir()).name
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+
+                endpoints = [
+                    "/",
+                    "/health",
+                    "/api/status",
+                    "/api/runs",
+                    f"/runs/{run_id}",
+                    f"/api/runs/{run_id}",
+                    f"/api/runs/{run_id}/compact",
+                    f"/api/runs/{run_id}/gate",
+                    f"/api/runs/{run_id}/hag",
+                    f"/api/runs/{run_id}/dashboard",
+                    "/api/scheduler",
+                ]
+                for endpoint in endpoints:
+                    with self.subTest(endpoint=endpoint):
+                        response = client.get(endpoint)
+                        self.assertEqual(response.status_code, 200)
+
+    def test_home_formats_scheduler_dates_and_manual_trigger_note(self):
+        scheduler = {
+            "status": "Ready",
+            "task_name": "AIReleaseRadar_DailyDryReport",
+            "read_only": True,
+            "last_run_time": "2026-06-10T19:01:02.0000000+02:00",
+            "last_task_result": 0,
+            "next_run_time": "2026-06-11T07:15:00.0000000+02:00",
+            "number_of_missed_runs": 0,
+            "interpretation": "OK",
+            "warnings": [],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=scheduler):
+                html = TestClient(create_app(config)).get("/").text
+
+        self.assertIn("Manual only / no auto-action", html)
+        self.assertIn("10/06/2026 19:01", html)
+        self.assertIn("11/06/2026 07:15", html)
+        self.assertIn("Yes", html)
+
+    def test_status_and_home_report_data_completeness_warnings(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = Path(tmpdir) / "bridge"
+            run_dir = bridge / "runs" / "0320_0400_daily_sim_20260610_090000"
+            run_dir.mkdir(parents=True)
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+                status = client.get("/api/status").json()
+                html = client.get("/").text
+
+        self.assertEqual(status["data_completeness_status"], "PASS_WITH_WARNINGS")
+        self.assertIn(
+            "missing_json:0350-Daily_Sim_Summary.json",
+            status["data_completeness_warnings"],
+        )
+        self.assertIn("Data Completeness Warnings", html)
+        self.assertIn("missing_json:0180-Run_Summary.json", html)
+
+    def test_run_detail_highlights_hold_warnings_and_prompt_suggestions(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            run_dir = next((bridge / "runs").iterdir())
+            summary_path = run_dir / "0350-Daily_Sim_Summary.json"
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            summary.update(
+                {
+                    "status": "ACTION_REVIEW_REQUIRED",
+                    "hag_status": "HOLD_FOR_HUMAN_APPROVAL",
+                    "action_triage": {
+                        "status": "HOLD",
+                        "counts": {
+                            "blocked_by_coverage": 1,
+                            "blocked_by_manual_review": 0,
+                        },
+                        "entries": [
+                            {
+                                "triage_class": "blocked_by_coverage",
+                                "title": "Coverage blocked action",
+                                "target_project": "Radar",
+                                "reason": "coverage",
+                                "risk_class": "L1/L2",
+                            }
+                        ],
+                    },
+                    "prompt_suggestions": {
+                        "status": "suggested_only",
+                        "suggestions_count": 1,
+                        "suggestions": [
+                            {
+                                "suggested_step_number": "PS-001",
+                                "title": "Review dashboard",
+                                "status": "suggested_only",
+                                "target_project": "Radar",
+                                "risk_class": "L1/L2",
+                            }
+                        ],
+                    },
+                    "prompt_suggestions_count": 1,
+                }
+            )
+            summary_path.write_text(json.dumps(summary), encoding="utf-8")
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                html = TestClient(create_app(config)).get(f"/runs/{run_dir.name}").text
+
+        self.assertIn("operator attention", html)
+        self.assertIn("HOLD_FOR_HUMAN_APPROVAL", html)
+        self.assertIn("Coverage blocked action", html)
+        self.assertIn("SUGGESTED ONLY - not executed", html)
+        self.assertIn("Review dashboard", html)
+        self.assertIn("<summary>", html)
 
     def test_manual_trigger_uses_only_daily_sim_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -78,12 +203,24 @@ class RadarWebAppTests(unittest.TestCase):
 
             def fake_runner(command, **kwargs):
                 calls.append((command, kwargs))
+                output_dir = bridge / "runs" / "0320_0400_daily_sim_20260610_090000"
+                output_dir.mkdir(parents=True)
+                (output_dir / "0350-Daily_Sim_Summary.json").write_text(
+                    json.dumps(
+                        {
+                            "status": "PASS",
+                            "automation_gate_status": "PASS",
+                            "hag_status": "NO_ACTION_REQUIRED",
+                        }
+                    ),
+                    encoding="utf-8",
+                )
                 return subprocess.CompletedProcess(
                     command,
                     0,
                     stdout=(
                         "Output dir: "
-                        f"{bridge / 'runs' / '0320_0400_daily_sim_20260610_090000'}\n"
+                        f"{output_dir}\n"
                     ),
                     stderr="",
                 )
@@ -96,6 +233,12 @@ class RadarWebAppTests(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["status"], "PASS")
+            self.assertTrue(response.json()["manual_only"])
+            self.assertTrue(response.json()["writes_to_bridge"])
+            self.assertTrue(response.json()["no_auto_action"])
+            self.assertTrue(response.json()["dashboard_updated"])
+            self.assertEqual(response.json()["automation_gate_status"], "PASS")
+            self.assertEqual(response.json()["hag_status"], "NO_ACTION_REQUIRED")
             self.assertEqual(
                 calls[0][0],
                 [

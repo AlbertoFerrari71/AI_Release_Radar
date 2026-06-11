@@ -48,6 +48,7 @@ class RunCandidate:
     blocked_action_count: int = 0
     manual_review_queue_count: int = 0
     prompt_suggestions_count: int = 0
+    prompt_suggestions_status: str = "NO_DATA"
     files: dict[str, str] = field(default_factory=dict)
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
@@ -71,6 +72,7 @@ class RunCandidate:
             "blocked_action_count": self.blocked_action_count,
             "manual_review_queue_count": self.manual_review_queue_count,
             "prompt_suggestions_count": self.prompt_suggestions_count,
+            "prompt_suggestions_status": self.prompt_suggestions_status,
             "files": dict(self.files),
             "warnings": list(self.warnings),
         }
@@ -80,6 +82,29 @@ def find_latest_run(runs_root: str | Path) -> RunCandidate | None:
     """Return the most recent coherent Bridge run, or None when no run exists."""
     runs = list_recent_runs(runs_root, limit=1)
     return runs[0] if runs else None
+
+
+def inspect_runs_root(runs_root: str | Path) -> list[str]:
+    """Return read-only data completeness warnings for the runs root."""
+    root = Path(runs_root)
+    warnings: list[str] = []
+    if _has_forbidden_path_part(root):
+        warnings.append(f"forbidden_path_name:{root.name}")
+        return warnings
+    if not root.exists():
+        warnings.append("runs_root_missing")
+        return warnings
+    if not root.is_dir():
+        warnings.append("runs_root_not_directory")
+        return warnings
+    index_path = root / "runs_index.jsonl"
+    if index_path.exists() and not _has_forbidden_path_part(index_path):
+        try:
+            warnings.extend(f"runs_index:{issue}" for issue in validate_run_index(index_path))
+            get_last_run_index_entry(index_path)
+        except (OSError, ValueError) as exc:
+            warnings.append(f"runs_index_unreadable:{exc}")
+    return warnings
 
 
 def list_recent_runs(runs_root: str | Path, limit: int = 20) -> list[RunCandidate]:
@@ -233,6 +258,7 @@ def _candidate_from_dir(run_dir: Path) -> RunCandidate:
             summary_data.get("prompt_suggestions_count")
             or prompt_suggestions.get("suggestions_count")
         ),
+        prompt_suggestions_status=_string(prompt_suggestions.get("status")),
         files=files,
         warnings=tuple(sorted(set(warnings))),
     )
