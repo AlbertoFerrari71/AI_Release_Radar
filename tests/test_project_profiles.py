@@ -17,7 +17,9 @@ class ProjectProfilesTests(unittest.TestCase):
         self.assertIn("agglodetect", profiles)
         self.assertIn("diamsign", profiles)
         self.assertIn("controllo_gestione_esolver", profiles)
+        self.assertIn("ai_release_radar", profiles)
         self.assertFalse(profiles["family_photo_organizer"].prompt_generation_allowed)
+        self.assertTrue(profiles["ai_release_radar"].prompt_generation_allowed)
 
     def test_fallback_when_config_absent(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -176,6 +176,32 @@
       "project_name": "ControlloGestioneExcel / eSolver",
       "prompt_generation_allowed": false,
       "review_threshold": 75
+    },
+    {
+      "direct_categories": [
+        "api_platform",
+        "codex_cli",
+        "codex_review",
+        "deprecation",
+        "security"
+      ],
+      "ignored_categories": [],
+      "keywords_negative": [],
+      "keywords_positive": [
+        "dashboard",
+        "radar",
+        "release",
+        "scheduler"
+      ],
+      "monitor_categories": [
+        "billing",
+        "gpt_models",
+        "image_vision"
+      ],
+      "project_key": "ai_release_radar",
+      "project_name": "AI Release Radar",
+      "prompt_generation_allowed": true,
+      "review_threshold": 60
     }
   ],
   "schema_version": 1

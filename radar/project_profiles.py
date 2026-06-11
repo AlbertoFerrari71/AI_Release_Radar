@@ -179,6 +179,23 @@ def fallback_project_profiles() -> dict[str, ProjectProfile]:
                 review_threshold=75,
                 prompt_generation_allowed=False,
             ),
+            ProjectProfile(
+                project_key="ai_release_radar",
+                project_name="AI Release Radar",
+                direct_categories=[
+                    "api_platform",
+                    "codex_cli",
+                    "codex_review",
+                    "deprecation",
+                    "security",
+                ],
+                monitor_categories=["billing", "gpt_models", "image_vision"],
+                ignored_categories=[],
+                keywords_positive=["radar", "dashboard", "scheduler", "release"],
+                keywords_negative=[],
+                review_threshold=60,
+                prompt_generation_allowed=True,
+            ),
         ]
     }
 
