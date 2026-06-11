@@ -72,6 +72,32 @@ class NewsTranslationTests(unittest.TestCase):
         self.assertEqual(localized[0]["localized_title"], "Original title")
         self.assertEqual(localized[0]["translation"]["badge"], "missing")
 
+    def test_corrupted_translation_cache_does_not_crash_action_localization(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = Path(tmpdir) / "bridge"
+            cache_dir = bridge / "translations" / "run-1"
+            cache_dir.mkdir(parents=True)
+            (cache_dir / "translated_items.de.json").write_text("{not-json", encoding="utf-8")
+            actions = [
+                {
+                    "source_item_id": "item-1",
+                    "title": "Original title",
+                    "summary": "Original summary",
+                }
+            ]
+
+            loaded = load_translation_cache("run-1", "de", bridge)
+            localized = apply_translation_cache_to_actions(
+                actions,
+                run_id="run-1",
+                locale="de",
+                bridge_root=bridge,
+            )
+
+        self.assertEqual(loaded, [])
+        self.assertEqual(localized[0]["localized_title"], "Original title")
+        self.assertEqual(localized[0]["translation"]["badge"], "missing")
+
     def test_existing_cache_is_used_by_action_view_model(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             bridge = Path(tmpdir) / "bridge"
