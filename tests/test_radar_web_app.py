@@ -44,6 +44,30 @@ class RadarWebAppTests(unittest.TestCase):
                         "direct_action_count": 0,
                         "monitor_only_action_count": 1,
                     },
+                    "action_triage": {
+                        "status": "ACTION_REVIEW_REQUIRED",
+                        "counts": {
+                            "codex_prompt_candidate": 1,
+                            "monitor": 0,
+                            "ignore": 0,
+                            "manual_review": 0,
+                            "blocked_by_coverage": 0,
+                            "blocked_by_manual_review": 0,
+                        },
+                        "entries": [
+                            {
+                                "triage_class": "codex_prompt_candidate",
+                                "title": "Review Action Center candidate",
+                                "target_project": "AI Release Radar",
+                                "project_key": "ai_release_radar",
+                                "reason": "direct project signal can become a suggested-only Codex prompt",
+                                "risk_class": "L1/L2",
+                                "item_category": "codex_cli",
+                                "score": 82,
+                                "item_id": "action-center-candidate",
+                            }
+                        ],
+                    },
                     "prompt_suggestions": {
                         "status": "suggested_only",
                         "suggestions_count": 0,
@@ -310,6 +334,55 @@ class RadarWebAppTests(unittest.TestCase):
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.json()["status"], "REFUSED")
             self.assertIn("forbidden_path_name:latest-bridge", response.json()["warnings"])
+
+    def test_action_center_decision_prompt_and_backlog_flow(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+
+                html = client.get("/actions").text
+                self.assertIn("Action Center", html)
+                self.assertIn("Approve prompt", html)
+                self.assertIn("Review Action Center candidate", html)
+
+                actions_response = client.get("/api/actions").json()
+                self.assertEqual(actions_response["actions_count"], 1)
+                action_id = actions_response["actions"][0]["action_id"]
+                self.assertEqual(client.get(f"/api/actions/{action_id}").status_code, 200)
+
+                refused = client.post(f"/api/actions/{action_id}/generate-prompt")
+                self.assertEqual(refused.status_code, 400)
+                self.assertEqual(refused.json()["status"], "REFUSED")
+
+                decision = client.post(
+                    f"/api/actions/{action_id}/decision",
+                    json={
+                        "decision": "approve_prompt",
+                        "reason": "operator approved prompt pack",
+                        "operator": "Alberto",
+                    },
+                )
+                self.assertEqual(decision.status_code, 200)
+                self.assertEqual(decision.json()["status"], "PASS")
+
+                generated = client.post(f"/api/actions/{action_id}/generate-prompt")
+                self.assertEqual(generated.status_code, 200)
+                prompt_paths = generated.json()["paths"]
+                self.assertEqual(len(prompt_paths), 1)
+                self.assertTrue(Path(prompt_paths[0]).is_file())
+                self.assertEqual(Path(prompt_paths[0]).suffix, ".md")
+
+                backlog = client.post("/api/actions/export-backlog")
+                self.assertEqual(backlog.status_code, 200)
+                self.assertEqual(backlog.json()["status"], "PASS")
+                for raw_path in backlog.json()["paths"]:
+                    self.assertTrue(Path(raw_path).is_file())
+
+                decision_log = bridge / "action_dispatch" / "decision_log.jsonl"
+                self.assertTrue(decision_log.is_file())
+                self.assertIn("approve_prompt", decision_log.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
