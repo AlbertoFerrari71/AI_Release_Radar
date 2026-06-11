@@ -1,5 +1,14 @@
 # Changelog
 
+## 1260-1350) Multilingual UI and Translation QA Final Review
+
+- [F] Aggiunta review preflight multilingua, catalog consistency, linguistic QA, navigation smoke, Action Center UX, fallback QA e scorecard finale. Fonte: `docs/reviews/1260_MULTILINGUAL_PREFLIGHT_BASELINE_REVIEW.md`, `docs/reviews/1340_MULTILINGUAL_FINAL_QA_SCORECARD.md`.
+- [F] Rafforzati i test cataloghi con controllo duplicati, valori vuoti, placeholder vietati e placeholder mismatch. Fonte: `tests/test_i18n.py`.
+- [F] Rafforzato il fallback cache traduzioni con test su cache corrotta senza crash. Fonte: `tests/test_news_translation.py`.
+- [F] Applicate micro-correzioni linguistiche FR/DE/ES e micro-polish CSS per testi lunghi. Fonte: `radar_web/locales/fr.json`, `radar_web/locales/de.json`, `radar_web/locales/es.json`, `radar_web/static/style.css`.
+- [F] Prodotti smoke HTML/API e cache sample/prompt pack nel Bridge, non versionati nel repo. Fonte: `docs/architecture/1350_MULTILINGUAL_FINAL_REVIEW_CLOSURE_PACK.md`.
+- [F] Nessuna nuova dipendenza, nessuna modifica scheduler, nessuna email/notifica automatica, nessun LLM runtime, nessuna auto-azione e nessun altro repository introdotti. Fonte: `pyproject.toml`, diff 1260-1350, `AGENTS.md`.
+
 ## 1110-1250) Multilingual Dashboard and News Translation Pipeline
 
 - [F] Aggiunta architettura i18n deterministica per UI dashboard con cataloghi JSON EN/IT/FR/DE/ES. Fonte: `docs/architecture/1110_I18N_ARCHITECTURE_REVIEW.md`, `radar_web/i18n.py`, `radar_web/locales/*.json`.

@@ -1,4 +1,5 @@
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -88,6 +89,44 @@ class I18nTests(unittest.TestCase):
             with self.subTest(locale=locale):
                 self.assertEqual(i18n.missing_keys(locale), set())
                 self.assertEqual(i18n.catalog_keys(locale), en_keys)
+
+    def test_catalogs_have_no_duplicate_empty_or_placeholder_values(self):
+        catalog_root = Path.cwd() / "radar_web" / "locales"
+        placeholder_re = re.compile(r"\{[^{}]+\}")
+        forbidden_re = re.compile(r"\b(TODO|TBD|FIXME|PLACEHOLDER)\b", re.IGNORECASE)
+
+        en_data = json.loads((catalog_root / "en.json").read_text(encoding="utf-8"))
+        for locale in i18n.SUPPORTED_LOCALES:
+            with self.subTest(locale=locale):
+                duplicates = []
+
+                def object_pairs_hook(items):
+                    seen = set()
+                    for key, _value in items:
+                        if key in seen:
+                            duplicates.append(key)
+                        seen.add(key)
+                    return dict(items)
+
+                data = json.loads(
+                    (catalog_root / f"{locale}.json").read_text(encoding="utf-8"),
+                    object_pairs_hook=object_pairs_hook,
+                )
+                empty_keys = [key for key, value in data.items() if not str(value).strip()]
+                placeholder_keys = [
+                    key for key, value in data.items() if forbidden_re.search(str(value))
+                ]
+                placeholder_mismatches = [
+                    key
+                    for key in sorted(set(en_data).intersection(data))
+                    if sorted(placeholder_re.findall(en_data[key]))
+                    != sorted(placeholder_re.findall(data[key]))
+                ]
+
+                self.assertEqual(duplicates, [])
+                self.assertEqual(empty_keys, [])
+                self.assertEqual(placeholder_keys, [])
+                self.assertEqual(placeholder_mismatches, [])
 
     def test_locale_and_key_fallbacks(self):
         self.assertEqual(i18n.normalize_locale("it-IT"), "it")
