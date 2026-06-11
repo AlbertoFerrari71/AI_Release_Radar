@@ -165,7 +165,8 @@ class I18nTests(unittest.TestCase):
         forbidden_re = re.compile(
             r"\b("
             r"API|Backlog|Dashboard|Scheduler|Gate|Prompt|Review|Daily-Sim|daily-sim|"
-            r"run id|NO_DATA|RUNNING|Pass|Hold|Monitor|Bridge|Action Inbox|Action Center"
+            r"run id|NO_DATA|RUNNING|Pass|Hold|Monitor|Bridge|Action Inbox|Action Center|"
+            r"backlog|auto-action|auto-azione|Auto-Aktion|auto-acción"
             r")\b"
         )
 
