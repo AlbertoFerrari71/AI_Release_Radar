@@ -106,6 +106,12 @@ git --no-pager diff --check
 
 - [F] I test dedicati coprono cataloghi, fallback, render template, cache, preservation rules e prompt pack. Fonte: `tests/test_i18n.py`, `tests/test_news_translation.py`, `tests/test_translation_prompt_pack.py`.
 
+## Review Finale Multilingua
+
+- [F] La review finale 1260-1350 usa `docs/reviews/1340_MULTILINGUAL_FINAL_QA_SCORECARD.md` come scorecard stabile. Fonte: `docs/reviews/1340_MULTILINGUAL_FINAL_QA_SCORECARD.md`.
+- [F] Il closure pack della review finale e' `docs/architecture/1350_MULTILINGUAL_FINAL_REVIEW_CLOSURE_PACK.md`. Fonte: `docs/architecture/1350_MULTILINGUAL_FINAL_REVIEW_CLOSURE_PACK.md`.
+- [F] Gli smoke HTML/API e la cache sample restano nel Bridge, non nel repo. Fonte: `docs/architecture/1350_MULTILINGUAL_FINAL_REVIEW_CLOSURE_PACK.md`.
+
 ## Stop Policy
 
 - [F] Fermarsi se i test falliscono. Fonte: prompt 1110-1250.

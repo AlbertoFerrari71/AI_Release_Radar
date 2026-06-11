@@ -84,6 +84,8 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Le traduzioni delle news dinamiche sono Bridge-only sotto `translations/<run_id>/` e non sono salvate nel repo. Fonte: `radar/news_translation.py`, `docs/architecture/1190_DYNAMIC_NEWS_TRANSLATION_CONTRACT.md`.
 - [F] Il prompt pack traduzioni viene generato nel Bridge con profilo default `balanced` e non esegue LLM. Fonte: `radar/translation_prompt_pack.py`.
 - [F] Il runbook multilingua e' `docs/runbooks/1250_MULTILINGUAL_RUNBOOK.md`. Fonte: `docs/runbooks/1250_MULTILINGUAL_RUNBOOK.md`.
+- [F] La review finale 1260-1350 ha verificato cataloghi, fallback, Action Center, smoke HTML/API e cache sample Bridge per EN/IT/FR/DE/ES. Fonte: `docs/architecture/1350_MULTILINGUAL_FINAL_REVIEW_CLOSURE_PACK.md`.
+- [F] La scorecard finale multilingua e' `docs/reviews/1340_MULTILINGUAL_FINAL_QA_SCORECARD.md`. Fonte: `docs/reviews/1340_MULTILINGUAL_FINAL_QA_SCORECARD.md`.
 
 ## Comandi principali
 
