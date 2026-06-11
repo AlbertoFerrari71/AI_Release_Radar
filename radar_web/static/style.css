@@ -447,6 +447,84 @@ th {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.action-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.filter-tab.active {
+  background: #194f90;
+  border-color: #194f90;
+  color: #ffffff;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.action-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.action-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.action-card-header h2 {
+  margin-top: 4px;
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+.action-body {
+  display: grid;
+  gap: 8px;
+}
+
+.action-body p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 @media (max-width: 980px) {
   .status-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -491,6 +569,10 @@ th {
 
   .status-grid,
   .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .action-grid {
     grid-template-columns: 1fr;
   }
 

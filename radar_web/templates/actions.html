@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Release Radar - Action Center</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Action Center</h1>
+        <p class="path">{{ payload.dispatch_root }}</p>
+      </div>
+      <div class="topbar-actions">
+        <a class="button" href="/">Dashboard</a>
+        <a class="button" href="/api/actions">API</a>
+        <button class="button primary" id="export-backlog" type="button">Export backlog</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="status-grid" aria-label="Action Center status">
+        <article class="metric primary">
+          <span class="label">run id</span>
+          <strong class="run-link">{{ payload.run_id or 'NO_DATA' }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">actions</span>
+          <strong>{{ payload.all_actions_count }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">visible</span>
+          <strong>{{ payload.actions_count }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">no auto-action</span>
+          <strong class="badge status-pass">{{ payload.no_auto_action | yes_no }}</strong>
+        </article>
+      </section>
+
+      <section class="panel action-toolbar">
+        <nav class="filter-tabs" aria-label="Action filters">
+          {% for item in filters %}
+          <a class="filter-tab {% if selected_filter == item %}active{% endif %}" href="/actions?filter={{ item }}">{{ item }}</a>
+          {% endfor %}
+        </nav>
+      </section>
+
+      <section class="action-grid" aria-label="Action Inbox">
+        {% for action in actions %}
+        <article class="action-card">
+          <div class="action-card-header">
+            <div>
+              <span class="label">Action Inbox</span>
+              <h2>{{ action.title }}</h2>
+            </div>
+            <span class="badge {{ action.priority | status_class }}">{{ action.priority }}</span>
+          </div>
+
+          <dl class="facts compact-facts">
+            <div>
+              <dt>project</dt>
+              <dd>{{ action.project_name }}</dd>
+            </div>
+            <div>
+              <dt>project key</dt>
+              <dd>{{ action.project_key or 'unknown' }}</dd>
+            </div>
+            <div>
+              <dt>risk</dt>
+              <dd><span class="badge {{ action.risk_level | status_class }}">{{ action.risk_level }}</span></dd>
+            </div>
+            <div>
+              <dt>decision</dt>
+              <dd><span class="badge {{ action.decision_status | status_class }}">{{ action.decision_status }}</span></dd>
+            </div>
+            <div>
+              <dt>safety</dt>
+              <dd><span class="badge {{ action.safety_status | status_class }}">{{ action.safety_status }}</span></dd>
+            </div>
+            <div>
+              <dt>trend</dt>
+              <dd><span class="badge {{ action.trend_status | status_class }}">{{ action.trend_status }}</span></dd>
+            </div>
+            <div>
+              <dt>noise</dt>
+              <dd><span class="badge {{ action.noise_status | status_class }}">{{ action.noise_status }}</span></dd>
+            </div>
+            <div>
+              <dt>score</dt>
+              <dd>{{ action.priority_score }}</dd>
+            </div>
+          </dl>
+
+          <div class="action-body">
+            <p>{{ action.summary }}</p>
+            <p><strong>Routing:</strong> {{ action.routing_reasons | join('; ') }}</p>
+            <p><strong>Next:</strong> {{ action.recommended_next_step }}</p>
+            {% if action.noise_reasons %}
+            <p><strong>Suppression:</strong> {{ action.noise_reasons | join('; ') }}</p>
+            {% endif %}
+            {% if action.suggested_prompt_path %}
+            <p class="path"><strong>Prompt:</strong> {{ action.suggested_prompt_path }}</p>
+            {% endif %}
+          </div>
+
+          <div class="button-row" data-action-id="{{ action.action_id }}">
+            <button class="button decision-button" data-decision="approve_prompt" type="button">Approve prompt</button>
+            <button class="button decision-button" data-decision="defer" type="button">Defer</button>
+            <button class="button decision-button" data-decision="ignore" type="button">Ignore</button>
+            <button class="button decision-button" data-decision="backlog" type="button">Backlog</button>
+            <button class="button decision-button" data-decision="request_review" type="button">Request review</button>
+            <button
+              class="button primary prompt-button"
+              type="button"
+              {% if not action.prompt_generation_allowed %}disabled title="Requires Approve prompt or Request review"{% endif %}
+            >Generate prompt pack</button>
+          </div>
+        </article>
+        {% else %}
+        <article class="panel">
+          <h2>Action Inbox</h2>
+          <p>NO_DATA</p>
+        </article>
+        {% endfor %}
+      </section>
+
+      {% if payload.warnings %}
+      <section class="panel warning-panel">
+        <h2>Warnings</h2>
+        <ul class="warning-list">
+          {% for warning in payload.warnings %}
+          <li>{{ warning }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      <section class="panel" id="action-result" hidden>
+        <h2>Action Result</h2>
+        <pre class="report" id="action-output"></pre>
+      </section>
+    </main>
+
+    <script>
+      const resultPanel = document.getElementById("action-result");
+      const output = document.getElementById("action-output");
+
+      function showResult(data) {
+        resultPanel.hidden = false;
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+
+      async function postJson(url, payload) {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload || {})
+        });
+        const data = await response.json();
+        showResult({http_status: response.status, ...data});
+        if (response.ok) {
+          window.setTimeout(() => window.location.reload(), 450);
+        }
+      }
+
+      document.querySelectorAll(".decision-button").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const row = button.closest(".button-row");
+          await postJson(`/api/actions/${row.dataset.actionId}/decision`, {
+            decision: button.dataset.decision,
+            reason: "dashboard operator decision",
+            operator: "Alberto"
+          });
+        });
+      });
+
+      document.querySelectorAll(".prompt-button").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const row = button.closest(".button-row");
+          await postJson(`/api/actions/${row.dataset.actionId}/generate-prompt`, {});
+        });
+      });
+
+      document.getElementById("export-backlog").addEventListener("click", async () => {
+        await postJson("/api/actions/export-backlog", {});
+      });
+    </script>
+  </body>
+</html>

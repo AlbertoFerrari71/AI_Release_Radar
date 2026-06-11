@@ -1,5 +1,15 @@
 # Changelog
 
+## 0960-1100) Daily Radar Operator Loop and Action Dispatch Readiness
+
+- [F] Aggiunta review morning-use 0960 della dashboard V1. Fonte: `docs/reviews/0960_DASHBOARD_MORNING_USE_REVIEW.md`.
+- [F] Aggiunto modello Action Inbox con scoring, routing, safety gate, trend e noise suppression. Fonte: `radar/action_inbox.py`, `tests/test_action_inbox.py`.
+- [F] Aggiunto Action Center web `/actions` con filtri, card azione, decision buttons, prompt generation e backlog export. Fonte: `radar_web/app.py`, `radar_web/action_center.py`, `radar_web/templates/actions.html`, `radar_web/static/style.css`.
+- [F] Aggiunto decision log append-only Bridge e prompt/backlog export Bridge-only. Fonte: `radar/action_inbox.py`, `radar_web/action_center.py`.
+- [F] Aggiunto routing esplicito per `AI Release Radar` nei project profiles. Fonte: `config/projects/project_profiles.json`, `radar/project_profiles.py`.
+- [F] Aggiunti runbook operator loop, closure pack e decisioni 1100. Fonte: `docs/runbooks/1090_DAILY_RADAR_OPERATOR_LOOP_RUNBOOK.md`, `docs/architecture/1100_OPERATOR_LOOP_CLOSURE_PACK.md`, `docs/decisions/1100_DECISIONS.md`.
+- [F] Nessuna nuova dipendenza, nessun nuovo scheduler, nessuna email/notifica automatica, nessuna chiamata LLM automatica, nessuna auto-azione, nessun altro repository e nessun output runtime versionato introdotti. Fonte: `pyproject.toml`, `radar/action_inbox.py`, `radar_web/action_center.py`, `AGENTS.md`.
+
 ## 0860-0950) Local Web Dashboard Operator-Ready V1
 
 - [F] Aggiunto smoke operator offline per home, health, status, runs, scheduler, dettaglio run e API detail. Fonte: `tests/test_radar_web_app.py`.
