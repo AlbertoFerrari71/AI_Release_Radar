@@ -8,16 +8,20 @@
 ## B. Runtime Lock
 
 - [F] Lock path: `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\scheduler_locks\AIReleaseRadar_DailyDryReport.lock.json`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] Il lock contiene `task_name`, `started_at_utc`, `repo_root`, `runs_root` e `log_path`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] Timeout lock: 120 minuti. Fonte: `$LockTimeoutMinutes = 120` nello script.
-- [F] Se il lock esiste ed e' piu' recente del timeout, lo script registra `error=lock_present` ed esce con exit code `2`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] Se il lock e' scaduto o non interpretabile, lo script lo archivia con nome datato e procede. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] A fine esecuzione normale o errore gestito, lo script rimuove solo il lock attivo creato dalla run corrente. Fonte: `Exit-WithCode` nello script.
+- [F] Il lock contiene `task_name`, `run_id`, `started_at_utc`, `repo_root`, `runs_root`, `log_path`, `stdout_path` e `stderr_path`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Soglia stale lock: 150 minuti. Fonte: `$StaleLockMinutes = 150` nello script.
+- [F] Se il lock esiste ed e' entro soglia stale, lo script registra `ACTIVE_LOCK_DETECTED` ed esce con exit code `2`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Se il lock e' oltre soglia stale, lo script registra `STALE_LOCK_DETECTED`, archivia contenuto/path con nome datato e procede. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Per lock legacy senza `run_id`, lo script puo' registrare `STALE_LOCK_DETECTED reason=legacy_lock_without_owner` se il task non e' `Running` e non trova altri processi dello script scheduler. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Se il lock non e' JSON valido o non ha `started_at_utc` valido, lo script registra `CORRUPT_LOCK_DETECTED`, archivia contenuto/path con nome datato e procede. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] A fine esecuzione normale o errore gestito, il blocco `finally` rimuove solo il lock con `run_id` della run corrente. Fonte: `Test-CurrentRunOwnsLock` nello script.
 
 ## C. Log Failure Handling
 
 - [F] I log scheduler sono scritti nel Bridge in `scheduler_logs`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] I nomi log sono datati e non usano `LAST-*` o `latest-*`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Lo script cattura stdout e stderr del comando in file separati datati e mantiene anche un command output combinato. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Il log include cwd iniziale, cwd dopo `Set-Location`, versione PowerShell, python path, python version, path lock/output, stato lock, command start/end, exit code comando, durata, rimozione lock e exit code script. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] La scrittura log usa append con retry/backoff su `System.IO.IOException`. Fonte: `Write-LogLine` nello script.
 - [INT] Il retry/backoff evita che un lock transitorio del file log da sync o antivirus faccia fallire la run senza motivo operativo.
 
@@ -25,7 +29,7 @@
 
 - [F] Exit code `0`: `daily-sim` completato senza errore processo. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Exit code `1`: errore script o errore propagato da `daily-sim`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] Exit code `2`: lock attivo non scaduto. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Exit code `2`: lock attivo entro soglia stale o lock creato in parallelo da un'altra run. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [INT] Exit code `0` non equivale ad approvazione automatica: il gate resta l'autorita' su `ACTION_REVIEW_REQUIRED`, `FAIL` o warning.
 
 ## E. Timeout Task

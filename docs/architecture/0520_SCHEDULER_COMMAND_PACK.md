@@ -12,14 +12,14 @@
 - [F] Runs root: `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\runs`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Scheduler logs root: `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\scheduler_logs`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Scheduler lock root: `D:\FG-SAB Dropbox\Alberto Ferrari\ChatGPT_Bridge\AI_Release_Radar\scheduler_locks`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] Log e command output hanno nomi datati, non `LAST-*` o `latest-*`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Log, command output, stdout e stderr hanno nomi datati, non `LAST-*` o `latest-*`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 
 ## C. Guardrail Script
 
 - [F] Lo script imposta `Set-StrictMode -Version Latest`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Lo script imposta `$ErrorActionPreference = "Stop"`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Lo script verifica che `runs_root` non sia dentro il repository. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] Lo script verifica che `runs_root` e `log_root` non contengano path part `LAST-*` o `latest-*`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Lo script verifica che root e file runtime scheduler non contengano path part `LAST-*` o `latest-*`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Lo script scrive log operativo nel Bridge. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Lo script usa un runtime lock in Bridge per ridurre il rischio di doppia esecuzione. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 
@@ -34,7 +34,7 @@
 
 - [F] Exit code 0 passa quando `daily-sim` non produce gate `FAIL`. Fonte: `radar/cli.py`, `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Exit code 1 segnala errore script o gate `FAIL` propagato da `daily-sim`. Fonte: `radar/cli.py`, `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
-- [F] Exit code 2 segnala lock attivo non scaduto. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Exit code 2 segnala lock attivo entro soglia stale o lock creato in parallelo da un'altra run. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [INT] `ACTION_REVIEW_REQUIRED` non e' errore processo, ma richiede review umana. Base: `radar/cli.py`, `docs/architecture/0430_COVERAGE_WARNING_POLICY.md`.
 
 ## F. Smoke Test Manuale
