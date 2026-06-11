@@ -17,6 +17,8 @@
 - [F] Directory run datate: `0320_0400_daily_sim_<stamp>`. Fonte: output `daily-sim` verificato nello step 0560.
 - [F] Log scheduler datati: `scheduler_dry_report_<stamp>.log`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] Command output scheduler datato: `scheduler_dry_report_<stamp>.command_output.txt`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Stdout scheduler datato: `scheduler_dry_report_<stamp>.stdout.txt`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
+- [F] Stderr scheduler datato: `scheduler_dry_report_<stamp>.stderr.txt`. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`.
 - [F] File `LAST-*` e `latest-*` sono vietati. Fonte: `AGENTS.md` e prompt `0510-0600`.
 
 ## D. Retention Corrente
