@@ -48,6 +48,10 @@ a:hover {
   border-bottom: 1px solid var(--line);
 }
 
+.topbar > div {
+  min-width: 0;
+}
+
 h1,
 h2 {
   margin: 0;
@@ -76,6 +80,7 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
   min-height: 34px;
   padding: 0 12px;
   border: 1px solid var(--line);
@@ -83,6 +88,10 @@ h2 {
   background: var(--surface);
   color: var(--text);
   font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
 }
 
 .button.primary {
@@ -493,6 +502,7 @@ th {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
   min-height: 34px;
   padding: 0 12px;
   border: 1px solid var(--line);
@@ -500,6 +510,10 @@ th {
   background: var(--surface-soft);
   color: var(--text);
   font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
 }
 
 .filter-tab.active {
