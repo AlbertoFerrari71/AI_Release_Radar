@@ -153,9 +153,32 @@ class I18nTests(unittest.TestCase):
         self.assertEqual(i18n.format_datetime_for_locale(value, "fr"), "11/06/2026 07:15")
         self.assertEqual(i18n.format_datetime_for_locale(value, "de"), "11.06.2026 07:15")
         self.assertEqual(i18n.format_datetime_for_locale(value, "es"), "11/06/2026 07:15")
-        self.assertEqual(i18n.format_status_for_locale("PASS_WITH_WARNINGS", "it"), "Pass con warning")
+        self.assertEqual(
+            i18n.format_status_for_locale("PASS_WITH_WARNINGS", "it"),
+            "Superato con avvisi",
+        )
         self.assertEqual(i18n.format_bool_for_locale(True, "it"), "Sì")
         self.assertEqual(i18n.format_bool_for_locale(False, "fr"), "Non")
+
+    def test_strict_localized_catalogs_avoid_known_english_ui_terms(self):
+        catalog_root = Path.cwd() / "radar_web" / "locales"
+        forbidden_re = re.compile(
+            r"\b("
+            r"API|Backlog|Dashboard|Scheduler|Gate|Prompt|Review|Daily-Sim|daily-sim|"
+            r"run id|NO_DATA|RUNNING|Pass|Hold|Monitor|Bridge|Action Inbox|Action Center|"
+            r"backlog|auto-action|auto-azione|Auto-Aktion|auto-acción"
+            r")\b"
+        )
+
+        for locale in ("it", "fr", "de", "es"):
+            with self.subTest(locale=locale):
+                data = json.loads((catalog_root / f"{locale}.json").read_text(encoding="utf-8"))
+                offenders = {
+                    key: value
+                    for key, value in data.items()
+                    if forbidden_re.search(str(value))
+                }
+                self.assertEqual(offenders, {})
 
     def test_main_templates_render_for_all_locales(self):
         with tempfile.TemporaryDirectory() as tmpdir:

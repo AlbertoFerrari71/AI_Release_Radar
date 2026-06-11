@@ -90,7 +90,7 @@
 
       <div class="detail-grid">
         <div class="stack">
-          <details class="panel collapsible" open>
+          <details class="panel collapsible">
             <summary>
               <span>{{ t("detail.report_compact") }}</span>
               <span class="summary-meta">{{ detail.compact_report.path }}</span>
@@ -98,7 +98,7 @@
             <pre class="report">{{ detail.compact_report.text or format_status("NO_DATA") }}</pre>
           </details>
 
-          <details class="panel collapsible" open>
+          <details class="panel collapsible">
             <summary>
               <span>{{ t("detail.gate_markdown") }}</span>
               <span class="summary-meta">{{ t("detail.gate_meta") }}</span>
@@ -107,7 +107,7 @@
             <pre class="report">{{ detail.gate_report.daily_quality_gate_v2_markdown.text or format_status("NO_DATA") }}</pre>
           </details>
 
-          <details class="panel collapsible" open>
+          <details class="panel collapsible">
             <summary>
               <span>{{ t("detail.hag_report") }}</span>
               <span class="summary-meta">{{ format_status(run.hag_status) }}</span>
@@ -115,7 +115,7 @@
             <pre class="report">{{ detail.hag_report.hag_markdown.text or format_status("NO_DATA") }}</pre>
           </details>
 
-          <details class="panel collapsible" open>
+          <details class="panel collapsible">
             <summary>
               <span>{{ t("detail.operator_dashboard") }}</span>
               <span class="summary-meta">{{ t("detail.operator_dashboard_meta") }}</span>
@@ -130,7 +130,7 @@
             <dl class="path-list">
               {% for key, path in run.files.items() %}
               <div>
-                <dt>{{ key }}</dt>
+                <dt>{{ format_run_file_key(key) }}</dt>
                 <dd>{{ path }}</dd>
               </div>
               {% else %}
@@ -147,7 +147,7 @@
             <dl class="facts compact-facts">
               {% for key, count in detail.source_diagnostics_summary.items() %}
               <div>
-                <dt>{{ key }}</dt>
+                <dt>{{ format_status(key) }}</dt>
                 <dd>{{ count }}</dd>
               </div>
               {% else %}
@@ -164,8 +164,8 @@
             <ul class="item-list">
               {% for action in detail.direct_actions %}
               <li class="attention-item">
-                <span class="item-title">{{ action.title }}</span>
-                <span class="item-meta">{{ action.target_project }} · {{ action.risk_class }} · {{ action.reason }}</span>
+                <span class="item-title">{{ format_action_title(action.title) }}</span>
+                <span class="item-meta">{{ format_project_name(action.target_project) }} · {{ action.risk_class }} · {{ format_action_reasons(action.reason) | join('; ') }}</span>
               </li>
               {% else %}
               <li>{{ format_status("NO_DATA") }}</li>
@@ -178,8 +178,8 @@
             <ul class="item-list">
               {% for action in detail.blocked_actions %}
               <li class="attention-item">
-                <span class="item-title">{{ action.title }}</span>
-                <span class="item-meta">{{ action.triage_class }} · {{ action.target_project }} · {{ action.reason }}</span>
+                <span class="item-title">{{ format_action_title(action.title) }}</span>
+                <span class="item-meta">{{ format_status(action.triage_class) }} · {{ format_project_name(action.target_project) }} · {{ format_action_reasons(action.reason) | join('; ') }}</span>
               </li>
               {% else %}
               <li>{{ format_status("NO_DATA") }}</li>
@@ -192,8 +192,8 @@
             <ul class="item-list">
               {% for action in detail.monitor_only_summary %}
               <li>
-                <span class="item-title">{{ action.title }}</span>
-                <span class="item-meta">{{ action.target_project }} · {{ action.reason }}</span>
+                <span class="item-title">{{ format_action_title(action.title) }}</span>
+                <span class="item-meta">{{ format_project_name(action.target_project) }} · {{ format_action_reasons(action.reason) | join('; ') }}</span>
               </li>
               {% else %}
               <li>{{ format_status("NO_DATA") }}</li>
@@ -207,7 +207,7 @@
               {% for item in detail.manual_review_queue %}
               <li>
                 <span class="item-title">{{ item.source_id or item.title or t("detail.manual_review_default_title") }}</span>
-                <span class="item-meta">{{ item.reason or item.triage_class or t("detail.manual_review_default_reason") }}</span>
+                <span class="item-meta">{{ format_status(item.reason or item.triage_class or t("detail.manual_review_default_reason")) }}</span>
               </li>
               {% else %}
               <li>{{ format_status("NO_DATA") }}</li>
@@ -223,8 +223,8 @@
             <ul class="item-list">
               {% for suggestion in detail.prompt_suggestions %}
               <li class="attention-item">
-                <span class="item-title">{{ suggestion.suggested_step_number }} - {{ suggestion.title }}</span>
-                <span class="item-meta">{{ format_status(suggestion.status) }} · {{ suggestion.target_project }} · {{ suggestion.risk_class }}</span>
+                <span class="item-title">{{ suggestion.suggested_step_number }} - {{ format_action_title(suggestion.title) }}</span>
+                <span class="item-meta">{{ format_status(suggestion.status) }} · {{ format_project_name(suggestion.target_project) }} · {{ suggestion.risk_class }}</span>
               </li>
               {% else %}
               <li>{{ format_status("NO_DATA") }}</li>

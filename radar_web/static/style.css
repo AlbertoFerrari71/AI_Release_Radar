@@ -148,9 +148,14 @@ h2 {
 }
 
 .button-note {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   color: var(--muted);
   font-size: 12px;
   font-weight: 650;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .layout {
@@ -161,7 +166,7 @@ h2 {
 
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -189,7 +194,7 @@ dt {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .metric strong,
@@ -211,18 +216,19 @@ dt {
   align-items: center;
   justify-content: center;
   min-height: 26px;
-  min-width: 76px;
+  min-width: 88px;
   max-width: 100%;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 750;
   line-height: 1.2;
-  overflow-wrap: anywhere;
+  hyphens: none;
+  overflow-wrap: normal;
   text-align: center;
   white-space: normal;
-  word-break: break-word;
+  word-break: normal;
 }
 
 .status-pass {
@@ -275,10 +281,21 @@ dt {
   border-radius: 6px;
 }
 
+.facts div.wide-fact {
+  grid-column: span 2;
+}
+
 .facts dd {
   margin: 6px 0 0;
   font-size: 18px;
   font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.facts dd.technical-value {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
@@ -304,7 +321,7 @@ td {
 th {
   color: var(--muted);
   font-size: 12px;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .empty {
@@ -361,6 +378,8 @@ th {
 
 .stack {
   display: grid;
+  align-content: start;
+  grid-auto-rows: max-content;
   gap: 18px;
 }
 
@@ -614,8 +633,22 @@ th {
     padding: 18px;
   }
 
+  .topbar-actions {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .topbar-actions > .button {
+    flex: 1 1 100%;
+  }
+
   .button-stack {
     justify-items: start;
+    width: 100%;
+  }
+
+  .button-stack .button {
+    width: 100%;
   }
 
   .layout {

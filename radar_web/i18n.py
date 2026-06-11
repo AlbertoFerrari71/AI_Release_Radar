@@ -116,6 +116,18 @@ def format_status_for_locale(status: object, locale: object) -> str:
     return text if label.startswith("[missing:") else label
 
 
+def format_catalog_value_for_locale(prefix: str, value: object, locale: object) -> str:
+    """Return a localized catalog label for a stable internal code."""
+    if value is None:
+        return translate("status_label.no_data", locale)
+    text = str(value).strip()
+    if not text:
+        return translate("status_label.no_data", locale)
+    value_key = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+    label = translate(f"{prefix}.{value_key}", locale)
+    return text if label.startswith("[missing:") else label
+
+
 def format_bool_for_locale(value: object, locale: object) -> str:
     """Render booleans with a localized Yes/No label."""
     if isinstance(value, bool):

@@ -125,9 +125,9 @@
         <div class="panel">
           <h2>{{ t("scheduler.title") }}</h2>
           <dl class="facts">
-            <div>
+            <div class="wide-fact">
               <dt>{{ t("scheduler.task") }}</dt>
-              <dd>{{ status.scheduler.task_name }}</dd>
+              <dd class="technical-value">{{ status.scheduler.task_name }}</dd>
             </div>
             <div>
               <dt>{{ t("scheduler.state") }}</dt>
@@ -185,7 +185,7 @@
                 <td><span class="badge {{ run.status | status_class }}">{{ format_status(run.status) }}</span></td>
                 <td><span class="badge {{ run.automation_gate_status | status_class }}">{{ format_status(run.automation_gate_status) }}</span></td>
                 <td><span class="badge {{ run.daily_quality_gate_status | status_class }}">{{ format_status(run.daily_quality_gate_status) }}</span></td>
-                <td>{{ run.parsed_count if run.parsed_count is not none else 'n/a' }}/{{ run.source_count if run.source_count is not none else 'n/a' }}</td>
+                <td>{{ run.parsed_count if run.parsed_count is not none else format_status("NO_DATA") }}/{{ run.source_count if run.source_count is not none else format_status("NO_DATA") }}</td>
                 <td>{{ run.direct_action_count }}</td>
                 <td>{{ run.blocked_action_count }}</td>
                 <td>{{ run.manual_review_queue_count }}</td>
