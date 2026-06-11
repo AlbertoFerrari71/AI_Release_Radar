@@ -7,12 +7,14 @@ from datetime import datetime
 from pathlib import Path
 import re
 from typing import Any
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from radar.news_translation import apply_translation_cache_to_actions
 from radar_web.action_center import (
     build_action_center_payload,
     export_current_backlog,
@@ -21,6 +23,14 @@ from radar_web.action_center import (
     record_decision,
 )
 from radar_web.config import DashboardConfig, default_config
+from radar_web.i18n import (
+    SUPPORTED_LOCALES,
+    format_bool_for_locale,
+    format_datetime_for_locale,
+    format_status_for_locale,
+    normalize_locale,
+    translate,
+)
 from radar_web.manual_trigger import DailySimTrigger
 from radar_web.models import ApiMessage, DashboardStatus
 from radar_web.run_locator import inspect_runs_root, list_recent_runs, load_run_detail
@@ -64,6 +74,7 @@ def create_app(
                 "status": status,
                 "latest": status.get("latest_run"),
                 "runs": [run.to_dict() for run in runs],
+                **_localized_context(request),
             },
         )
 
@@ -78,40 +89,70 @@ def create_app(
         }
 
     @app.get("/api/status")
-    def api_status() -> dict[str, Any]:
-        return build_status(dashboard_config).to_dict()
+    def api_status(lang: str | None = None) -> dict[str, Any]:
+        data = build_status(dashboard_config).to_dict()
+        locale = normalize_locale(lang)
+        if lang is not None:
+            data["locale"] = locale
+            data["status_label"] = format_status_for_locale(data.get("status"), locale)
+        return data
 
     @app.get("/api/runs")
-    def api_runs(limit: int = 20) -> dict[str, Any]:
+    def api_runs(limit: int = 20, lang: str | None = None) -> dict[str, Any]:
         bounded_limit = max(1, min(limit, 100))
         runs = list_recent_runs(dashboard_config.runs_root, limit=bounded_limit)
         return {
             "runs_root": str(dashboard_config.runs_root),
             "limit": bounded_limit,
+            "locale": normalize_locale(lang) if lang is not None else None,
             "runs": [run.to_dict() for run in runs],
         }
 
     @app.get("/actions", response_class=HTMLResponse)
     def actions(request: Request, filter: str = "all") -> Any:
+        localized_context = _localized_context(request)
         payload = build_action_center_payload(dashboard_config, filter_value=filter)
+        localized_actions = apply_translation_cache_to_actions(
+            payload["actions"],
+            run_id=payload.get("run_id"),
+            locale=localized_context["lang"],
+            bridge_root=dashboard_config.bridge_root,
+        )
         return templates.TemplateResponse(
             request,
             "actions.html",
             {
                 "payload": payload,
-                "actions": payload["actions"],
+                "actions": localized_actions,
                 "filters": payload["filters"],
                 "selected_filter": payload["selected_filter"],
+                **localized_context,
             },
         )
 
     @app.get("/api/actions")
-    def api_actions(filter: str = "all", limit: int = 10) -> dict[str, Any]:
-        return build_action_center_payload(
+    def api_actions(filter: str = "all", limit: int = 10, lang: str | None = None) -> dict[str, Any]:
+        payload = build_action_center_payload(
             dashboard_config,
             filter_value=filter,
             limit=limit,
         )
+        if lang is not None:
+            locale = normalize_locale(lang)
+            payload["locale"] = locale
+            payload["actions"] = apply_translation_cache_to_actions(
+                payload["actions"],
+                run_id=payload.get("run_id"),
+                locale=locale,
+                bridge_root=dashboard_config.bridge_root,
+            )
+            payload["all_actions"] = apply_translation_cache_to_actions(
+                payload["all_actions"],
+                run_id=payload.get("run_id"),
+                locale=locale,
+                bridge_root=dashboard_config.bridge_root,
+            )
+        return payload
 
     @app.post("/api/actions/export-backlog")
     def api_actions_export_backlog() -> JSONResponse:
@@ -212,6 +253,7 @@ def create_app(
             {
                 "detail": detail,
                 "run": detail["run"],
+                **_localized_context(request),
             },
         )
 
@@ -257,6 +299,43 @@ def read_scheduler_status_placeholder(config: DashboardConfig) -> dict[str, Any]
     return read_scheduler_status(config.scheduler_task_name)
 
 
+def _localized_context(request: Request) -> dict[str, Any]:
+    locale = normalize_locale(request.query_params.get("lang"))
+
+    def t(key: str, **kwargs: object) -> str:
+        return translate(key, locale, **kwargs)
+
+    def url_with_lang(path: str, **params: object) -> str:
+        query = {key: value for key, value in params.items() if value is not None}
+        query["lang"] = locale
+        return f"{path}?{urlencode(query)}"
+
+    def url_for_locale(target_locale: str) -> str:
+        query = dict(request.query_params)
+        query["lang"] = normalize_locale(target_locale)
+        return f"{request.url.path}?{urlencode(query)}"
+
+    def format_datetime(value: object) -> str:
+        return format_datetime_for_locale(value, locale)
+
+    def format_status(value: object) -> str:
+        return format_status_for_locale(value, locale)
+
+    def format_bool(value: object) -> str:
+        return format_bool_for_locale(value, locale)
+
+    return {
+        "lang": locale,
+        "supported_locales": SUPPORTED_LOCALES,
+        "t": t,
+        "url_with_lang": url_with_lang,
+        "url_for_locale": url_for_locale,
+        "format_datetime": format_datetime,
+        "format_status": format_status,
+        "format_bool": format_bool,
+    }
+
+
 def _data_completeness_status(*, has_runs: bool, warnings: list[str]) -> str:
     if not has_runs:
         return "NO_DATA"
@@ -287,9 +366,19 @@ def status_class(value: object) -> str:
         "NO_ACTION_REQUIRED",
         "SAFE_PROMPT_ONLY",
         "LOW",
+        "CACHED",
+        "SOURCE",
+        "TRANSLATED",
     }:
         return "status-pass"
-    if status in {"RUNNING", "SUGGESTED_ONLY", "MEDIUM", "VISIBLE", "RECURRING"}:
+    if status in {
+        "RUNNING",
+        "SUGGESTED_ONLY",
+        "MEDIUM",
+        "VISIBLE",
+        "RECURRING",
+        "NEEDS_REVIEW",
+    }:
         return "status-review"
     if status in {"PASS_WITH_WARNINGS", "WARN", "WARNING", "MONITOR", "DOWNGRADED"}:
         return "status-warn"
@@ -307,8 +396,10 @@ def status_class(value: object) -> str:
         "PROMPT_ALREADY_GENERATED",
     }:
         return "status-hold"
-    if status in {"FAIL", "FAIL_STOP", "BLOCKED_AUTO_ACTION"}:
+    if status in {"FAIL", "FAIL_STOP", "BLOCKED_AUTO_ACTION", "FAILED"}:
         return "status-fail"
+    if status == "MISSING":
+        return "status-no-data"
     return "status-no-data"
 
 

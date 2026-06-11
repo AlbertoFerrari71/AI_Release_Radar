@@ -1,19 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Release Radar - {{ run.run_id }}</title>
+    <title>{{ t("detail.title", run_id=run.run_id) }}</title>
     <link rel="stylesheet" href="/static/style.css">
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>AI Release Radar</h1>
+        <h1>{{ t("dashboard.title") }}</h1>
         <p class="path">{{ run.run_dir }}</p>
       </div>
       <div class="topbar-actions">
-        <a class="button" href="/">Dashboard</a>
+        <nav class="locale-switcher" aria-label="{{ t('language.label') }}">
+          {% for locale in supported_locales %}
+          <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
+          {% endfor %}
+        </nav>
+        <a class="button" href="{{ url_with_lang('/') }}">{{ t("nav.dashboard") }}</a>
       </div>
     </header>
 
@@ -23,62 +28,62 @@
           <h1>{{ run.run_id }}</h1>
           <p class="path">{{ run.run_dir }}</p>
         </div>
-        <strong class="badge {{ run.status | status_class }}">{{ run.status }}</strong>
+        <strong class="badge {{ run.status | status_class }}">{{ format_status(run.status) }}</strong>
       </section>
 
       {% if detail.warnings or detail.blocked_actions or run.hag_status in ['HOLD', 'HOLD_FOR_HUMAN_APPROVAL', 'HUMAN_APPROVAL_REQUIRED'] %}
       <section class="alert-panel">
         <div>
-          <span class="label">operator attention</span>
-          <strong>Review warnings, HOLD state, and blocked actions before acting.</strong>
+          <span class="label">{{ t("detail.operator_attention_label") }}</span>
+          <strong>{{ t("detail.operator_attention_text") }}</strong>
         </div>
         <div class="alert-badges">
-          <span class="badge {{ run.hag_status | status_class }}">{{ run.hag_status }}</span>
-          <span class="badge status-hold">{{ detail.blocked_actions | length }} blocked</span>
-          <span class="badge status-warn">{{ detail.warnings | length }} warnings</span>
+          <span class="badge {{ run.hag_status | status_class }}" data-status="{{ run.hag_status }}">{{ format_status(run.hag_status) }}</span>
+          <span class="badge status-hold">{{ t("detail.blocked_count", count=detail.blocked_actions | length) }}</span>
+          <span class="badge status-warn">{{ t("detail.warnings_count", count=detail.warnings | length) }}</span>
         </div>
       </section>
       {% endif %}
 
-      <section class="status-grid" aria-label="Run status">
+      <section class="status-grid" aria-label="{{ t('status.status') }}">
         <article class="metric primary">
-          <span class="label">run id</span>
+          <span class="label">{{ t("detail.run_id") }}</span>
           <strong class="run-link">{{ run.run_id }}</strong>
         </article>
         <article class="metric">
-          <span class="label">automation gate</span>
-          <strong class="badge {{ run.automation_gate_status | status_class }}">{{ run.automation_gate_status }}</strong>
+          <span class="label">{{ t("status.automation_gate") }}</span>
+          <strong class="badge {{ run.automation_gate_status | status_class }}">{{ format_status(run.automation_gate_status) }}</strong>
         </article>
         <article class="metric">
-          <span class="label">daily quality gate</span>
-          <strong class="badge {{ run.daily_quality_gate_status | status_class }}">{{ run.daily_quality_gate_status }}</strong>
+          <span class="label">{{ t("status.daily_quality_gate") }}</span>
+          <strong class="badge {{ run.daily_quality_gate_status | status_class }}">{{ format_status(run.daily_quality_gate_status) }}</strong>
         </article>
         <article class="metric">
-          <span class="label">source coverage</span>
-          <strong class="badge {{ run.source_coverage_status | status_class }}">{{ run.source_coverage_status }}</strong>
+          <span class="label">{{ t("status.source_coverage") }}</span>
+          <strong class="badge {{ run.source_coverage_status | status_class }}">{{ format_status(run.source_coverage_status) }}</strong>
         </article>
         <article class="metric">
-          <span class="label">HAG</span>
-          <strong class="badge {{ run.hag_status | status_class }}">{{ run.hag_status }}</strong>
+          <span class="label">{{ t("detail.hag") }}</span>
+          <strong class="badge {{ run.hag_status | status_class }}" data-status="{{ run.hag_status }}">{{ format_status(run.hag_status) }}</strong>
         </article>
         <article class="metric">
-          <span class="label">manual review queue</span>
+          <span class="label">{{ t("dashboard.manual_review_queue") }}</span>
           <strong>{{ run.manual_review_queue_count }}</strong>
         </article>
         <article class="metric">
-          <span class="label">prompt suggestions</span>
+          <span class="label">{{ t("dashboard.prompt_suggestions") }}</span>
           <strong>{{ run.prompt_suggestions_count }}</strong>
         </article>
         <article class="metric">
-          <span class="label">suggestions status</span>
-          <strong class="badge {{ detail.prompt_suggestions_status | status_class }}">{{ detail.prompt_suggestions_status }}</strong>
+          <span class="label">{{ t("hag.suggestion_status") }}</span>
+          <strong class="badge {{ detail.prompt_suggestions_status | status_class }}">{{ format_status(detail.prompt_suggestions_status) }}</strong>
         </article>
         <article class="metric">
-          <span class="label">no auto-action</span>
-          <strong class="badge status-pass">{{ detail.no_auto_action | yes_no }}</strong>
+          <span class="label">{{ t("hag.no_auto_action") }}</span>
+          <strong class="badge status-pass">{{ format_bool(detail.no_auto_action) }}</strong>
         </article>
         <article class="metric primary">
-          <span class="label">Bridge path</span>
+          <span class="label">{{ t("detail.bridge_path") }}</span>
           <strong class="path-value">{{ run.run_dir }}</strong>
         </article>
       </section>
@@ -87,41 +92,41 @@
         <div class="stack">
           <details class="panel collapsible" open>
             <summary>
-              <span>Report Compact</span>
+              <span>{{ t("detail.report_compact") }}</span>
               <span class="summary-meta">{{ detail.compact_report.path }}</span>
             </summary>
-            <pre class="report">{{ detail.compact_report.text or 'NO_DATA' }}</pre>
+            <pre class="report">{{ detail.compact_report.text or format_status("NO_DATA") }}</pre>
           </details>
 
           <details class="panel collapsible" open>
             <summary>
-              <span>Gate Markdown</span>
-              <span class="summary-meta">automation + daily quality</span>
+              <span>{{ t("detail.gate_markdown") }}</span>
+              <span class="summary-meta">{{ t("detail.gate_meta") }}</span>
             </summary>
-            <pre class="report">{{ detail.gate_report.automation_gate_markdown.text or 'NO_DATA' }}</pre>
-            <pre class="report">{{ detail.gate_report.daily_quality_gate_v2_markdown.text or 'NO_DATA' }}</pre>
+            <pre class="report">{{ detail.gate_report.automation_gate_markdown.text or format_status("NO_DATA") }}</pre>
+            <pre class="report">{{ detail.gate_report.daily_quality_gate_v2_markdown.text or format_status("NO_DATA") }}</pre>
           </details>
 
           <details class="panel collapsible" open>
             <summary>
-              <span>HAG Report</span>
-              <span class="summary-meta">{{ run.hag_status }}</span>
+              <span>{{ t("detail.hag_report") }}</span>
+              <span class="summary-meta">{{ format_status(run.hag_status) }}</span>
             </summary>
-            <pre class="report">{{ detail.hag_report.hag_markdown.text or 'NO_DATA' }}</pre>
+            <pre class="report">{{ detail.hag_report.hag_markdown.text or format_status("NO_DATA") }}</pre>
           </details>
 
           <details class="panel collapsible" open>
             <summary>
-              <span>Operator Dashboard</span>
-              <span class="summary-meta">daily operator markdown</span>
+              <span>{{ t("detail.operator_dashboard") }}</span>
+              <span class="summary-meta">{{ t("detail.operator_dashboard_meta") }}</span>
             </summary>
-            <pre class="report">{{ detail.operator_dashboard.operator_dashboard_markdown.text or 'NO_DATA' }}</pre>
+            <pre class="report">{{ detail.operator_dashboard.operator_dashboard_markdown.text or format_status("NO_DATA") }}</pre>
           </details>
         </div>
 
         <aside class="stack">
           <section class="panel">
-            <h2>Local File Paths</h2>
+            <h2>{{ t("detail.local_file_paths") }}</h2>
             <dl class="path-list">
               {% for key, path in run.files.items() %}
               <div>
@@ -130,15 +135,15 @@
               </div>
               {% else %}
               <div>
-                <dt>files</dt>
-                <dd>NO_DATA</dd>
+                <dt>{{ t("detail.files") }}</dt>
+                <dd>{{ format_status("NO_DATA") }}</dd>
               </div>
               {% endfor %}
             </dl>
           </section>
 
           <section class="panel">
-            <h2>Source Diagnostics</h2>
+            <h2>{{ t("detail.source_diagnostics") }}</h2>
             <dl class="facts compact-facts">
               {% for key, count in detail.source_diagnostics_summary.items() %}
               <div>
@@ -147,15 +152,15 @@
               </div>
               {% else %}
               <div>
-                <dt>diagnostics</dt>
-                <dd>NO_DATA</dd>
+                <dt>{{ t("detail.diagnostics") }}</dt>
+                <dd>{{ format_status("NO_DATA") }}</dd>
               </div>
               {% endfor %}
             </dl>
           </section>
 
           <section class="panel emphasis">
-            <h2>Direct Actions</h2>
+            <h2>{{ t("detail.direct_actions") }}</h2>
             <ul class="item-list">
               {% for action in detail.direct_actions %}
               <li class="attention-item">
@@ -163,13 +168,13 @@
                 <span class="item-meta">{{ action.target_project }} · {{ action.risk_class }} · {{ action.reason }}</span>
               </li>
               {% else %}
-              <li>NO_DATA</li>
+              <li>{{ format_status("NO_DATA") }}</li>
               {% endfor %}
             </ul>
           </section>
 
           <section class="panel warning-panel">
-            <h2>Blocked Actions</h2>
+            <h2>{{ t("detail.blocked_actions") }}</h2>
             <ul class="item-list">
               {% for action in detail.blocked_actions %}
               <li class="attention-item">
@@ -177,13 +182,13 @@
                 <span class="item-meta">{{ action.triage_class }} · {{ action.target_project }} · {{ action.reason }}</span>
               </li>
               {% else %}
-              <li>NO_DATA</li>
+              <li>{{ format_status("NO_DATA") }}</li>
               {% endfor %}
             </ul>
           </section>
 
           <section class="panel">
-            <h2>Monitor-Only Summary</h2>
+            <h2>{{ t("detail.monitor_only_summary") }}</h2>
             <ul class="item-list">
               {% for action in detail.monitor_only_summary %}
               <li>
@@ -191,38 +196,38 @@
                 <span class="item-meta">{{ action.target_project }} · {{ action.reason }}</span>
               </li>
               {% else %}
-              <li>NO_DATA</li>
+              <li>{{ format_status("NO_DATA") }}</li>
               {% endfor %}
             </ul>
           </section>
 
           <section class="panel">
-            <h2>Manual Review Queue</h2>
+            <h2>{{ t("detail.manual_review_queue") }}</h2>
             <ul class="item-list">
               {% for item in detail.manual_review_queue %}
               <li>
-                <span class="item-title">{{ item.source_id or item.title or 'manual review' }}</span>
-                <span class="item-meta">{{ item.reason or item.triage_class or 'review required' }}</span>
+                <span class="item-title">{{ item.source_id or item.title or t("detail.manual_review_default_title") }}</span>
+                <span class="item-meta">{{ item.reason or item.triage_class or t("detail.manual_review_default_reason") }}</span>
               </li>
               {% else %}
-              <li>NO_DATA</li>
+              <li>{{ format_status("NO_DATA") }}</li>
               {% endfor %}
             </ul>
           </section>
 
           <section class="panel emphasis">
-            <h2>Prompt Suggestions</h2>
+            <h2>{{ t("detail.prompt_suggestions") }}</h2>
             <p class="section-note">
-              <span class="badge status-review">SUGGESTED ONLY - not executed</span>
+              <span class="badge status-review">{{ t("detail.suggestion_only_badge") }}</span>
             </p>
             <ul class="item-list">
               {% for suggestion in detail.prompt_suggestions %}
               <li class="attention-item">
                 <span class="item-title">{{ suggestion.suggested_step_number }} - {{ suggestion.title }}</span>
-                <span class="item-meta">{{ suggestion.status }} · {{ suggestion.target_project }} · {{ suggestion.risk_class }}</span>
+                <span class="item-meta">{{ format_status(suggestion.status) }} · {{ suggestion.target_project }} · {{ suggestion.risk_class }}</span>
               </li>
               {% else %}
-              <li>NO_DATA</li>
+              <li>{{ format_status("NO_DATA") }}</li>
               {% endfor %}
             </ul>
           </section>
@@ -231,7 +236,7 @@
 
       {% if detail.warnings %}
       <section class="panel">
-        <h2>Warnings</h2>
+        <h2>{{ t("detail.warnings") }}</h2>
         <ul class="warning-list">
           {% for warning in detail.warnings %}
           <li>{{ warning }}</li>
