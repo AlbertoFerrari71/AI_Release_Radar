@@ -13,6 +13,13 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from radar_web.action_center import (
+    build_action_center_payload,
+    export_current_backlog,
+    generate_prompt_for_action,
+    get_action,
+    record_decision,
+)
 from radar_web.config import DashboardConfig, default_config
 from radar_web.manual_trigger import DailySimTrigger
 from radar_web.models import ApiMessage, DashboardStatus
@@ -83,6 +90,66 @@ def create_app(
             "limit": bounded_limit,
             "runs": [run.to_dict() for run in runs],
         }
+
+    @app.get("/actions", response_class=HTMLResponse)
+    def actions(request: Request, filter: str = "all") -> Any:
+        payload = build_action_center_payload(dashboard_config, filter_value=filter)
+        return templates.TemplateResponse(
+            request,
+            "actions.html",
+            {
+                "payload": payload,
+                "actions": payload["actions"],
+                "filters": payload["filters"],
+                "selected_filter": payload["selected_filter"],
+            },
+        )
+
+    @app.get("/api/actions")
+    def api_actions(filter: str = "all", limit: int = 10) -> dict[str, Any]:
+        return build_action_center_payload(
+            dashboard_config,
+            filter_value=filter,
+            limit=limit,
+        )
+
+    @app.post("/api/actions/export-backlog")
+    def api_actions_export_backlog() -> JSONResponse:
+        result = export_current_backlog(dashboard_config)
+        status_code = 200 if result["status"] in {"PASS", "NO_DATA"} else 400
+        return JSONResponse(result, status_code=status_code)
+
+    @app.get("/api/actions/{action_id}")
+    def api_action_detail(action_id: str) -> dict[str, Any]:
+        action = get_action(dashboard_config, action_id)
+        if action is None:
+            raise HTTPException(
+                status_code=404,
+                detail=ApiMessage(
+                    status="NO_DATA",
+                    message=f"Action not found: {action_id}",
+                ).to_dict(),
+            )
+        return action.to_dict()
+
+    @app.post("/api/actions/{action_id}/decision")
+    async def api_action_decision(action_id: str, request: Request) -> JSONResponse:
+        payload = await _json_payload(request)
+        result = record_decision(
+            dashboard_config,
+            action_id,
+            decision=str(payload.get("decision") or ""),
+            reason=str(payload.get("reason") or ""),
+            operator=str(payload.get("operator") or "Alberto"),
+        )
+        status_code = 200 if result["status"] == "PASS" else 400
+        return JSONResponse(result, status_code=status_code)
+
+    @app.post("/api/actions/{action_id}/generate-prompt")
+    def api_action_generate_prompt(action_id: str) -> JSONResponse:
+        result = generate_prompt_for_action(dashboard_config, action_id)
+        status_code = 200 if result["status"] == "PASS" else 400
+        return JSONResponse(result, status_code=status_code)
 
     @app.get("/api/runs/{run_id}")
     def api_run_detail(run_id: str) -> dict[str, Any]:
@@ -212,17 +279,35 @@ def _run_detail_or_404(config: DashboardConfig, run_id: str) -> dict[str, Any]:
 def status_class(value: object) -> str:
     """Map status values to CSS status classes."""
     status = str(value or "NO_DATA").upper()
-    if status in {"PASS", "READY", "OK", "YES", "NO_ACTION_REQUIRED"}:
+    if status in {
+        "PASS",
+        "READY",
+        "OK",
+        "YES",
+        "NO_ACTION_REQUIRED",
+        "SAFE_PROMPT_ONLY",
+        "LOW",
+    }:
         return "status-pass"
-    if status in {"RUNNING", "SUGGESTED_ONLY"}:
+    if status in {"RUNNING", "SUGGESTED_ONLY", "MEDIUM", "VISIBLE", "RECURRING"}:
         return "status-review"
-    if status in {"PASS_WITH_WARNINGS", "WARN", "WARNING"}:
+    if status in {"PASS_WITH_WARNINGS", "WARN", "WARNING", "MONITOR", "DOWNGRADED"}:
         return "status-warn"
     if status == "ACTION_REVIEW_REQUIRED":
         return "status-review"
-    if status in {"HOLD", "HOLD_FOR_HUMAN_APPROVAL", "HUMAN_APPROVAL_REQUIRED"}:
+    if status in {
+        "HOLD",
+        "HOLD_FOR_HUMAN_APPROVAL",
+        "HUMAN_APPROVAL_REQUIRED",
+        "REQUIRES_HUMAN_APPROVAL",
+        "HIGH",
+        "SUPPRESSED",
+        "ALREADY_BACKLOGGED",
+        "PREVIOUSLY_IGNORED",
+        "PROMPT_ALREADY_GENERATED",
+    }:
         return "status-hold"
-    if status in {"FAIL", "FAIL_STOP"}:
+    if status in {"FAIL", "FAIL_STOP", "BLOCKED_AUTO_ACTION"}:
         return "status-fail"
     return "status-no-data"
 
@@ -248,6 +333,14 @@ def yes_no(value: object) -> str:
     if isinstance(value, bool):
         return "Yes" if value else "No"
     return str(value) if value is not None else "NO_DATA"
+
+
+async def _json_payload(request: Request) -> dict[str, Any]:
+    try:
+        payload = await request.json()
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
