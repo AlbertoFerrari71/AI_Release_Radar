@@ -26,6 +26,7 @@ from radar_web.config import DashboardConfig, default_config
 from radar_web.i18n import (
     SUPPORTED_LOCALES,
     format_bool_for_locale,
+    format_catalog_value_for_locale,
     format_datetime_for_locale,
     format_status_for_locale,
     normalize_locale,
@@ -118,6 +119,10 @@ def create_app(
             locale=localized_context["lang"],
             bridge_root=dashboard_config.bridge_root,
         )
+        localized_actions = _localize_action_center_fields(
+            localized_actions,
+            localized_context["lang"],
+        )
         return templates.TemplateResponse(
             request,
             "actions.html",
@@ -146,11 +151,16 @@ def create_app(
                 locale=locale,
                 bridge_root=dashboard_config.bridge_root,
             )
+            payload["actions"] = _localize_action_center_fields(payload["actions"], locale)
             payload["all_actions"] = apply_translation_cache_to_actions(
                 payload["all_actions"],
                 run_id=payload.get("run_id"),
                 locale=locale,
                 bridge_root=dashboard_config.bridge_root,
+            )
+            payload["all_actions"] = _localize_action_center_fields(
+                payload["all_actions"],
+                locale,
             )
         return payload
 
@@ -324,6 +334,29 @@ def _localized_context(request: Request) -> dict[str, Any]:
     def format_bool(value: object) -> str:
         return format_bool_for_locale(value, locale)
 
+    def format_code(value: object) -> str:
+        return format_catalog_value_for_locale("code_label", value, locale)
+
+    def format_run_file_key(value: object) -> str:
+        return format_catalog_value_for_locale("run_file", value, locale)
+
+    def format_action_title(value: object) -> str:
+        return _localize_action_title(str(value or ""), locale)
+
+    def format_project_name(value: object) -> str:
+        return _localize_project_name(str(value or ""), locale)
+
+    def format_action_reasons(values: object) -> list[str]:
+        raw_values = values if isinstance(values, (list, tuple)) else [values]
+        return [
+            _localize_reason(str(value), locale)
+            for value in raw_values
+            if str(value or "").strip()
+        ]
+
+    def format_action_next_step(action: object) -> str:
+        return _localize_action_next_step(action if isinstance(action, dict) else {}, locale)
+
     return {
         "lang": locale,
         "supported_locales": SUPPORTED_LOCALES,
@@ -333,7 +366,145 @@ def _localized_context(request: Request) -> dict[str, Any]:
         "format_datetime": format_datetime,
         "format_status": format_status,
         "format_bool": format_bool,
+        "format_code": format_code,
+        "format_run_file_key": format_run_file_key,
+        "format_action_title": format_action_title,
+        "format_project_name": format_project_name,
+        "format_action_reasons": format_action_reasons,
+        "format_action_next_step": format_action_next_step,
     }
+
+
+def _localize_action_center_fields(
+    actions: list[dict[str, Any]],
+    locale: str,
+) -> list[dict[str, Any]]:
+    """Attach deterministic localized display fields for generated action metadata."""
+    return [_localize_action_dict(action, locale) for action in actions]
+
+
+def _localize_action_dict(action: dict[str, Any], locale: str) -> dict[str, Any]:
+    item = dict(action)
+    title = str(item.get("localized_title") or item.get("title") or "")
+    summary = str(item.get("localized_summary") or item.get("summary") or "")
+    if locale != "en":
+        item["localized_title"] = _localize_action_title(title, locale)
+        item["localized_summary"] = _localize_action_summary(summary, locale)
+    item["localized_routing_reasons"] = [
+        _localize_reason(str(reason), locale)
+        for reason in item.get("routing_reasons", [])
+        if str(reason or "").strip()
+    ]
+    item["localized_noise_reasons"] = [
+        _localize_reason(str(reason), locale)
+        for reason in item.get("noise_reasons", [])
+        if str(reason or "").strip()
+    ]
+    item["localized_recommended_next_step"] = _localize_action_next_step(item, locale)
+    return item
+
+
+def _localize_action_title(value: str, locale: str) -> str:
+    text = value.strip()
+    if not text:
+        return translate("status_label.no_data", locale)
+    if locale == "en":
+        return text
+    if text.startswith("Review ambiguous radar signal: "):
+        subject = _localize_action_title(
+            text.removeprefix("Review ambiguous radar signal: "),
+            locale,
+        )
+        return translate("action_title.ambiguous_radar_signal", locale, subject=subject)
+    if text.startswith("Manual review: "):
+        return translate(
+            "action_title.manual_review_source",
+            locale,
+            source=text.removeprefix("Manual review: "),
+        )
+    mapping = {
+        "Aggregate direct actions": "action_title.aggregate_direct_actions",
+        "Aggregate monitor-only actions": "action_title.aggregate_monitor_only_actions",
+        "Prompt suggestion": "action_title.instruction_suggestion",
+        "Radar action": "action_title.radar_action",
+    }
+    key = mapping.get(text)
+    return translate(key, locale) if key else text
+
+
+def _localize_action_summary(value: str, locale: str) -> str:
+    text = value.strip()
+    if not text:
+        return translate("status_label.no_data", locale)
+    if locale == "en":
+        return text
+    parts = [part.strip() for part in text.split(";") if part.strip()]
+    localized = [_localize_reason(part, locale) for part in parts]
+    return "; ".join(localized) if localized else text
+
+
+def _localize_reason(value: str, locale: str) -> str:
+    text = value.strip()
+    if not text:
+        return translate("status_label.no_data", locale)
+    if locale == "en":
+        return text
+    sentence_mapping = {
+        "direct actions exist, but source coverage is below full-pass threshold": (
+            "reason_label.direct_actions_below_threshold"
+        ),
+        "monitor-only actions stay visible but do not become work automatically": (
+            "reason_label.monitor_only_stays_visible"
+        ),
+        "recurring low-score monitor-only action remains monitor": (
+            "reason_label.recurring_low_score_monitor"
+        ),
+        "previously ignored actions cannot stay high priority": (
+            "reason_label.previously_ignored_low_priority"
+        ),
+        "already backlogged actions are shown without escalation": (
+            "reason_label.already_listed_no_escalation"
+        ),
+    }
+    if text in sentence_mapping:
+        return translate(sentence_mapping[text], locale)
+    if "=" in text:
+        key, raw_value = text.split("=", 1)
+        label = format_catalog_value_for_locale("code_label", key, locale)
+        value_label = _localize_project_name(raw_value, locale)
+        return f"{label}: {value_label}"
+    return format_status_for_locale(text, locale)
+
+
+def _localize_project_name(value: str, locale: str) -> str:
+    text = value.strip()
+    if locale == "en":
+        return text
+    mapping = {
+        "Radar source coverage": "project_label.radar_source_coverage",
+        "Ambiguous project": "project_label.ambiguous_project",
+        "Mixed project targets": "project_label.mixed_project_targets",
+    }
+    key = mapping.get(text)
+    return translate(key, locale) if key else text
+
+
+def _localize_action_next_step(action: dict[str, Any], locale: str) -> str:
+    raw_project = str(action.get("project_name") or action.get("target_project") or "")
+    project_name = _localize_project_name(raw_project, locale) if raw_project else ""
+    if locale == "en":
+        return str(action.get("recommended_next_step") or "")
+    decision_status = str(action.get("decision_status") or "")
+    action_type = str(action.get("action_type") or "")
+    if decision_status == "backlog":
+        return translate("action_next.keep_backlog", locale, project=project_name)
+    if decision_status == "ignored":
+        return translate("action_next.keep_ignored", locale, project=project_name)
+    if action_type == "monitor_only":
+        return translate("action_next.monitor_only", locale, project=project_name)
+    if action_type == "prepare_prompt":
+        return translate("action_next.prepare_instructions", locale, project=project_name)
+    return translate("action_next.review_impact", locale, project=project_name)
 
 
 def _data_completeness_status(*, has_runs: bool, warnings: list[str]) -> str:
@@ -378,6 +549,8 @@ def status_class(value: object) -> str:
         "VISIBLE",
         "RECURRING",
         "NEEDS_REVIEW",
+        "CHANGES_FOUND",
+        "ACTION_RECOMMENDED",
     }:
         return "status-review"
     if status in {"PASS_WITH_WARNINGS", "WARN", "WARNING", "MONITOR", "DOWNGRADED"}:

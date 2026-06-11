@@ -66,11 +66,11 @@
           <dl class="facts compact-facts">
             <div>
               <dt>{{ t("actions.project") }}</dt>
-              <dd>{{ action.project_name }}</dd>
+              <dd>{{ format_project_name(action.project_name) }}</dd>
             </div>
             <div>
               <dt>{{ t("actions.project_key") }}</dt>
-              <dd>{{ action.project_key or 'unknown' }}</dd>
+              <dd>{{ action.project_key or format_status("NO_DATA") }}</dd>
             </div>
             <div>
               <dt>{{ t("actions.risk") }}</dt>
@@ -111,10 +111,10 @@
               <p>{{ action.source_summary }}</p>
             </details>
             {% endif %}
-            <p><strong>{{ t("actions.routing") }}:</strong> {{ action.routing_reasons | join('; ') }}</p>
-            <p><strong>{{ t("actions.next") }}:</strong> {{ action.recommended_next_step }}</p>
+            <p><strong>{{ t("actions.routing") }}:</strong> {{ action.localized_routing_reasons | join('; ') }}</p>
+            <p><strong>{{ t("actions.next") }}:</strong> {{ action.localized_recommended_next_step }}</p>
             {% if action.noise_reasons %}
-            <p><strong>{{ t("actions.suppression") }}:</strong> {{ action.noise_reasons | join('; ') }}</p>
+            <p><strong>{{ t("actions.suppression") }}:</strong> {{ action.localized_noise_reasons | join('; ') }}</p>
             {% endif %}
             {% if action.suggested_prompt_path %}
             <p class="path"><strong>{{ t("actions.prompt") }}:</strong> {{ action.suggested_prompt_path }}</p>
