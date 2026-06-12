@@ -62,10 +62,16 @@ def build_daily_review_pack(
         "safety_summary": safety,
         "source_coverage_summary": source_summary,
         "source_coverage_matrix": source_matrix,
+        "manual_review_sources": _sources_by_flag(source_matrix, "manual_review_required", True),
+        "unsupported_sources_explained": _sources_by_status(
+            source_matrix,
+            "fetched_but_unsupported",
+        ),
         "action_summary": _action_summary(result, action_triage, daily_summary),
         "hag_summary": _hag_summary(daily_summary, action_triage, prompt_suggestions),
         "prompt_suggestions_summary": _prompt_summary(prompt_suggestions, root.name),
         "operator_checklist": _operator_checklist(),
+        "maintenance_backlog_pointers": _maintenance_backlog_pointers(source_matrix),
         "scheduler_evidence": scheduler_evidence,
         "warnings": _warnings(source_summary, quality_gate, action_triage, prompt_suggestions),
     }
@@ -133,30 +139,66 @@ def render_daily_review_pack_markdown(pack: dict[str, object]) -> str:
         f"- [F] fonti_fallite: {source_summary.get('failed_count')}.",
         f"- [F] coverage_warning: {str(source_summary.get('coverage_warning')).lower()}.",
         "",
-        "## 4. Source Coverage Diagnostic Matrix",
+        "## 4. Source Coverage Final Matrix",
         "",
         render_source_coverage_matrix_markdown(pack.get("source_coverage_matrix")),
         "",
-        "## 5. Action Summary",
+        "## 5. Manual Review Queue",
         "",
-        f"- [F] direct_actions: {action_summary.get('direct_actions')}.",
-        f"- [F] monitor_only_actions: {action_summary.get('monitor_only_actions')}.",
-        f"- [F] manual_review_queue: {action_summary.get('manual_review_queue')}.",
-        f"- [F] no_action_count: {action_summary.get('no_action_count')}.",
-        f"- [F] HOLD reason: {action_summary.get('hold_reason')}.",
-        "",
-        "## 6. HAG Summary",
-        "",
-        f"- [F] requires_human_approval: {str(hag_summary.get('requires_human_approval')).lower()}.",
-        f"- [F] not_done: {hag_summary.get('not_done')}.",
-        f"- [PROP] next_safe_step: {hag_summary.get('next_safe_step')}.",
-        "",
-        "## 7. Prompt Suggestions Summary",
-        "",
-        f"- [F] status: {prompt_summary.get('status')}.",
-        f"- [F] suggestions_count: {prompt_summary.get('suggestions_count')}.",
-        "- [F] prompts_executed: false.",
     ]
+    manual_review_sources = _list(pack.get("manual_review_sources"))
+    if manual_review_sources:
+        for raw in manual_review_sources:
+            source = _mapping(raw)
+            lines.append(
+                "- [F] "
+                f"{source.get('source_id')}: "
+                f"{source.get('final_v1_status')} - {source.get('final_v1_reason')}"
+            )
+    else:
+        lines.append("- [F] none")
+    lines.extend(
+        [
+            "",
+            "## 6. Unsupported Sources Explained",
+            "",
+        ]
+    )
+    unsupported_sources = _list(pack.get("unsupported_sources_explained"))
+    if unsupported_sources:
+        for raw in unsupported_sources:
+            source = _mapping(raw)
+            lines.append(
+                "- [F] "
+                f"{source.get('source_id')}: "
+                f"{source.get('unsupported_reason')} - {source.get('final_v1_reason')}"
+            )
+    else:
+        lines.append("- [F] none")
+    lines.extend(
+        [
+            "",
+            "## 7. Action Summary",
+            "",
+            f"- [F] direct_actions: {action_summary.get('direct_actions')}.",
+            f"- [F] monitor_only_actions: {action_summary.get('monitor_only_actions')}.",
+            f"- [F] manual_review_queue: {action_summary.get('manual_review_queue')}.",
+            f"- [F] no_action_count: {action_summary.get('no_action_count')}.",
+            f"- [F] HOLD reason: {action_summary.get('hold_reason')}.",
+            "",
+            "## 8. HAG Summary",
+            "",
+            f"- [F] requires_human_approval: {str(hag_summary.get('requires_human_approval')).lower()}.",
+            f"- [F] not_done: {hag_summary.get('not_done')}.",
+            f"- [PROP] next_safe_step: {hag_summary.get('next_safe_step')}.",
+            "",
+            "## 9. Prompt Suggestions Summary",
+            "",
+            f"- [F] status: {prompt_summary.get('status')}.",
+            f"- [F] suggestions_count: {prompt_summary.get('suggestions_count')}.",
+            "- [F] prompts_executed: false.",
+        ]
+    )
     for suggestion in _list(prompt_summary.get("suggestions")):
         if isinstance(suggestion, dict):
             lines.extend(
@@ -173,7 +215,7 @@ def render_daily_review_pack_markdown(pack: dict[str, object]) -> str:
     lines.extend(
         [
             "",
-            "## 8. Scheduler Evidence",
+            "## 10. Scheduler Evidence",
             "",
             f"- [F] scheduler_log_path: {scheduler.get('log_path', 'NO_DATA')}.",
             f"- [F] command_exit_code: {scheduler.get('command_exit_code', 'NO_DATA')}.",
@@ -182,12 +224,15 @@ def render_daily_review_pack_markdown(pack: dict[str, object]) -> str:
             f"- [F] stderr_path: {scheduler.get('stderr_path', 'NO_DATA')}.",
             f"- [F] no_auto_action_confirmed: {str(scheduler.get('no_auto_action_confirmed', False)).lower()}.",
             "",
-            "## 9. Operator Checklist",
+            "## 11. Operator Checklist",
             "",
         ]
     )
     lines.extend(f"- [PROP] {item}" for item in _list(pack.get("operator_checklist")))
-    lines.extend(["", "## 10. Warnings", ""])
+    lines.extend(["", "## 12. Maintenance Backlog Pointers", ""])
+    for item in _list(pack.get("maintenance_backlog_pointers")):
+        lines.append(f"- [PROP] {item}")
+    lines.extend(["", "## 13. Warnings", ""])
     warnings = _list(pack.get("warnings"))
     if warnings:
         lines.extend(f"- [F] {warning}" for warning in warnings)
@@ -321,10 +366,41 @@ def _operator_checklist() -> list[str]:
     return [
         "Aprire dashboard e Action Center sul run corrente.",
         "Leggere HAG e coda di revisione manuale prima di qualunque decisione.",
+        "Verificare che le fonti non parsate siano diagnosticate e classificate.",
         "Non eseguire prompt suggestions automaticamente.",
         "Non inviare email, notifiche o chiamate LLM da questo radar.",
         "Selezionare al massimo un follow-up supervisionato come step separato.",
     ]
+
+
+def _sources_by_flag(matrix: object, field_name: str, expected: object) -> list[dict[str, Any]]:
+    return [
+        dict(row)
+        for row in _list(matrix)
+        if isinstance(row, dict) and row.get(field_name) == expected
+    ]
+
+
+def _sources_by_status(matrix: object, diagnostic_status: str) -> list[dict[str, Any]]:
+    return [
+        dict(row)
+        for row in _list(matrix)
+        if isinstance(row, dict) and row.get("diagnostic_status") == diagnostic_status
+    ]
+
+
+def _maintenance_backlog_pointers(matrix: object) -> list[str]:
+    pointers: list[str] = []
+    for raw in _list(matrix):
+        if not isinstance(raw, dict):
+            continue
+        category = str(raw.get("maintenance_backlog_category") or "none")
+        if category == "none":
+            continue
+        pointers.append(
+            f"{raw.get('source_id')}: {category}; follow_up={raw.get('recommended_follow_up')}"
+        )
+    return sorted(set(pointers))
 
 
 def _warnings(

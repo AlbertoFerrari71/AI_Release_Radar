@@ -12,6 +12,7 @@ from radar.hash_utils import stable_sha256_text
 from radar.json_utils import write_json
 from radar.models import RunIndexEntry, SourceSnapshot
 from radar.parsers import (
+    parse_api_deprecations_markdown_fixture,
     parse_codex_changelog_fixture,
     parse_github_releases_api_fixture,
 )
@@ -237,11 +238,26 @@ def _parse_fetched_source(
                 None,
             )
         if (
-            source.source_id == "openai_codex_changelog"
+            source.parser_strategy == "codex_changelog_markdown"
             and fetched.content_type in {"text/markdown", "text/plain"}
         ):
             return (
                 parse_codex_changelog_fixture(
+                    source.source_id,
+                    source.provider,
+                    fetched.body_sample,
+                    first_seen=first_seen,
+                    source_url=source.url,
+                ),
+                "parsed",
+                None,
+            )
+        if (
+            source.parser_strategy == "api_deprecations_markdown"
+            and fetched.content_type in {"text/markdown", "text/plain"}
+        ):
+            return (
+                parse_api_deprecations_markdown_fixture(
                     source.source_id,
                     source.provider,
                     fetched.body_sample,
@@ -290,6 +306,9 @@ def _source_summary(
         "expected_failure_mode": source.expected_failure_mode,
         "machine_readable_preferred": source.machine_readable_preferred,
         "scheduler_readiness": source.scheduler_readiness,
+        "final_v1_status": source.final_v1_status,
+        "final_v1_reason": source.final_v1_reason,
+        "maintenance_backlog_category": source.maintenance_backlog_category,
         "error": error,
     }
 

@@ -4,10 +4,13 @@ import unittest
 from pathlib import Path
 
 from radar.v1_readiness import (
+    AI_RADAR_V1_FINAL_READY_WITH_WARNINGS,
     BLOCKED,
     MICRO_FIX_REQUIRED_BEFORE_V1,
+    evaluate_v1_final_readiness,
     V1_OPERATOR_READY_WITH_WARNINGS,
     evaluate_v1_operator_readiness,
+    write_v1_final_readiness_gate,
     write_v1_operator_readiness_gate,
 )
 
@@ -78,6 +81,70 @@ class V1ReadinessTests(unittest.TestCase):
                 {
                     "1450-V1_Operator_Readiness_Gate.json",
                     "1450-V1_Operator_Readiness_Gate.md",
+                },
+            )
+
+    def test_v1_final_readiness_accepts_pass_with_documented_source_warnings(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            run_dir = self.create_run(root / "run")
+            source_gate = {
+                "status": "SOURCE_COVERAGE_FINAL_PASS_WITH_WARNINGS",
+                "parsed_count": 4,
+                "parsed_count_target": 3,
+                "final_classification_complete": True,
+                "warnings": ["manual_review_sources_present:3"],
+            }
+            safety_gate = {"status": "SAFETY_FINAL_PASS", "warnings": []}
+
+            gate = evaluate_v1_final_readiness(
+                run_dir=run_dir,
+                source_coverage_gate=source_gate,
+                safety_gate=safety_gate,
+                dashboard_smoke_status="PASS",
+                action_center_status="PASS",
+                daily_review_pack_status="PASS",
+                hag_status="HOLD_FOR_HUMAN_APPROVAL",
+                tests_status="PASS",
+                docs_status="PASS",
+            )
+
+            self.assertEqual(gate["classification"], AI_RADAR_V1_FINAL_READY_WITH_WARNINGS)
+            self.assertEqual(gate["blockers"], [])
+            self.assertTrue(gate["checks"]["source_coverage_target_reached"])
+            self.assertIn("manual_review_sources_present:3", gate["warnings"])
+
+    def test_write_v1_final_readiness_gate_uses_1810_names(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            run_dir = self.create_run(root / "run")
+            output_dir = root / "codex_command"
+
+            result = write_v1_final_readiness_gate(
+                output_dir,
+                run_dir=run_dir,
+                source_coverage_gate={
+                    "status": "SOURCE_COVERAGE_FINAL_PASS",
+                    "parsed_count": 3,
+                    "parsed_count_target": 3,
+                    "final_classification_complete": True,
+                    "warnings": [],
+                },
+                safety_gate={"status": "SAFETY_FINAL_PASS", "warnings": []},
+                dashboard_smoke_status="PASS",
+                action_center_status="PASS",
+                daily_review_pack_status="PASS",
+                hag_status="HOLD_FOR_HUMAN_APPROVAL",
+                tests_status="PASS",
+                docs_status="PASS",
+            )
+
+            self.assertEqual(result["classification"], "AI_RADAR_V1_FINAL_READY")
+            self.assertEqual(
+                {path.name for path in output_dir.iterdir()},
+                {
+                    "1810-V1_Final_Readiness_Gate.json",
+                    "1810-V1_Final_Readiness_Gate.md",
                 },
             )
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1520-2000) V1 Final Operator Product
+
+- [F] Aggiunta classificazione finale V1 delle fonti con `final_v1_status`, motivazione e categoria backlog manutentivo. Fonte: `config/sources/openai_sources.json`, `radar/source_registry.py`.
+- [F] Promossa `openai_api_deprecations` al twin Markdown ufficiale con parser deterministico `api_deprecations_markdown` e fixture offline. Fonte: `radar/parsers.py`, `examples/fixtures/1520_api_deprecations_fixture.md`, `tests/test_parsers.py`.
+- [F] Aggiunte fonti machine-readable GitHub API per OpenAI Python e Node SDK releases. Fonte: `config/sources/openai_sources.json`.
+- [F] Aggiunto gate finale source coverage con target `parsed_count >= 3`, completezza classificazione, spiegazioni manual/unsupported e controllo parser fragile. Fonte: `radar/source_coverage.py`, `tests/test_source_coverage.py`.
+- [F] Aggiunto gate finale V1 readiness 1810 con classificazioni `AI_RADAR_V1_FINAL_READY`, `AI_RADAR_V1_FINAL_READY_WITH_WARNINGS`, `MICRO_FIX_REQUIRED_BEFORE_FINAL`, `BLOCKED`. Fonte: `radar/v1_readiness.py`, `tests/test_v1_readiness.py`.
+- [F] Rafforzati Daily Review Pack e dashboard con source matrix finale, manual review queue, unsupported explained e testi no-auto-action/no-email/no-LLM/manual-approval. Fonte: `radar/daily_review_pack.py`, `radar_web/templates/index.html`, `radar_web/locales/*.json`.
+- [F] Aggiunta documentazione finale: runbook operatore, source policy, troubleshooting/manutenzione e piano tag `v1.0.0` non eseguito. Fonte: `docs/runbooks/1720_V1_FINAL_OPERATOR_RUNBOOK.md`, `docs/source_policy/1730_SOURCE_POLICY_FINAL.md`, `docs/troubleshooting/1740_TROUBLESHOOTING_AND_MAINTENANCE.md`, `docs/release/1750_V1_0_TAG_PLAN.md`.
+- [F] Nessuna modifica scheduler, nessuna email/notifica automatica, nessuna chiamata LLM runtime, nessuna auto-azione e nessun tag/release introdotti. Fonte: `AGENTS.md`, diff 1520-2000.
+
 ## 1380-1500) V1 Operator-Ready Release Candidate
 
 - [F] Aggiunta generazione Bridge-only del Daily Review Pack con executive summary, safety summary, source coverage, action/HAG/prompt summary e checklist operatore. Fonte: `radar/daily_review_pack.py`, `tests/test_daily_review_pack.py`.

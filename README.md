@@ -8,6 +8,13 @@ Il radar osserva, confronta, classifica e propone.
 
 Non aggiorna automaticamente repository, skill, script, modelli, scheduler o configurazioni.
 
+## V1 finale locale supervisionata
+
+- [F] La V1 finale e' un prodotto operatore locale supervisionato: scheduler dry-report, Bridge run/log, dashboard locale, Daily Review Pack, Action Center, Human Approval Gate e decisione manuale di Alberto. Fonte: `docs/runbooks/1720_V1_FINAL_OPERATOR_RUNBOOK.md`.
+- [F] La V1 finale non invia email, non chiama LLM/API automaticamente a runtime, non esegue auto-action, non modifica scheduler e non agisce su altri repository. Fonte: `AGENTS.md`, `radar/daily_review_pack.py`, `radar_web/manual_trigger.py`.
+- [F] La source coverage finale usa parser robusti per GitHub API e Markdown ufficiale deprecations, lasciando le altre fonti diagnosticate, manual-review o unsupported documentate. Fonte: `docs/source_policy/1730_SOURCE_POLICY_FINAL.md`, `config/sources/openai_sources.json`, `radar/source_coverage.py`.
+- [F] Il tag `v1.0.0` e' solo pianificato e non creato da questo prodotto. Fonte: `docs/release/1750_V1_0_TAG_PLAN.md`.
+
 ## V1 manuale
 
 - [F] La V1 manuale si esegue con `python -m radar.cli real-run --profile manual --output-dir <directory-fuori-repo>`. Fonte: `radar/cli.py`.
@@ -85,6 +92,13 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] La pagina dettaglio run e l'API source-matrix espongono la matrice diagnostica fonti con fetch, parser, HTTP, item, manual review e follow-up. Fonte: `radar/source_coverage.py`, `radar_web/run_locator.py`, `radar_web/app.py`.
 - [F] I prompt suggestions restano manual-only, associati al run e non eseguiti. Fonte: `radar/daily_review_pack.py`, `radar/action_inbox.py`.
 - [F] Il runbook V1 RC e' `docs/runbooks/1460_V1_OPERATOR_RC_RUNBOOK.md`. Fonte: `docs/runbooks/1460_V1_OPERATOR_RC_RUNBOOK.md`.
+
+## Documentazione V1 finale
+
+- [F] Runbook operatore finale: `docs/runbooks/1720_V1_FINAL_OPERATOR_RUNBOOK.md`. Fonte: file indicato.
+- [F] Source policy finale: `docs/source_policy/1730_SOURCE_POLICY_FINAL.md`. Fonte: file indicato.
+- [F] Troubleshooting e manutenzione: `docs/troubleshooting/1740_TROUBLESHOOTING_AND_MAINTENANCE.md`. Fonte: file indicato.
+- [F] Piano tag V1.0, non eseguito: `docs/release/1750_V1_0_TAG_PLAN.md`. Fonte: file indicato.
 
 ## Multilingual dashboard and news translation
 

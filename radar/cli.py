@@ -75,7 +75,7 @@ LIVE_SNAPSHOT_NEXT_STEP_RECOMMENDATION = (
 )
 REAL_RUN_MANUAL_PROFILE = "manual"
 REAL_RUN_MANUAL_TIMEOUT_SECONDS = 30.0
-REAL_RUN_MANUAL_MAX_SOURCES = 11
+REAL_RUN_MANUAL_MAX_SOURCES = 13
 REAL_RUN_MANUAL_MAX_BYTES = 2_000_000
 DAILY_SIM_OUTPUT_PREFIX = "0320_0400_daily_sim"
 DAILY_SIM_SUMMARY_FILENAME = "0350-Daily_Sim_Summary.json"
@@ -797,7 +797,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Optional safe manual profile. Keeps --output-dir explicit and uses "
-            "the default source registry, max 11 sources, 30 second timeout and "
+            "the default source registry, max 13 sources, 30 second timeout and "
             "2,000,000 max bytes when those options are omitted."
         ),
     )

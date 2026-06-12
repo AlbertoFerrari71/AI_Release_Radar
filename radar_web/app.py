@@ -552,6 +552,9 @@ def status_class(value: object) -> str:
         "SOURCE",
         "TRANSLATED",
         "V1_OPERATOR_READY",
+        "AI_RADAR_V1_FINAL_READY",
+        "SOURCE_COVERAGE_FINAL_PASS",
+        "SAFETY_FINAL_PASS",
         "RUN_SCOPED",
     }:
         return "status-pass"
@@ -574,6 +577,8 @@ def status_class(value: object) -> str:
         "MONITOR",
         "DOWNGRADED",
         "V1_OPERATOR_READY_WITH_WARNINGS",
+        "AI_RADAR_V1_FINAL_READY_WITH_WARNINGS",
+        "SOURCE_COVERAGE_FINAL_PASS_WITH_WARNINGS",
     }:
         return "status-warn"
     if status == "ACTION_REVIEW_REQUIRED":
@@ -589,9 +594,11 @@ def status_class(value: object) -> str:
         "PREVIOUSLY_IGNORED",
         "PROMPT_ALREADY_GENERATED",
         "MICRO_FIX_REQUIRED_BEFORE_V1",
+        "MICRO_FIX_REQUIRED_BEFORE_FINAL",
+        "SOURCE_COVERAGE_FINAL_MICRO_FIX_REQUIRED",
     }:
         return "status-hold"
-    if status in {"FAIL", "FAIL_STOP", "BLOCKED_AUTO_ACTION", "FAILED"}:
+    if status in {"FAIL", "FAIL_STOP", "BLOCKED_AUTO_ACTION", "FAILED", "SOURCE_COVERAGE_FINAL_BLOCKED"}:
         return "status-fail"
     if status == "MISSING":
         return "status-no-data"

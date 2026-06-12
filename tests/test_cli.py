@@ -200,7 +200,7 @@ class CliTests(unittest.TestCase):
             self.assertNotIn("0190) Review first real radar output", stdout.getvalue())
             self.assertEqual(run_mock.call_args.args[0], str(cli.DEFAULT_SOURCE_REGISTRY_PATH))
             self.assertEqual(run_mock.call_args.kwargs["timeout_seconds"], 30.0)
-            self.assertEqual(run_mock.call_args.kwargs["max_sources"], 11)
+            self.assertEqual(run_mock.call_args.kwargs["max_sources"], 13)
             self.assertEqual(run_mock.call_args.kwargs["max_bytes"], 2_000_000)
 
     def test_run_daily_sim_with_mock_creates_dated_output_summary(self):
@@ -246,7 +246,7 @@ class CliTests(unittest.TestCase):
                 run_mock.call_args.args[1],
             )
             self.assertEqual(run_mock.call_args.kwargs["timeout_seconds"], 30.0)
-            self.assertEqual(run_mock.call_args.kwargs["max_sources"], 11)
+            self.assertEqual(run_mock.call_args.kwargs["max_sources"], 13)
             self.assertEqual(run_mock.call_args.kwargs["max_bytes"], 2_000_000)
 
     def test_run_daily_sim_propagates_gate_warnings_and_manual_review_queue(self):

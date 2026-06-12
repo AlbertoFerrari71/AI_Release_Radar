@@ -33,9 +33,9 @@ class LiveSnapshotTests(unittest.TestCase):
             )
 
             self.assertEqual(result.status, "success")
-            self.assertEqual(result.source_count, 2)
-            self.assertEqual(result.snapshot_count, 2)
-            self.assertEqual(result.parsed_count, 2)
+            self.assertEqual(result.source_count, 3)
+            self.assertEqual(result.snapshot_count, 3)
+            self.assertEqual(result.parsed_count, 3)
             self.assertEqual(result.skipped_count, 0)
             self.assertEqual(result.failed_count, 0)
             self.assertEqual(
@@ -45,6 +45,7 @@ class LiveSnapshotTests(unittest.TestCase):
                 },
                 {
                     "openai_codex_changelog": "parsed",
+                    "openai_api_deprecations": "parsed",
                     "github_api_openai_codex_releases": "parsed",
                 },
             )
@@ -55,8 +56,8 @@ class LiveSnapshotTests(unittest.TestCase):
             summary = read_json(result.run_summary_path)
             self.assertEqual(summary["sources"], summary["run"]["source_diagnostics"])
             run_index_entry = read_json(result.run_index_entry_path)
-            self.assertEqual(run_index_entry["source_count"], 2)
-            self.assertEqual(run_index_entry["parsed_count"], 2)
+            self.assertEqual(run_index_entry["source_count"], 3)
+            self.assertEqual(run_index_entry["parsed_count"], 3)
             self.assertEqual(run_index_entry["failed_count"], 0)
             self.assertEqual(run_index_entry["skipped_count"], 0)
             self.assertGreater(run_index_entry["item_count"], 0)
@@ -131,8 +132,8 @@ class LiveSnapshotTests(unittest.TestCase):
             )
 
             self.assertEqual(result.status, "success")
-            self.assertEqual(result.source_count, 3)
-            self.assertEqual(result.parsed_count, 2)
+            self.assertEqual(result.source_count, 4)
+            self.assertEqual(result.parsed_count, 3)
             self.assertEqual(result.skipped_count, 1)
             unsupported = next(
                 source
@@ -223,10 +224,16 @@ class LiveSnapshotTests(unittest.TestCase):
         changelog_body = (FIXTURES_DIR / "0160_codex_changelog_fixture.md").read_text(
             encoding="utf-8"
         )
+        deprecations_body = (FIXTURES_DIR / "1520_api_deprecations_fixture.md").read_text(
+            encoding="utf-8"
+        )
         for source in sources:
             if source.source_type == "github_api":
                 body = github_body
                 content_type = "application/json"
+            elif source.parser_strategy == "api_deprecations_markdown":
+                body = deprecations_body
+                content_type = "text/markdown"
             elif source.source_id == "openai_codex_changelog":
                 body = changelog_body
                 content_type = "text/markdown"
@@ -288,6 +295,12 @@ class LiveSnapshotTests(unittest.TestCase):
             "provider": "openai",
             "sources": [
                 self.source("openai_codex_changelog", "official_changelog"),
+                self.source(
+                    "openai_api_deprecations",
+                    "official_docs",
+                    parser_strategy="api_deprecations_markdown",
+                    machine_readable=True,
+                ),
                 self.source("github_api_openai_codex_releases", "github_api", provider="github"),
             ],
         }
@@ -298,6 +311,8 @@ class LiveSnapshotTests(unittest.TestCase):
         source_type: str,
         provider: str = "openai",
         manual_review_required: bool = False,
+        parser_strategy: str | None = None,
+        machine_readable: bool | None = None,
     ):
         return {
             "source_id": source_id,
@@ -307,7 +322,7 @@ class LiveSnapshotTests(unittest.TestCase):
             "source_type": source_type,
             "priority": 1 if provider == "openai" else 2,
             "reliability": "primary" if provider == "openai" else "secondary",
-            "machine_readable": source_type == "github_api",
+            "machine_readable": source_type == "github_api" if machine_readable is None else machine_readable,
             "category_hints": ["codex_cli"],
             "verification_status": "verified_url_format",
             "notes": "Offline live-snapshot test source.",
@@ -316,7 +331,18 @@ class LiveSnapshotTests(unittest.TestCase):
             "timeout_seconds": 1.0,
             "live_check_enabled": True,
             "manual_review_required": manual_review_required,
+            "parser_strategy": parser_strategy or self.parser_strategy_for(
+                source_id,
+                source_type,
+            ),
         }
+
+    def parser_strategy_for(self, source_id: str, source_type: str) -> str:
+        if source_type == "github_api":
+            return "github_api_releases"
+        if source_id == "openai_codex_changelog":
+            return "codex_changelog_markdown"
+        return "unsupported_diagnostic"
 
 
 if __name__ == "__main__":

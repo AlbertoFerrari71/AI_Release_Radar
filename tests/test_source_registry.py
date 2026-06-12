@@ -165,6 +165,7 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertIn("github_api_openai_codex_releases", source_ids)
         for source in sources:
             self.assertIn(source.parser_strategy, {
+                "api_deprecations_markdown",
                 "codex_changelog_markdown",
                 "future_candidate",
                 "github_api_releases",
@@ -175,6 +176,9 @@ class SourceRegistryTests(unittest.TestCase):
             self.assertIn(source.scheduler_readiness, {"ready", "warn", "hold"})
             self.assertTrue(source.expected_failure_mode)
             self.assertTrue(source.recommended_follow_up)
+            self.assertTrue(source.final_v1_status)
+            self.assertTrue(source.final_v1_reason)
+            self.assertTrue(source.maintenance_backlog_category)
         max_bytes_by_source_id = {source.source_id: source.max_bytes for source in sources}
         self.assertEqual(max_bytes_by_source_id["github_api_openai_codex_releases"], 5242880)
         parser_strategy_by_source_id = {
@@ -199,10 +203,22 @@ class SourceRegistryTests(unittest.TestCase):
             "ready",
         )
         self.assertEqual(
+            parser_strategy_by_source_id["openai_api_deprecations"],
+            "api_deprecations_markdown",
+        )
+        self.assertEqual(
+            parser_strategy_by_source_id["github_api_openai_python_releases"],
+            "github_api_releases",
+        )
+        self.assertEqual(
+            parser_strategy_by_source_id["github_api_openai_node_releases"],
+            "github_api_releases",
+        )
+        self.assertEqual(
             parser_strategy_by_source_id["openai_codex_changelog"],
             "codex_changelog_markdown",
         )
-        self.assertGreaterEqual(len(sources), 11)
+        self.assertGreaterEqual(len(sources), 13)
 
     def valid_source_dict(self):
         return read_json(VALID_FIXTURE_PATH)["sources"][0]
