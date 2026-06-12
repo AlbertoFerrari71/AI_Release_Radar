@@ -76,6 +76,16 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Il closure pack operator-ready V1 e' `docs/architecture/0950_DASHBOARD_V1_OPERATOR_READY_CLOSURE_PACK.md`. Fonte: `docs/architecture/0950_DASHBOARD_V1_OPERATOR_READY_CLOSURE_PACK.md`.
 - [F] Nessuna email, nessun LLM, nessuna auto-azione, nessun nuovo scheduler e nessun altro repository vengono toccati dalla dashboard. Fonte: `radar_web/manual_trigger.py`, `radar_web/scheduler_status.py`.
 
+## V1 operator release candidate
+
+- [F] La V1 operator release candidate resta un radar supervisionato: prepara decisioni, ma non le esegue. Fonte: `radar/daily_review_pack.py`, `radar/v1_readiness.py`, `radar_web/action_center.py`.
+- [F] Il Daily Review Pack si genera con `python -m radar.cli daily-review-pack --run-dir <run-dir> --output-dir <Bridge-daily-review-pack-dir> --scheduler-log <scheduler-log>`. Fonte: `radar/cli.py`, `radar/daily_review_pack.py`.
+- [F] Il V1 readiness gate si genera con `python -m radar.cli v1-readiness-gate --run-dir <run-dir> --output-dir <Bridge-codex-command-dir> --dashboard-smoke-status PASS --action-center-smoke-status PASS --action-center-run-scope-status PASS`. Fonte: `radar/cli.py`, `radar/v1_readiness.py`.
+- [F] L'Action Center distingue decisioni del run corrente da decisioni storiche e segnala quando il run ha HAG/prompt suggestions nel run output ma non una cartella `action_dispatch` dedicata. Fonte: `radar_web/action_center.py`, `radar/action_inbox.py`.
+- [F] La pagina dettaglio run e l'API source-matrix espongono la matrice diagnostica fonti con fetch, parser, HTTP, item, manual review e follow-up. Fonte: `radar/source_coverage.py`, `radar_web/run_locator.py`, `radar_web/app.py`.
+- [F] I prompt suggestions restano manual-only, associati al run e non eseguiti. Fonte: `radar/daily_review_pack.py`, `radar/action_inbox.py`.
+- [F] Il runbook V1 RC e' `docs/runbooks/1460_V1_OPERATOR_RC_RUNBOOK.md`. Fonte: `docs/runbooks/1460_V1_OPERATOR_RC_RUNBOOK.md`.
+
 ## Multilingual dashboard and news translation
 
 - [F] La UI dashboard supporta `?lang=en|it|fr|de|es` con cataloghi JSON versionati in `radar_web/locales/`. Fonte: `radar_web/i18n.py`, `radar_web/locales/*.json`.
@@ -94,6 +104,8 @@ python -m radar.cli --help
 python -m radar.cli real-run --help
 python -m radar.cli real-run --profile manual --output-dir "<directory-fuori-repo>"
 python -m radar.cli daily-sim --output-root "<Bridge-runs-fuori-repo>"
+python -m radar.cli daily-review-pack --run-dir "<Bridge-run-dir>" --output-dir "<Bridge-daily-review-pack-dir>" --scheduler-log "<Bridge-scheduler-log>"
+python -m radar.cli v1-readiness-gate --run-dir "<Bridge-run-dir>" --output-dir "<Bridge-codex-command-dir>" --scheduler-log "<Bridge-scheduler-log>" --dashboard-smoke-status PASS --action-center-smoke-status PASS --action-center-run-scope-status PASS
 python -m radar_web.app --host 127.0.0.1 --port 8787
 Invoke-RestMethod -Uri "http://127.0.0.1:8787/api/actions" -Method Get
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\alberto.ferrari\source\repos\AI_Release_Radar\scripts\scheduler\ai_release_radar_daily_dry_report.ps1"

@@ -240,6 +240,17 @@ def create_app(
             "warnings": detail["warnings"],
         }
 
+    @app.get("/api/runs/{run_id}/source-matrix")
+    def api_run_source_matrix(run_id: str) -> dict[str, Any]:
+        detail = _run_detail_or_404(dashboard_config, run_id)
+        return {
+            "run_id": run_id,
+            "source_coverage_summary": detail["source_coverage_summary"],
+            "source_coverage_matrix": detail["source_coverage_matrix"],
+            "no_auto_action": True,
+            "warnings": detail["warnings"],
+        }
+
     @app.get("/api/scheduler")
     def api_scheduler() -> dict[str, Any]:
         return read_scheduler_status_placeholder(dashboard_config)
@@ -540,6 +551,8 @@ def status_class(value: object) -> str:
         "CACHED",
         "SOURCE",
         "TRANSLATED",
+        "V1_OPERATOR_READY",
+        "RUN_SCOPED",
     }:
         return "status-pass"
     if status in {
@@ -551,9 +564,17 @@ def status_class(value: object) -> str:
         "NEEDS_REVIEW",
         "CHANGES_FOUND",
         "ACTION_RECOMMENDED",
+        "RUN_OUTPUT_ONLY",
     }:
         return "status-review"
-    if status in {"PASS_WITH_WARNINGS", "WARN", "WARNING", "MONITOR", "DOWNGRADED"}:
+    if status in {
+        "PASS_WITH_WARNINGS",
+        "WARN",
+        "WARNING",
+        "MONITOR",
+        "DOWNGRADED",
+        "V1_OPERATOR_READY_WITH_WARNINGS",
+    }:
         return "status-warn"
     if status == "ACTION_REVIEW_REQUIRED":
         return "status-review"
@@ -567,6 +588,7 @@ def status_class(value: object) -> str:
         "ALREADY_BACKLOGGED",
         "PREVIOUSLY_IGNORED",
         "PROMPT_ALREADY_GENERATED",
+        "MICRO_FIX_REQUIRED_BEFORE_V1",
     }:
         return "status-hold"
     if status in {"FAIL", "FAIL_STOP", "BLOCKED_AUTO_ACTION", "FAILED"}:

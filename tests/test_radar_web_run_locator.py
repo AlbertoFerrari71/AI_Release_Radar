@@ -43,8 +43,32 @@ class RadarWebRunLocatorTests(unittest.TestCase):
                     "direct_action_count": 1,
                     "monitor_only_action_count": 1,
                     "source_diagnostics": [
-                        {"diagnostic_status": "parsed"},
-                        {"diagnostic_status": "manual_review_required"},
+                        {
+                            "source_id": "github_api_openai_codex_releases",
+                            "provider": "github",
+                            "coverage_priority": "P0",
+                            "diagnostic_status": "parsed",
+                            "fetch_status": "fetched",
+                            "parser_status": "parsed",
+                            "http_status_code": 200,
+                            "item_count": 10,
+                            "manual_review_required": False,
+                            "scheduler_readiness": "ready",
+                            "recommended_follow_up": "use_parsed_items",
+                        },
+                        {
+                            "source_id": "openai_release_notes_hub",
+                            "provider": "openai",
+                            "coverage_priority": "P2",
+                            "diagnostic_status": "manual_review_required",
+                            "fetch_status": "rejected",
+                            "parser_status": "fetch_failed",
+                            "http_status_code": 403,
+                            "item_count": 0,
+                            "manual_review_required": True,
+                            "scheduler_readiness": "hold",
+                            "recommended_follow_up": "manual_review_source",
+                        },
                     ],
                 },
                 "action_triage": {
@@ -149,7 +173,11 @@ class RadarWebRunLocatorTests(unittest.TestCase):
 
             self.assertIsNotNone(detail)
             self.assertEqual(detail["source_diagnostics_summary"]["parsed"], 1)
+            self.assertEqual(detail["source_coverage_summary"]["source_count"], 2)
+            self.assertEqual(detail["source_coverage_summary"]["manual_review_required_count"], 1)
+            self.assertEqual(detail["source_coverage_matrix"][1]["http_status"], 403)
             self.assertEqual(len(detail["blocked_actions"]), 1)
+            self.assertEqual(len(detail["direct_actions"]), 1)
             self.assertEqual(len(detail["manual_review_queue"]), 1)
             self.assertEqual(detail["prompt_suggestions_status"], "suggested_only")
             self.assertTrue(detail["no_auto_action"])
