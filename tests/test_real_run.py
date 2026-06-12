@@ -296,6 +296,9 @@ class RealRunTests(unittest.TestCase):
         }
 
     def source(self, source_id: str, source_type: str, provider: str = "openai"):
+        parser_strategy = "github_api_releases" if source_type == "github_api" else "unsupported_diagnostic"
+        if source_id == "openai_codex_changelog":
+            parser_strategy = "codex_changelog_markdown"
         return {
             "source_id": source_id,
             "provider": provider,
@@ -313,6 +316,7 @@ class RealRunTests(unittest.TestCase):
             "timeout_seconds": 1.0,
             "live_check_enabled": True,
             "manual_review_required": False,
+            "parser_strategy": parser_strategy,
         }
 
 

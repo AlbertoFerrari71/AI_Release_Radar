@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import radar.parsers as parsers_module
 from radar.parsers import (
+    parse_api_deprecations_markdown_fixture,
     parse_codex_changelog_fixture,
     parse_github_releases_api_fixture,
     parse_json_items_fixture,
@@ -33,6 +34,12 @@ def _load_github_releases_api_fixture() -> list:
 
 def _load_codex_changelog_fixture() -> str:
     return (FIXTURES_DIR / "0160_codex_changelog_fixture.md").read_text(
+        encoding="utf-8"
+    )
+
+
+def _load_api_deprecations_fixture() -> str:
+    return (FIXTURES_DIR / "1520_api_deprecations_fixture.md").read_text(
         encoding="utf-8"
     )
 
@@ -138,6 +145,30 @@ class ParserTests(unittest.TestCase):
             {"codex_agents_md", "codex_cli", "codex_general", "codex_windows"},
         )
         self.assert_items_have_ids_and_hashes(items)
+
+    def test_api_deprecations_markdown_fixture_produces_items(self):
+        items = parse_api_deprecations_markdown_fixture(
+            "openai_api_deprecations",
+            "openai",
+            _load_api_deprecations_fixture(),
+        )
+
+        self.assertEqual(len(items), 2)
+        self.assertEqual({item.category for item in items}, {"api_deprecation"})
+        self.assertIn("Reusable prompts", {item.title for item in items})
+        self.assertIn("GPT Image model deprecations", {item.title for item in items})
+        self.assertIn("scheduled to shut down", " ".join(item.evidence for item in items))
+        self.assert_items_have_ids_and_hashes(items)
+        self.assert_items_sorted(items)
+
+    def test_api_deprecations_markdown_parser_stops_before_past_deprecations(self):
+        items = parse_api_deprecations_markdown_fixture(
+            "openai_api_deprecations",
+            "openai",
+            _load_api_deprecations_fixture(),
+        )
+
+        self.assertNotIn("Past deprecations", {item.title for item in items})
 
     def test_codex_changelog_parser_merges_duplicate_sections(self):
         items = parse_codex_changelog_fixture(
@@ -295,6 +326,11 @@ class ParserTests(unittest.TestCase):
                     "openai",
                     _load_codex_changelog_fixture(),
                 )
+                parse_api_deprecations_markdown_fixture(
+                    "api-deprecations-source",
+                    "openai",
+                    _load_api_deprecations_fixture(),
+                )
                 parse_simple_html_release_fixture("html-source", "provider", html_fixture)
                 parse_simple_text_release_fixture("text-source", "provider", text_fixture)
                 after = sorted(Path(temp_dir).iterdir())
@@ -322,6 +358,11 @@ class ParserTests(unittest.TestCase):
                 "codex-changelog-source",
                 "openai",
                 _load_codex_changelog_fixture(),
+            )
+            parse_api_deprecations_markdown_fixture(
+                "api-deprecations-source",
+                "openai",
+                _load_api_deprecations_fixture(),
             )
             parse_simple_html_release_fixture("html-source", "provider", html_fixture)
             parse_simple_text_release_fixture("text-source", "provider", text_fixture)

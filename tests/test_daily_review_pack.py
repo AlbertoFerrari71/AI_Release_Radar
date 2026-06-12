@@ -30,6 +30,11 @@ class DailyReviewPackTests(unittest.TestCase):
             self.assertFalse(pack["prompt_suggestions_summary"]["suggestions"][0]["executed"])
             self.assertTrue(pack["prompt_suggestions_summary"]["suggestions"][0]["manual_only"])
             self.assertEqual(pack["source_coverage_summary"]["manual_review_required_count"], 1)
+            self.assertEqual(len(pack["manual_review_sources"]), 1)
+            self.assertEqual(pack["unsupported_sources_explained"], [])
+            self.assertIn("maintenance_backlog_pointers", pack)
+            self.assertIn("Source Coverage Final Matrix", markdown)
+            self.assertIn("Manual Review Queue", markdown)
             self.assertIn("prompts_executed: false", markdown)
             self.assertEqual(
                 {path.name for path in output_dir.iterdir()},

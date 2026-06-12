@@ -31,6 +31,7 @@ ALLOWED_VERIFICATION_STATUS = {
     "disabled",
 }
 ALLOWED_PARSER_STRATEGY = {
+    "api_deprecations_markdown",
     "codex_changelog_markdown",
     "future_candidate",
     "github_api_releases",
@@ -53,11 +54,31 @@ ALLOWED_RECOMMENDED_FOLLOW_UP = {
     "use_parsed_items_after_gate",
 }
 ALLOWED_SCHEDULER_READINESS = {"hold", "ready", "warn"}
+ALLOWED_FINAL_V1_STATUS = {
+    "diagnostic_only",
+    "excluded_from_v1",
+    "manual_review_403",
+    "parsed",
+    "parsed_new",
+    "replaced_by_machine_readable_alternative",
+    "unsupported_documented",
+}
+ALLOWED_MAINTENANCE_BACKLOG_CATEGORY = {
+    "diagnostic_monitoring",
+    "manual_review",
+    "none",
+    "parser_candidate",
+    "source_replacement",
+    "unsupported_policy",
+}
 DEFAULT_PARSER_STRATEGY = "unsupported_diagnostic"
 DEFAULT_COVERAGE_PRIORITY = "P3"
 DEFAULT_EXPECTED_FAILURE_MODE = "html_unsupported"
 DEFAULT_RECOMMENDED_FOLLOW_UP = "keep_diagnostic_no_parser"
 DEFAULT_SCHEDULER_READINESS = "hold"
+DEFAULT_FINAL_V1_STATUS = "unsupported_documented"
+DEFAULT_FINAL_V1_REASON = "V1 keeps this source visible as documented diagnostic evidence."
+DEFAULT_MAINTENANCE_BACKLOG_CATEGORY = "unsupported_policy"
 
 MANDATORY_SOURCE_FIELDS = (
     "source_id",
@@ -85,6 +106,9 @@ OPTIONAL_SOURCE_FIELDS = (
     "recommended_follow_up",
     "machine_readable_preferred",
     "scheduler_readiness",
+    "final_v1_status",
+    "final_v1_reason",
+    "maintenance_backlog_category",
 )
 
 _SOURCE_ID_PATTERN = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
@@ -176,6 +200,15 @@ def _optional_str_choice(
     return value
 
 
+def _optional_non_empty_str(data: dict[str, Any], field_name: str, default: str) -> str:
+    value = data.get(field_name, default)
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be a string.")
+    if not value.strip():
+        raise ValueError(f"{field_name} must not be empty.")
+    return value
+
+
 def _optional_float(data: dict[str, Any], field_name: str) -> float | None:
     value = data.get(field_name)
     if value is None:
@@ -229,6 +262,9 @@ class SourceDefinition:
     recommended_follow_up: str = DEFAULT_RECOMMENDED_FOLLOW_UP
     machine_readable_preferred: bool = False
     scheduler_readiness: str = DEFAULT_SCHEDULER_READINESS
+    final_v1_status: str = DEFAULT_FINAL_V1_STATUS
+    final_v1_reason: str = DEFAULT_FINAL_V1_REASON
+    maintenance_backlog_category: str = DEFAULT_MAINTENANCE_BACKLOG_CATEGORY
 
     def __post_init__(self) -> None:
         validate_source_definition(self)
@@ -270,6 +306,9 @@ class SourceDefinition:
             "recommended_follow_up": self.recommended_follow_up,
             "machine_readable_preferred": self.machine_readable_preferred,
             "scheduler_readiness": self.scheduler_readiness,
+            "final_v1_status": self.final_v1_status,
+            "final_v1_reason": self.final_v1_reason,
+            "maintenance_backlog_category": self.maintenance_backlog_category,
         }
 
     @classmethod
@@ -327,6 +366,23 @@ class SourceDefinition:
                 "scheduler_readiness",
                 ALLOWED_SCHEDULER_READINESS,
                 DEFAULT_SCHEDULER_READINESS,
+            ),
+            final_v1_status=_optional_str_choice(
+                raw,
+                "final_v1_status",
+                ALLOWED_FINAL_V1_STATUS,
+                DEFAULT_FINAL_V1_STATUS,
+            ),
+            final_v1_reason=_optional_non_empty_str(
+                raw,
+                "final_v1_reason",
+                DEFAULT_FINAL_V1_REASON,
+            ),
+            maintenance_backlog_category=_optional_str_choice(
+                raw,
+                "maintenance_backlog_category",
+                ALLOWED_MAINTENANCE_BACKLOG_CATEGORY,
+                DEFAULT_MAINTENANCE_BACKLOG_CATEGORY,
             ),
         )
 
@@ -419,6 +475,18 @@ def validate_source_definition(source: SourceDefinition) -> None:
         raise ValueError(
             "scheduler_readiness must be one of "
             f"{sorted(ALLOWED_SCHEDULER_READINESS)}."
+        )
+    if source.final_v1_status not in ALLOWED_FINAL_V1_STATUS:
+        raise ValueError(
+            "final_v1_status must be one of "
+            f"{sorted(ALLOWED_FINAL_V1_STATUS)}."
+        )
+    if not isinstance(source.final_v1_reason, str) or not source.final_v1_reason.strip():
+        raise ValueError("final_v1_reason must be a non-empty string.")
+    if source.maintenance_backlog_category not in ALLOWED_MAINTENANCE_BACKLOG_CATEGORY:
+        raise ValueError(
+            "maintenance_backlog_category must be one of "
+            f"{sorted(ALLOWED_MAINTENANCE_BACKLOG_CATEGORY)}."
         )
 
 

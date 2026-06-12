@@ -27,6 +27,12 @@ _CODEX_CHANGELOG_VERSION_RE = re.compile(
     r"\b[vV]?(?P<version>\d+\.\d+(?:\.\d+)?(?:[-.][A-Za-z0-9]+)?)\b"
 )
 _CODEX_CHANGELOG_DATE_RE = re.compile(r"\b(?P<date>\d{4}-\d{2}-\d{2})\b")
+_API_DEPRECATIONS_MAX_CHARS = 120000
+_API_DEPRECATIONS_HEADING_RE = re.compile(
+    r"^###\s+(?:(?P<date>\d{4}-\d{2}-\d{2}):\s*)?(?P<title>.+?)\s*$"
+)
+_API_DEPRECATIONS_SECTION_STOP_RE = re.compile(r"^#{2,3}\s+")
+_API_DEPRECATIONS_SUMMARY_MAX_CHARS = 600
 
 
 def _item_sort_key(item: Item) -> tuple[str, str, str]:
@@ -572,6 +578,174 @@ def _codex_category_from_section(section: str) -> str:
 def _codex_anchor(version: str, section: str) -> str:
     token = re.sub(r"[^a-z0-9]+", "-", f"{version}-{section}".lower()).strip("-")
     return token or "codex-changelog"
+
+
+def parse_api_deprecations_markdown_fixture(
+    source_id: str,
+    provider: str,
+    content: str | bytes,
+    *,
+    first_seen: str = "2026-06-12",
+    source_url: str = "https://developers.openai.com/api/docs/deprecations.md",
+    encoding: str = "utf-8",
+    max_chars: int = _API_DEPRECATIONS_MAX_CHARS,
+) -> list[Item]:
+    """Parse the official API deprecations Markdown twin.
+
+    The parser only accepts Markdown section headings and nearby section text. It
+    deliberately avoids HTML selectors and browser-derived structure.
+    """
+    normalized_source_id = _require_non_empty_str(source_id, "source_id")
+    normalized_provider = _require_non_empty_str(provider, "provider")
+    normalized_first_seen = _require_non_empty_str(first_seen, "first_seen")
+    normalized_source_url = _require_non_empty_str(source_url, "source_url")
+    text = _decode_codex_changelog_content(content, encoding)
+    if not text.strip():
+        return []
+    if not isinstance(max_chars, int) or isinstance(max_chars, bool) or max_chars < 1:
+        raise ValueError("max_chars must be a positive integer.")
+    if len(text) > max_chars:
+        raise ValueError("API deprecations content is too long.")
+
+    entries = _api_deprecations_entries(text)
+    return _sorted_items(
+        [
+            _api_deprecation_item(
+                source_id=normalized_source_id,
+                provider=normalized_provider,
+                first_seen=normalized_first_seen,
+                source_url=normalized_source_url,
+                entry=entry,
+            )
+            for entry in entries
+        ]
+    )
+
+
+def _api_deprecations_entries(text: str) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    current: dict[str, Any] | None = None
+    in_deprecations = False
+
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        if stripped == "## Upcoming deprecations":
+            in_deprecations = True
+            current = None
+            continue
+        if in_deprecations and stripped.startswith("## ") and stripped != "## Upcoming deprecations":
+            if current is not None:
+                entries.append(current)
+                current = None
+            break
+        if not in_deprecations:
+            continue
+
+        heading_match = _API_DEPRECATIONS_HEADING_RE.match(stripped)
+        if heading_match is not None:
+            if current is not None:
+                entries.append(current)
+            date = heading_match.group("date")
+            if date is not None:
+                _validate_codex_changelog_date(date, line_number)
+            current = {
+                "date": date,
+                "title": normalize_text(heading_match.group("title")),
+                "body_lines": [],
+            }
+            continue
+
+        if current is None or not stripped:
+            continue
+        if _API_DEPRECATIONS_SECTION_STOP_RE.match(stripped):
+            continue
+        current["body_lines"].append(stripped)
+
+    if current is not None:
+        entries.append(current)
+
+    return [
+        entry
+        for entry in entries
+        if entry.get("title") and _api_deprecation_summary(entry.get("body_lines", []))
+    ]
+
+
+def _api_deprecation_item(
+    *,
+    source_id: str,
+    provider: str,
+    first_seen: str,
+    source_url: str,
+    entry: dict[str, Any],
+) -> Item:
+    title = _require_non_empty_str(entry["title"], "entry.title")
+    date = entry.get("date")
+    published_at = f"{date}T00:00:00Z" if isinstance(date, str) else "undated"
+    summary = _api_deprecation_summary(entry.get("body_lines", []))
+    natural_key = f"api_deprecation:{date or 'undated'}:{title.lower()}"
+    severity = _api_deprecation_severity(summary)
+    url = f"{source_url}#{_api_deprecation_anchor(date, title)}"
+    evidence = (
+        f"OpenAI API deprecation title={title}; "
+        f"announcement_date={date or 'missing'}. Summary: {summary}"
+    )
+    content_hash = content_hash_for_item_fields(
+        source_id=source_id,
+        provider=provider,
+        category="api_deprecation",
+        severity=severity,
+        title=title,
+        published_at=published_at,
+        url=url,
+        evidence=evidence,
+    )
+    return Item(
+        item_id=stable_item_id(source_id, natural_key),
+        source_id=source_id,
+        provider=provider,
+        category="api_deprecation",
+        severity=severity,
+        title=title,
+        published_at=published_at,
+        url=url,
+        evidence=evidence,
+        content_hash=content_hash,
+        first_seen=first_seen,
+        confidence=0.9 if published_at != "undated" else 0.82,
+    )
+
+
+def _api_deprecation_summary(lines: object) -> str:
+    if not isinstance(lines, list):
+        return ""
+    cleaned: list[str] = []
+    for raw in lines:
+        if not isinstance(raw, str):
+            continue
+        text = normalize_text(raw)
+        if not text or set(text) <= {"|", "-", " "}:
+            continue
+        cleaned.append(text)
+    summary = " ".join(cleaned)
+    if len(summary) <= _API_DEPRECATIONS_SUMMARY_MAX_CHARS:
+        return summary
+    return summary[: _API_DEPRECATIONS_SUMMARY_MAX_CHARS - 3] + "..."
+
+
+def _api_deprecation_severity(summary: str) -> str:
+    text = summary.lower()
+    if any(token in text for token in ("shut down", "shutdown", "disabled", "removed")):
+        return "high"
+    if "deprecated" in text or "deprecation" in text:
+        return "medium"
+    return "info"
+
+
+def _api_deprecation_anchor(date: object, title: str) -> str:
+    raw = f"{date}-{title}" if isinstance(date, str) else title
+    token = re.sub(r"[^a-z0-9]+", "-", raw.lower()).strip("-")
+    return token or "api-deprecation"
 
 
 class _SimpleReleaseHTMLParser(HTMLParser):
