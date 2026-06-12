@@ -17,6 +17,7 @@ from radar.daily_quality_gate import (
     evaluate_daily_quality_gate,
     render_daily_quality_gate_markdown,
 )
+from radar.daily_review_pack import write_daily_review_pack
 from radar.hag_report import build_hag_report
 from radar.json_utils import read_json, write_json
 from radar.live_url_check import (
@@ -49,6 +50,7 @@ from radar.source_fetcher import (
     fetch_sources_content,
 )
 from radar.supervised_loop import render_supervised_action_loop_dry_run
+from radar.v1_readiness import write_v1_operator_readiness_gate
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -385,6 +387,42 @@ def run_daily_sim(
     return summary_data
 
 
+def run_daily_review_pack(
+    *,
+    run_dir: str,
+    output_dir: str,
+    scheduler_log: str | None = None,
+) -> dict[str, str]:
+    """Generate the Bridge-only Daily Review Pack from an existing run."""
+    return write_daily_review_pack(
+        run_dir,
+        output_dir,
+        scheduler_log_path=scheduler_log,
+    )
+
+
+def run_v1_readiness_gate(
+    *,
+    run_dir: str,
+    output_dir: str,
+    scheduler_log: str | None = None,
+    dashboard_smoke_status: str = "NOT_RUN",
+    action_center_smoke_status: str = "NOT_RUN",
+    action_center_run_scope_status: str = "NOT_RUN",
+    daily_review_pack_status: str = "PASS",
+) -> dict[str, str]:
+    """Generate the V1 operator readiness gate from existing evidence."""
+    return write_v1_operator_readiness_gate(
+        run_dir,
+        output_dir,
+        scheduler_log_path=scheduler_log,
+        dashboard_smoke_status=dashboard_smoke_status,
+        action_center_smoke_status=action_center_smoke_status,
+        action_center_run_scope_status=action_center_run_scope_status,
+        daily_review_pack_status=daily_review_pack_status,
+    )
+
+
 def resolve_real_run_config(
     *,
     source_registry: str | None,
@@ -588,6 +626,39 @@ def build_daily_sim_summary(result_data: object) -> str:
         "No email: confirmed",
         "No LLM: confirmed",
         f"Next step: {result_data.get('next_step')}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_daily_review_pack_summary(result_data: object) -> str:
+    """Build console summary for Daily Review Pack generation."""
+    if not isinstance(result_data, dict):
+        raise ValueError("daily review pack result_data must be a dict.")
+    lines = [
+        "AI Release Radar daily review pack completed",
+        f"Status: {result_data.get('status')}",
+        f"Run ID: {result_data.get('run_id')}",
+        f"Markdown: {result_data.get('markdown_path')}",
+        f"JSON: {result_data.get('json_path')}",
+        "No auto-action: confirmed",
+        "No email: confirmed",
+        "No LLM: confirmed",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_v1_readiness_gate_summary(result_data: object) -> str:
+    """Build console summary for V1 readiness gate generation."""
+    if not isinstance(result_data, dict):
+        raise ValueError("V1 readiness gate result_data must be a dict.")
+    lines = [
+        "AI Release Radar V1 readiness gate completed",
+        f"Classification: {result_data.get('classification')}",
+        f"Markdown: {result_data.get('markdown_path')}",
+        f"JSON: {result_data.get('json_path')}",
+        "No auto-action: confirmed",
+        "No email: confirmed",
+        "No LLM: confirmed",
     ]
     return "\n".join(lines) + "\n"
 
@@ -815,6 +886,62 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Global maximum response body bytes per source; manual profile default is used when omitted.",
     )
+    review_pack = subparsers.add_parser(
+        "daily-review-pack",
+        help="Generate a Bridge-only Daily Review Pack from an existing run.",
+    )
+    review_pack.add_argument(
+        "--run-dir",
+        required=True,
+        help="Existing daily-sim run directory to read.",
+    )
+    review_pack.add_argument(
+        "--output-dir",
+        required=True,
+        help="Explicit outside-repository directory where the pack is written.",
+    )
+    review_pack.add_argument(
+        "--scheduler-log",
+        default=None,
+        help="Optional existing scheduler log to summarize as evidence.",
+    )
+    v1_gate = subparsers.add_parser(
+        "v1-readiness-gate",
+        help="Generate the V1 operator readiness gate from existing evidence.",
+    )
+    v1_gate.add_argument(
+        "--run-dir",
+        required=True,
+        help="Existing daily-sim run directory to read.",
+    )
+    v1_gate.add_argument(
+        "--output-dir",
+        required=True,
+        help="Explicit outside-repository directory where the gate is written.",
+    )
+    v1_gate.add_argument(
+        "--scheduler-log",
+        default=None,
+        help="Optional existing scheduler log to summarize as evidence.",
+    )
+    v1_gate.add_argument(
+        "--dashboard-smoke-status",
+        choices=["PASS", "FAIL", "NOT_RUN"],
+        default="NOT_RUN",
+        help="Dashboard smoke result from existing evidence.",
+    )
+    v1_gate.add_argument(
+        "--action-center-smoke-status",
+        choices=["PASS", "FAIL", "NOT_RUN"],
+        default="NOT_RUN",
+        help="Action Center smoke result from existing evidence.",
+    )
+    v1_gate.add_argument(
+        "--action-center-run-scope-status",
+        choices=["PASS", "FAIL", "NOT_RUN"],
+        default="NOT_RUN",
+        help="Action Center current-run scope check result.",
+    )
     return parser
 
 
@@ -904,6 +1031,25 @@ def main(argv: list[str] | None = None) -> int:
             )
             sys.stdout.write(build_daily_sim_summary(result))
             return 1 if result.get("automation_gate_status") == FAIL else 0
+        if args.command == "daily-review-pack":
+            result = run_daily_review_pack(
+                run_dir=args.run_dir,
+                output_dir=args.output_dir,
+                scheduler_log=args.scheduler_log,
+            )
+            sys.stdout.write(build_daily_review_pack_summary(result))
+            return 0
+        if args.command == "v1-readiness-gate":
+            result = run_v1_readiness_gate(
+                run_dir=args.run_dir,
+                output_dir=args.output_dir,
+                scheduler_log=args.scheduler_log,
+                dashboard_smoke_status=args.dashboard_smoke_status,
+                action_center_smoke_status=args.action_center_smoke_status,
+                action_center_run_scope_status=args.action_center_run_scope_status,
+            )
+            sys.stdout.write(build_v1_readiness_gate_summary(result))
+            return 0 if result.get("classification") != "BLOCKED" else 1
         parser.error(f"unsupported command: {args.command}")
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 1

@@ -11,6 +11,8 @@ from fastapi.testclient import TestClient
 from radar_web.app import create_app
 from radar_web.config import DashboardConfig
 from radar_web.manual_trigger import DailySimTrigger
+from radar.action_inbox import append_decision_log, build_action_inbox
+from radar_web.run_locator import load_run_detail
 
 
 SCHEDULER_NO_DATA = {
@@ -122,6 +124,60 @@ class RadarWebAppTests(unittest.TestCase):
                     with self.subTest(endpoint=endpoint):
                         response = client.get(endpoint)
                         self.assertEqual(response.status_code, 200)
+
+    def test_action_center_get_is_run_scoped_and_read_only(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            run_dir = next((bridge / "runs").iterdir())
+            run_id = run_dir.name
+            (run_dir / "0660-Codex_Prompt_Suggestions.md").write_text(
+                "# Suggested only\n",
+                encoding="utf-8",
+            )
+            (run_dir / "0680-Human_Approval_Gate_Report.md").write_text(
+                "# HOLD\n",
+                encoding="utf-8",
+            )
+            summary_path = run_dir / "0350-Daily_Sim_Summary.json"
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            summary["hag_status"] = "HOLD_FOR_HUMAN_APPROVAL"
+            summary_path.write_text(json.dumps(summary), encoding="utf-8")
+            current_detail = load_run_detail(bridge / "runs", run_id)
+            self.assertIsNotNone(current_detail)
+            historical_detail = json.loads(json.dumps(current_detail))
+            historical_detail["run"]["run_id"] = "0320_0400_daily_sim_20260609_090000"
+            historical_action = build_action_inbox([historical_detail]).actions[0]
+            append_decision_log(
+                bridge / "action_dispatch",
+                historical_action,
+                decision="approve_prompt",
+                reason="historical approval",
+            )
+            dispatch_files_before = {
+                path.relative_to(bridge / "action_dispatch").as_posix()
+                for path in (bridge / "action_dispatch").rglob("*")
+                if path.is_file()
+            }
+
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+                actions = client.get("/api/actions").json()
+                html = client.get("/actions?lang=it").text
+                matrix_response = client.get(f"/api/runs/{run_id}/source-matrix")
+
+            dispatch_files_after = {
+                path.relative_to(bridge / "action_dispatch").as_posix()
+                for path in (bridge / "action_dispatch").rglob("*")
+                if path.is_file()
+            }
+            self.assertEqual(actions["run_scope_status"], "RUN_OUTPUT_ONLY")
+            self.assertEqual(actions["current_run_decision_count"], 0)
+            self.assertEqual(actions["historical_decision_count"], 1)
+            self.assertEqual(actions["actions"][0]["decision_status"], "undecided")
+            self.assertIn("In attesa di approvazione umana", html)
+            self.assertEqual(matrix_response.status_code, 200)
+            self.assertEqual(dispatch_files_after, dispatch_files_before)
 
     def test_home_formats_scheduler_dates_and_manual_trigger_note(self):
         scheduler = {

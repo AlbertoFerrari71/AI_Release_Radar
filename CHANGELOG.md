@@ -1,5 +1,16 @@
 # Changelog
 
+## 1380-1500) V1 Operator-Ready Release Candidate
+
+- [F] Aggiunta generazione Bridge-only del Daily Review Pack con executive summary, safety summary, source coverage, action/HAG/prompt summary e checklist operatore. Fonte: `radar/daily_review_pack.py`, `tests/test_daily_review_pack.py`.
+- [F] Aggiunta matrice diagnostica source coverage riusabile da pack, run detail e API read-only. Fonte: `radar/source_coverage.py`, `radar_web/run_locator.py`, `radar_web/app.py`, `tests/test_source_coverage.py`.
+- [F] Rafforzato Action Center per distinguere run corrente, decisioni storiche, assenza di cartella run-scoped `action_dispatch`, HAG corrente e prompt suggestions manual-only. Fonte: `radar/action_inbox.py`, `radar_web/action_center.py`, `radar_web/templates/actions.html`, `tests/test_action_inbox.py`, `tests/test_radar_web_app.py`.
+- [F] Aggiunto V1 Operator Readiness Gate con classificazioni `V1_OPERATOR_READY`, `V1_OPERATOR_READY_WITH_WARNINGS`, `MICRO_FIX_REQUIRED_BEFORE_V1`, `BLOCKED`. Fonte: `radar/v1_readiness.py`, `tests/test_v1_readiness.py`.
+- [F] Estesa CLI con `daily-review-pack` e `v1-readiness-gate`, entrambe con output directory esplicita fuori repo. Fonte: `radar/cli.py`, `tests/test_cli.py`.
+- [F] Aggiornata UI multilingua EN/IT/FR/DE/ES per nuovi badge, HAG corrente, safety strip e matrice fonti. Fonte: `radar_web/locales/*.json`, `tests/test_i18n.py`.
+- [F] Aggiunto runbook V1 RC supervisionato. Fonte: `docs/runbooks/1460_V1_OPERATOR_RC_RUNBOOK.md`.
+- [F] Nessuna modifica scheduler, nessuna email/notifica automatica, nessuna chiamata LLM runtime, nessuna auto-azione e nessun output runtime versionato introdotti. Fonte: `AGENTS.md`, `radar/daily_review_pack.py`, `radar/v1_readiness.py`.
+
 ## 1260-1350) Multilingual UI and Translation QA Final Review
 
 - [F] Aggiunta review preflight multilingua, catalog consistency, linguistic QA, navigation smoke, Action Center UX, fallback QA e scorecard finale. Fonte: `docs/reviews/1260_MULTILINGUAL_PREFLIGHT_BASELINE_REVIEW.md`, `docs/reviews/1340_MULTILINGUAL_FINAL_QA_SCORECARD.md`.

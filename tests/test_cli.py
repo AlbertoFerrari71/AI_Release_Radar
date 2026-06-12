@@ -28,6 +28,8 @@ class CliTests(unittest.TestCase):
         self.assertIn("live-snapshot", parser.format_help())
         self.assertIn("real-run", parser.format_help())
         self.assertIn("daily-sim", parser.format_help())
+        self.assertIn("daily-review-pack", parser.format_help())
+        self.assertIn("v1-readiness-gate", parser.format_help())
         stdout = io.StringIO()
         with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
             parser.parse_args(["dry-run", "--help"])
@@ -49,6 +51,16 @@ class CliTests(unittest.TestCase):
             parser.parse_args(["daily-sim", "--help"])
         self.assertEqual(exc.exception.code, 0)
         self.assertIn("--output-root", stdout.getvalue())
+        stdout = io.StringIO()
+        with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
+            parser.parse_args(["daily-review-pack", "--help"])
+        self.assertEqual(exc.exception.code, 0)
+        self.assertIn("--run-dir", stdout.getvalue())
+        stdout = io.StringIO()
+        with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
+            parser.parse_args(["v1-readiness-gate", "--help"])
+        self.assertEqual(exc.exception.code, 0)
+        self.assertIn("--dashboard-smoke-status", stdout.getvalue())
 
     def test_main_dry_run_returns_zero(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -330,6 +342,63 @@ class CliTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn("AI Release Radar daily simulation completed", stdout.getvalue())
             self.assertIn("No scheduler: confirmed", stdout.getvalue())
+
+    def test_main_daily_review_pack_with_mock_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stdout = io.StringIO()
+            with unittest.mock.patch.object(
+                cli,
+                "run_daily_review_pack",
+                return_value={
+                    "status": "READY_FOR_SUPERVISED_HUMAN_REVIEW_WITH_WARNINGS",
+                    "run_id": "0320_0400_daily_sim_20260612_051505",
+                    "markdown_path": str(Path(tmp) / "1390-Daily_Review_Pack.md"),
+                    "json_path": str(Path(tmp) / "1390-Daily_Review_Pack.json"),
+                },
+            ):
+                with redirect_stdout(stdout):
+                    code = cli.main(
+                        [
+                            "daily-review-pack",
+                            "--run-dir",
+                            str(Path(tmp) / "run"),
+                            "--output-dir",
+                            tmp,
+                        ]
+                    )
+
+            self.assertEqual(code, 0)
+            self.assertIn("daily review pack completed", stdout.getvalue())
+            self.assertIn("No auto-action: confirmed", stdout.getvalue())
+
+    def test_main_v1_readiness_gate_with_mock_returns_zero_for_warning_ready(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stdout = io.StringIO()
+            with unittest.mock.patch.object(
+                cli,
+                "run_v1_readiness_gate",
+                return_value={
+                    "classification": "V1_OPERATOR_READY_WITH_WARNINGS",
+                    "markdown_path": str(Path(tmp) / "1450-V1_Operator_Readiness_Gate.md"),
+                    "json_path": str(Path(tmp) / "1450-V1_Operator_Readiness_Gate.json"),
+                },
+            ):
+                with redirect_stdout(stdout):
+                    code = cli.main(
+                        [
+                            "v1-readiness-gate",
+                            "--run-dir",
+                            str(Path(tmp) / "run"),
+                            "--output-dir",
+                            tmp,
+                            "--dashboard-smoke-status",
+                            "PASS",
+                        ]
+                    )
+
+            self.assertEqual(code, 0)
+            self.assertIn("V1 readiness gate completed", stdout.getvalue())
+            self.assertIn("V1_OPERATOR_READY_WITH_WARNINGS", stdout.getvalue())
 
     def test_daily_sim_rejects_output_root_inside_repo(self):
         with self.assertRaisesRegex(ValueError, "outside repository"):

@@ -63,6 +63,14 @@
         </article>
       </section>
 
+      <section class="safety-strip" aria-label="{{ t('safety.title') }}">
+        <span class="badge status-pass">{{ t("safety.no_email") }}</span>
+        <span class="badge status-pass">{{ t("safety.no_auto_action") }}</span>
+        <span class="badge status-pass">{{ t("safety.no_llm") }}</span>
+        <span class="badge status-pass">{{ t("safety.no_scheduler_mutation") }}</span>
+        <strong>{{ t("safety.radar_prepares") }}</strong>
+      </section>
+
       <section class="split">
         <div class="panel">
           <h2>{{ t("dashboard.actions") }}</h2>

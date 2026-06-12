@@ -159,8 +159,52 @@
             </dl>
           </section>
 
+          <details class="panel collapsible">
+            <summary>
+              <span>{{ t("detail.source_matrix") }}</span>
+              <span class="summary-meta">{{ t("detail.source_matrix_meta") }}</span>
+            </summary>
+            <div class="table-wrap">
+              <table class="source-matrix">
+                <thead>
+                  <tr>
+                    <th>{{ t("detail.source_id") }}</th>
+                    <th>{{ t("detail.provider") }}</th>
+                    <th>{{ t("detail.priority") }}</th>
+                    <th>{{ t("detail.fetch") }}</th>
+                    <th>{{ t("detail.parser") }}</th>
+                    <th>{{ t("detail.http_status") }}</th>
+                    <th>{{ t("detail.items") }}</th>
+                    <th>{{ t("detail.review_required") }}</th>
+                    <th>{{ t("detail.follow_up") }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for source in detail.source_coverage_matrix %}
+                  <tr>
+                    <td class="technical-value">{{ source.source_id }}</td>
+                    <td>{{ source.provider }}</td>
+                    <td>{{ source.priority }}</td>
+                    <td><span class="badge {{ source.fetch_status | status_class }}">{{ format_status(source.fetch_status) }}</span></td>
+                    <td><span class="badge {{ source.parser_status | status_class }}">{{ format_status(source.parser_status) }}</span></td>
+                    <td>{{ source.http_status if source.http_status is not none else format_status("NO_DATA") }}</td>
+                    <td>{{ source.parsed_item_count }}</td>
+                    {% set source_review_status = "HOLD" if source.manual_review_required else "PASS" %}
+                    <td><span class="badge {{ source_review_status | status_class }}">{{ format_bool(source.manual_review_required) }}</span></td>
+                    <td>{{ format_status(source.recommended_follow_up) }}</td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="9" class="empty">{{ format_status("NO_DATA") }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </details>
+
           <section class="panel emphasis">
-            <h2>{{ t("detail.direct_actions") }}</h2>
+            <h2>{{ t("detail.direct_actions_review") }}</h2>
             <ul class="item-list">
               {% for action in detail.direct_actions %}
               <li class="attention-item">

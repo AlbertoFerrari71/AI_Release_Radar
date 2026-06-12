@@ -97,6 +97,31 @@ class ActionInboxTests(unittest.TestCase):
             self.assertIn("Non chiamare LLM", text)
             self.assertIn("Non modificare scheduler", text)
 
+    def test_decision_log_records_are_scoped_to_the_current_run(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dispatch_root = Path(tmpdir) / "bridge" / "action_dispatch"
+            historical = run_detail()
+            historical["run"]["run_id"] = "0320_0400_daily_sim_20260610_071500"
+            historical["run"]["sort_key"] = "2026-06-10T07:15:00+00:00"
+            historical_action = build_action_inbox([historical]).actions[0]
+            append_decision_log(
+                dispatch_root,
+                historical_action,
+                decision="approve_prompt",
+                reason="approved in a previous run",
+            )
+
+            records = read_decision_log(dispatch_root)
+            current_action = build_action_inbox(
+                [run_detail()],
+                decision_records=records,
+            ).actions[0]
+
+            self.assertEqual(historical_action.action_key, current_action.action_key)
+            self.assertNotEqual(historical_action.run_id, current_action.run_id)
+            self.assertEqual(current_action.decision_status, "undecided")
+            self.assertFalse(current_action.prompt_generation_allowed)
+
     def test_previous_decision_suppresses_noise_and_backlog_export_writes_bridge_files(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             dispatch_root = Path(tmpdir) / "bridge" / "action_dispatch"

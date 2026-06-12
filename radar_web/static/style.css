@@ -171,6 +171,24 @@ h2 {
   margin-bottom: 18px;
 }
 
+.safety-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.safety-strip strong {
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 .metric,
 .panel {
   background: var(--surface);
@@ -307,6 +325,14 @@ table {
   width: 100%;
   border-collapse: collapse;
   min-width: 860px;
+}
+
+.source-matrix {
+  min-width: 980px;
+}
+
+.source-matrix .badge {
+  min-width: 0;
 }
 
 th,
@@ -486,6 +512,7 @@ th {
 
 .section-note {
   margin: 0 0 12px;
+  overflow-wrap: anywhere;
 }
 
 .item-title {

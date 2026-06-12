@@ -42,6 +42,54 @@
           <span class="label">{{ t("actions.no_auto_action") }}</span>
           <strong class="badge status-pass">{{ format_bool(payload.no_auto_action) }}</strong>
         </article>
+        <article class="metric">
+          <span class="label">{{ t("actions.run_scope") }}</span>
+          <strong class="badge {{ payload.run_scope_status | status_class }}">{{ format_status(payload.run_scope_status) }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">{{ t("actions.current_decisions") }}</span>
+          <strong>{{ payload.current_run_decision_count }}</strong>
+        </article>
+        <article class="metric">
+          <span class="label">{{ t("actions.historical_decisions") }}</span>
+          <strong>{{ payload.historical_decision_count }}</strong>
+        </article>
+      </section>
+
+      <section class="panel {% if payload.run_scope_status != 'RUN_SCOPED' %}warning-panel{% endif %}">
+        <h2>{{ t("actions.scope_title") }}</h2>
+        <dl class="facts compact-facts">
+          <div>
+            <dt>{{ t("actions.current_run") }}</dt>
+            <dd>{{ payload.run_id or format_status("NO_DATA") }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("actions.current_hag") }}</dt>
+            <dd><span class="badge {{ payload.current_hag_status | status_class }}">{{ format_status(payload.current_hag_status) }}</span></dd>
+          </div>
+          <div>
+            <dt>{{ t("actions.current_dispatch") }}</dt>
+            {% set dispatch_status = "PASS" if payload.current_run_dispatch_exists else "WARNING" %}
+            <dd><span class="badge {{ dispatch_status | status_class }}">{{ format_bool(payload.current_run_dispatch_exists) }}</span></dd>
+          </div>
+          <div>
+            <dt>{{ t("actions.run_output_hag") }}</dt>
+            {% set hag_output_status = "PASS" if payload.run_output_has_hag else "NO_DATA" %}
+            <dd><span class="badge {{ hag_output_status | status_class }}">{{ format_bool(payload.run_output_has_hag) }}</span></dd>
+          </div>
+          <div>
+            <dt>{{ t("actions.run_output_prompts") }}</dt>
+            {% set prompt_output_status = "PASS" if payload.run_output_has_prompt_suggestions else "NO_DATA" %}
+            <dd><span class="badge {{ prompt_output_status | status_class }}">{{ format_bool(payload.run_output_has_prompt_suggestions) }}</span></dd>
+          </div>
+        </dl>
+        <p class="section-note">{{ t("actions.scope_message") }}: {{ payload.run_scope_message }}</p>
+        {% if payload.showing_historical_decisions %}
+        <p class="section-note"><span class="badge status-warn">{{ t("actions.historical_badge") }}</span> {{ t("actions.historical_note") }}</p>
+        {% endif %}
+        {% if not payload.current_run_dispatch_exists and payload.run_output_has_prompt_suggestions %}
+        <p class="section-note"><span class="badge status-review">{{ t("actions.manual_only_badge") }}</span> {{ t("actions.no_dispatch_current_note") }}</p>
+        {% endif %}
       </section>
 
       <section class="panel action-toolbar">
@@ -119,6 +167,7 @@
             {% if action.suggested_prompt_path %}
             <p class="path"><strong>{{ t("actions.prompt") }}:</strong> {{ action.suggested_prompt_path }}</p>
             {% endif %}
+            <p><span class="badge status-review">{{ t("actions.manual_only_badge") }}</span> {{ t("actions.manual_only_note") }}</p>
           </div>
 
           <div class="button-row" data-action-id="{{ action.action_id }}">

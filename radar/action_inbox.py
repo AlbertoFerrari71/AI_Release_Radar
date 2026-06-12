@@ -185,7 +185,7 @@ def build_action_inbox(
     latest_run = _mapping(latest.get("run"))
     run_id = _string(latest_run.get("run_id")) or "unknown_run"
     records = decision_records or []
-    record_index = _decision_record_index(records)
+    record_index = _decision_record_index(records, run_id=run_id)
     previous_keys = _previous_action_keys(run_details[1:])
     warnings: list[str] = []
     raw_actions = _raw_actions_from_detail(latest, warnings)
@@ -606,11 +606,18 @@ def _previous_action_keys(run_details: list[dict[str, Any]]) -> set[str]:
     return keys
 
 
-def _decision_record_index(records: list[dict[str, Any]]) -> dict[str, dict[str, dict[str, Any]]]:
+def _decision_record_index(
+    records: list[dict[str, Any]],
+    *,
+    run_id: str | None = None,
+) -> dict[str, dict[str, dict[str, Any]]]:
     by_action_id: dict[str, dict[str, Any]] = {}
     by_action_key: dict[str, dict[str, Any]] = {}
     for record in records:
         if not isinstance(record, dict):
+            continue
+        record_run_id = _string(record.get("run_id"))
+        if run_id is not None and record_run_id != run_id:
             continue
         action_id = _string(record.get("action_id"))
         action_key = _string(record.get("action_key"))

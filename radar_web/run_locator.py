@@ -22,6 +22,10 @@ from radar_web.bridge_reader import (
     load_run_summary,
     load_text,
 )
+from radar.source_coverage import (
+    build_source_coverage_matrix,
+    summarize_source_coverage_matrix,
+)
 
 
 DAILY_SIM_DIR_PREFIX = "0320_0400_daily_sim_"
@@ -144,6 +148,7 @@ def load_run_detail(runs_root: str | Path, run_id: str) -> dict[str, Any] | None
     )
     automation_gate = _mapping(summary_data.get("automation_gate"))
     source_diagnostics = _list(real_run.get("source_diagnostics"))
+    source_coverage_matrix = build_source_coverage_matrix(source_diagnostics)
     triage_entries = _list(action_triage.get("entries"))
     detail = {
         "run": candidate.to_dict(),
@@ -155,10 +160,13 @@ def load_run_detail(runs_root: str | Path, run_id: str) -> dict[str, Any] | None
         "operator_dashboard": operator_dashboard,
         "source_diagnostics": source_diagnostics,
         "source_diagnostics_summary": _source_diagnostics_summary(source_diagnostics),
+        "source_coverage_matrix": source_coverage_matrix,
+        "source_coverage_summary": summarize_source_coverage_matrix(source_coverage_matrix),
         "direct_actions": [
             entry
             for entry in triage_entries
-            if _mapping(entry).get("triage_class") == "codex_prompt_candidate"
+            if _mapping(entry).get("triage_class")
+            in {"codex_prompt_candidate", "blocked_by_coverage", "blocked_by_manual_review"}
         ],
         "blocked_actions": [
             entry
