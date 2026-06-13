@@ -37,6 +37,11 @@ class DashboardConfig:
         """Bridge root containing scheduler logs."""
         return self.bridge_root / "scheduler_logs"
 
+    @property
+    def ui_preferences_path(self) -> Path:
+        """Bridge-local UI preference file, intentionally outside the repository."""
+        return self.bridge_root / "config" / "ui_preferences.ini"
+
     def validate_output_root(self, output_root: Path | None = None) -> list[str]:
         """Validate that an output root is outside the repo and not forbidden."""
         target = (output_root or self.runs_root).expanduser().resolve()
@@ -46,6 +51,19 @@ class DashboardConfig:
         forbidden = [part for part in target.parts if part.startswith(FORBIDDEN_PREFIXES)]
         if forbidden:
             warnings.extend(f"forbidden_path_name:{part}" for part in forbidden)
+        return warnings
+
+    def validate_ui_preferences_path(self) -> list[str]:
+        """Validate that UI preferences can only be written to the Bridge config file."""
+        target = self.ui_preferences_path.expanduser().resolve()
+        warnings: list[str] = []
+        if _is_path_within(target, self.repo_root.expanduser().resolve()):
+            warnings.append("ui_preferences_inside_repository")
+        forbidden = [part for part in target.parts if part.startswith(FORBIDDEN_PREFIXES)]
+        if forbidden:
+            warnings.extend(f"forbidden_path_name:{part}" for part in forbidden)
+        if target.name != "ui_preferences.ini":
+            warnings.append("unexpected_ui_preferences_file")
         return warnings
 
 

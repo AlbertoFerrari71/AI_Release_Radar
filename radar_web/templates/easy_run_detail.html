@@ -3,21 +3,32 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Release Radar - {{ day.date_label }}</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>AI Release Radar - Easy Mode - {{ day.date_label }}</title>
+    <link rel="stylesheet" href="/static/style.css?v=2270-2380">
+    <script src="/static/ui_preferences.js?v=2270-2380" defer></script>
   </head>
   <body>
     <header class="topbar">
       <div>
         <h1>AI Release Radar</h1>
-        <p class="easy-subtitle">Lettura guidata del giorno</p>
+        <p class="easy-subtitle"><span class="mode-badge">Easy Mode</span> Lettura guidata del giorno</p>
       </div>
       <div class="topbar-actions">
-        <nav class="locale-switcher" aria-label="{{ t('language.label') }}">
+        <div class="preference-control">
+          <label class="select-label" for="language-select">{{ t('language.label') }}</label>
+          <select class="ui-select" id="language-select" data-ui-language-select aria-label="{{ t('language.label') }}">
           {% for locale in supported_locales %}
-          <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
+            <option value="{{ locale }}" {% if lang == locale %}selected{% endif %}>{{ t("locale." ~ locale) }}</option>
           {% endfor %}
-        </nav>
+          </select>
+        </div>
+        <div class="preference-control">
+          <label class="select-label" for="start-mode-select">Start</label>
+          <select class="ui-select" id="start-mode-select" data-ui-start-mode-select aria-label="Start mode">
+            <option value="easy" {% if ui_preferences.start_mode == "easy" %}selected{% endif %}>Easy Mode</option>
+            <option value="expert" {% if ui_preferences.start_mode == "expert" %}selected{% endif %}>Expert Mode</option>
+          </select>
+        </div>
         <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
         <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
         <a class="button" href="{{ url_with_lang('/actions') }}">Action Center</a>
