@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Release Radar - Modalita semplice</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>AI Release Radar</h1>
+        <p class="easy-subtitle">Modalita semplice per la lettura quotidiana</p>
+      </div>
+      <div class="topbar-actions">
+        <nav class="locale-switcher" aria-label="{{ t('language.label') }}">
+          {% for locale in supported_locales %}
+          <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
+          {% endfor %}
+        </nav>
+        <a class="button primary" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+        <a class="button" href="{{ url_with_lang('/actions') }}">Action Center</a>
+        {% if latest %}
+        <a class="button" href="{{ url_with_lang('/easy/runs/' ~ latest.run_id) }}#sources">Sources</a>
+        {% else %}
+        <a class="button" href="{{ url_with_lang('/expert') }}">Sources</a>
+        {% endif %}
+        <a class="button" href="/expert?lang={{ lang }}#recent-runs">Runs / Reports</a>
+      </div>
+    </header>
+
+    <main class="layout easy-layout">
+      <section class="easy-hero">
+        <div>
+          <span class="label">Oggi da leggere</span>
+          <h2>Ultimi giorni disponibili</h2>
+          <p>Apri un giorno, leggi le notizie principali e poi continua nel flusso manuale.</p>
+        </div>
+        {% if latest %}
+        <div class="easy-latest easy-{{ latest.semaphore }}">
+          <span class="semaphore-dot" aria-hidden="true"></span>
+          <div>
+            <strong>{{ latest.semaphore_label }}</strong>
+            <span>{{ latest.message }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="easy-day-list" aria-label="Giorni disponibili">
+        {% for day in days %}
+        <article class="easy-day-card easy-{{ day.semaphore }}">
+          <div class="easy-day-main">
+            <div class="easy-status-line">
+              <span class="semaphore-dot" aria-hidden="true"></span>
+              <strong>{{ day.semaphore_label }}</strong>
+            </div>
+            <h2>{{ day.date_label }}</h2>
+            <p>{{ day.message }}</p>
+            <span class="easy-run-id">Run {{ day.run_id }}</span>
+          </div>
+          <dl class="easy-counts">
+            <div>
+              <dt>Importanti</dt>
+              <dd>{{ day.important_count }}</dd>
+            </div>
+            <div>
+              <dt>Da monitorare</dt>
+              <dd>{{ day.monitor_count }}</dd>
+            </div>
+            <div>
+              <dt>Fonti da controllare</dt>
+              <dd>{{ day.source_warning_count }}</dd>
+            </div>
+          </dl>
+          <div class="easy-card-actions">
+            <a class="button primary" href="{{ url_with_lang('/easy/runs/' ~ day.run_id) }}">Leggi</a>
+            <a class="button" href="{{ url_with_lang('/runs/' ~ day.run_id) }}">Expert</a>
+          </div>
+        </article>
+        {% else %}
+        <article class="panel easy-empty">
+          <h2>Nessun giorno disponibile</h2>
+          <p>Non ci sono run leggibili nella cartella configurata. La vista Expert puo mostrare i dettagli tecnici.</p>
+          <a class="button" href="{{ url_with_lang('/expert') }}">Apri Expert Mode</a>
+        </article>
+        {% endfor %}
+      </section>
+    </main>
+  </body>
+</html>

@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from radar.news_translation import apply_translation_cache_to_actions
+from radar_web.easy_mode import build_easy_days, build_easy_latest, build_easy_run_detail
 from radar_web.action_center import (
     build_action_center_payload,
     export_current_backlog,
@@ -66,6 +67,21 @@ def create_app(
 
     @app.get("/", response_class=HTMLResponse)
     def index(request: Request) -> Any:
+        payload = build_easy_days(dashboard_config.runs_root, limit=30)
+        latest = payload.get("latest") if isinstance(payload.get("latest"), dict) else None
+        return templates.TemplateResponse(
+            request,
+            "easy_index.html",
+            {
+                "payload": payload,
+                "days": payload["days"],
+                "latest": latest,
+                **_localized_context(request, default_locale="it"),
+            },
+        )
+
+    @app.get("/expert", response_class=HTMLResponse)
+    def expert(request: Request) -> Any:
         runs = list_recent_runs(dashboard_config.runs_root, limit=20)
         status = build_status(dashboard_config, runs=runs).to_dict()
         return templates.TemplateResponse(
@@ -108,6 +124,27 @@ def create_app(
             "locale": normalize_locale(lang) if lang is not None else None,
             "runs": [run.to_dict() for run in runs],
         }
+
+    @app.get("/api/easy/days")
+    def api_easy_days(limit: int = 30) -> dict[str, Any]:
+        return build_easy_days(dashboard_config.runs_root, limit=limit)
+
+    @app.get("/api/easy/latest")
+    def api_easy_latest() -> dict[str, Any]:
+        return build_easy_latest(dashboard_config.runs_root)
+
+    @app.get("/api/easy/days/{run_id}")
+    def api_easy_day_detail(run_id: str) -> dict[str, Any]:
+        detail = build_easy_run_detail(dashboard_config.runs_root, run_id)
+        if detail is None:
+            raise HTTPException(
+                status_code=404,
+                detail=ApiMessage(
+                    status="NO_DATA",
+                    message=f"Run not found: {run_id}",
+                ).to_dict(),
+            )
+        return detail
 
     @app.get("/actions", response_class=HTMLResponse)
     def actions(request: Request, filter: str = "all") -> Any:
@@ -278,6 +315,27 @@ def create_app(
             },
         )
 
+    @app.get("/easy/runs/{run_id}", response_class=HTMLResponse)
+    def easy_run_detail(request: Request, run_id: str) -> Any:
+        detail = build_easy_run_detail(dashboard_config.runs_root, run_id)
+        if detail is None:
+            raise HTTPException(
+                status_code=404,
+                detail=ApiMessage(
+                    status="NO_DATA",
+                    message=f"Run not found: {run_id}",
+                ).to_dict(),
+            )
+        return templates.TemplateResponse(
+            request,
+            "easy_run_detail.html",
+            {
+                "detail": detail,
+                "day": detail["day"],
+                **_localized_context(request, default_locale="it"),
+            },
+        )
+
     return app
 
 
@@ -320,8 +378,9 @@ def read_scheduler_status_placeholder(config: DashboardConfig) -> dict[str, Any]
     return read_scheduler_status(config.scheduler_task_name)
 
 
-def _localized_context(request: Request) -> dict[str, Any]:
-    locale = normalize_locale(request.query_params.get("lang"))
+def _localized_context(request: Request, *, default_locale: str = "en") -> dict[str, Any]:
+    raw_locale = request.query_params.get("lang")
+    locale = normalize_locale(raw_locale if raw_locale is not None else default_locale)
 
     def t(key: str, **kwargs: object) -> str:
         return translate(key, locale, **kwargs)
