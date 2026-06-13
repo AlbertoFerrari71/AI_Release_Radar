@@ -8,6 +8,7 @@
 - [F] `GET /expert` renders the technical dashboard. Fonte: `radar_web/app.py`, `radar_web/templates/index.html`.
 - [F] `GET /dashboard` redirects to `/expert` preserving the query string. Fonte: `radar_web/app.py`.
 - [F] `GET /sources` redirects to the latest run detail `#sources` section when a run exists, or to `/expert#recent-runs` without runs. Fonte: `radar_web/app.py`.
+- [F] Operator Acceptance lesson learned for Easy Mode is documented in `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`. Fonte: prompt 2390-2440.
 
 ## Default Mode
 
@@ -42,6 +43,6 @@
 
 ## Status Criteria
 
-- [F] GREEN requires `/`, `/easy`, `/easy-mode`, `/expert`, `/actions`, `/sources`, Easy APIs, preference APIs, tests, diff checks, and local smoke to pass with preferences outside the repo. Fonte: prompt `2270-2380`, `tests/test_easy_mode.py`, `tests/test_radar_web_app.py`.
-- [F] YELLOW applies when deterministic tests pass but visual Browser evidence is unavailable or some ambiguous controls remain manual review only. Fonte: prompt `2270-2380`, `tests/test_radar_web_app.py`.
-- [F] RED applies when Easy Mode is not reachable from `/`, `/easy`, or `/easy-mode`, `/expert` fails, tests fail, preferences write inside the repo, or operational state is mutated by preference/UI audit. Fonte: prompt `2270-2380`, `tests/test_radar_web_app.py`.
+- [F] GREEN requires `/`, `/easy`, `/easy-mode`, `/expert`, `/actions`, `/sources`, Easy APIs, preference APIs, tests, diff checks, real operator port validation, UI navigation evidence, and local smoke to pass with preferences outside the repo. Fonte: prompt `2270-2380`, prompt 2390-2440, `tests/test_easy_mode.py`, `tests/test_radar_web_app.py`.
+- [F] YELLOW applies when deterministic tests pass but visual Browser/HTML evidence is unavailable, real-port validation is incomplete, warnings are governed, or some ambiguous controls remain manual review only. Fonte: prompt `2270-2380`, prompt 2390-2440, `tests/test_radar_web_app.py`.
+- [F] RED applies when Easy Mode is not reachable from `/`, `/easy`, or `/easy-mode`, `/expert` fails, tests fail, preferences write inside the repo, primary routes fail, or operational state is mutated by preference/UI audit. Fonte: prompt `2270-2380`, prompt 2390-2440, `tests/test_radar_web_app.py`.

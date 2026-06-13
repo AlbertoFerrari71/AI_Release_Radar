@@ -15,10 +15,16 @@
 ## Flusso Giornaliero
 
 1. [F] Lo scheduler dry-report produce output nel Bridge senza auto-action. Fonte: `scripts/scheduler/ai_release_radar_daily_dry_report.ps1`, `docs/decisions/0510_L3_SCHEDULER_DRY_REPORT_CONSENT.md`.
-2. [F] L'operatore apre la dashboard locale su `127.0.0.1`. Fonte: `radar_web/app.py`.
+2. [F] L'operatore apre la dashboard locale su `http://127.0.0.1:8787/`. Fonte: `radar_web/app.py`, `docs/architecture/0760_WEB_DASHBOARD_ARCHITECTURE.md`.
 3. [F] L'operatore legge ultimo run, source coverage, Action Center, HAG e prompt suggestions. Fonte: `radar_web/templates/index.html`, `radar_web/templates/run_detail.html`, `radar_web/templates/actions.html`.
 4. [F] I prompt suggestions restano `suggested_only` e non vengono eseguiti automaticamente. Fonte: `radar/prompt_suggestions.py`, `radar/action_inbox.py`.
 5. [PROP] Alberto decide manualmente se aprire uno step separato di manutenzione o implementazione.
+
+## Operator Acceptance Gate
+
+- [F] Per modifiche UI-facing, il Verification Gate non sostituisce l'Acceptance Gate operatore. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
+- [F] L'Acceptance Gate deve verificare accesso reale, primo utilizzo, navigazione Easy Mode/Expert Mode/Action Center/Source Matrix/run detail e porta operatore `127.0.0.1:8787`, salvo diversa configurazione documentata. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`, `docs/web/2270_EASY_MODE_UI_CONTRACT.md`.
+- [F] I click automatizzati restano limitati a link GET interni, controlli visuali e preferenze UI locali testate; HAG, decisioni operative, scheduler, run trigger, email, notifiche e azioni esterne restano manual-only. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`, `docs/web/2270_EASY_MODE_UI_CONTRACT.md`.
 
 ## Comandi Manuali
 

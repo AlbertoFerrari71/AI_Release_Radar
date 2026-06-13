@@ -1,5 +1,14 @@
 # Changelog
 
+## 2390-2440) Operator Acceptance Philosophy and UI Gate Lessons Learned
+
+- [F] Aggiunta lesson learned Operator Acceptance con principio `PASS tecnico ≠ PASS operatore`. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
+- [F] Documentata la differenza tra Verification Gate e Acceptance Gate per modifiche UI-facing. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`, `docs/decisions/2440_DECISIONS.md`.
+- [F] Formalizzato UI Navigation Gate per home, Easy Mode, Expert Mode, Action Center, Source Matrix, run detail, tab, tendine, link GET interni, bottoni sicuri e preferenze UI. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`, `docs/web/2270_EASY_MODE_UI_CONTRACT.md`.
+- [F] Formalizzata safe-click policy con divieto di click automatici su HAG approvals, decisioni operative, scheduler, trigger run reali, email, notifiche e azioni esterne. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`, `docs/web/2270_EASY_MODE_UI_CONTRACT.md`.
+- [F] Collegata la correzione Easy Mode/accesso della PR #37 e la validazione reale 18/18 su `127.0.0.1:8787`. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`, report Bridge `2385-Report_Codex.md`.
+- [F] Nessuna modifica funzionale al prodotto: aggiornamento documentale, decision record, handoff ASF e note presentazione. Fonte: diff 2390-2440.
+
 ## 1520-2000) V1 Final Operator Product
 
 - [F] Aggiunta classificazione finale V1 delle fonti con `final_v1_status`, motivazione e categoria backlog manutentivo. Fonte: `config/sources/openai_sources.json`, `radar/source_registry.py`.
