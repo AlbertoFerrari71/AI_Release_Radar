@@ -18,6 +18,7 @@
 - [F] Safety gate finale deve confermare no auto-action, no email, no runtime LLM, no scheduler mutation, no tag/release. Fonte: `AGENTS.md`, `radar/v1_readiness.py`.
 - [F] Source coverage finale deve avere classificazione completa, `parsed_count >= 3` o warning documentato, e `fragile_parser_count=0`. Fonte: `radar/source_coverage.py`.
 - [F] Final readiness gate deve essere `AI_RADAR_V1_FINAL_READY` o `AI_RADAR_V1_FINAL_READY_WITH_WARNINGS`. Fonte: `radar/v1_readiness.py`.
+- [F] Prima di valutare il tag, le modifiche UI-facing devono avere Operator Acceptance Gate esplicito su porta operatore reale o motivazione documentata. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
 
 ## Comando Manuale Futuro
 

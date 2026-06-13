@@ -15,6 +15,12 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] La source coverage finale usa parser robusti per GitHub API e Markdown ufficiale deprecations, lasciando le altre fonti diagnosticate, manual-review o unsupported documentate. Fonte: `docs/source_policy/1730_SOURCE_POLICY_FINAL.md`, `config/sources/openai_sources.json`, `radar/source_coverage.py`.
 - [F] Il tag `v1.0.0` e' solo pianificato e non creato da questo prodotto. Fonte: `docs/release/1750_V1_0_TAG_PLAN.md`.
 
+## Operator Acceptance
+
+- [F] Easy Mode e' il punto di ingresso operativo della web app locale; Expert Mode resta il cockpit tecnico. Fonte: `docs/web/2270_EASY_MODE_UI_CONTRACT.md`, `radar_web/app.py`.
+- [F] Per modifiche UI-facing, AI Release Radar distingue Verification Gate e Acceptance Gate: il primo verifica test/smoke/API/diff/safety, il secondo verifica accesso reale, primo utilizzo e navigazione dell'operatore. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
+- [F] Principio guida: `PASS tecnico ≠ PASS operatore`. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
+
 ## V1 manuale
 
 - [F] La V1 manuale si esegue con `python -m radar.cli real-run --profile manual --output-dir <directory-fuori-repo>`. Fonte: `radar/cli.py`.
