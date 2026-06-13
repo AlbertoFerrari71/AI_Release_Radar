@@ -224,6 +224,8 @@ class EasyModeTests(unittest.TestCase):
             client = TestClient(create_app(DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)))
             with patch("radar_web.app.read_scheduler_status", return_value={"status": "NO_DATA"}):
                 root = client.get("/")
+                easy = client.get("/easy")
+                easy_mode = client.get("/easy-mode")
                 detail = client.get(f"/easy/runs/{run_id}")
                 days = client.get("/api/easy/days").json()
                 latest = client.get("/api/easy/latest").json()
@@ -231,11 +233,14 @@ class EasyModeTests(unittest.TestCase):
                 expert = client.get("/expert")
 
         self.assertEqual(root.status_code, 200)
+        self.assertEqual(easy.status_code, 200)
+        self.assertEqual(easy_mode.status_code, 200)
         self.assertEqual(detail.status_code, 200)
         self.assertEqual(api_detail.status_code, 200)
         self.assertEqual(expert.status_code, 200)
         self.assertEqual(days["latest"]["run_id"], run_id)
         self.assertEqual(latest["run_id"], run_id)
+        self.assertIn("Easy Mode", root.text)
         self.assertIn("Modalita semplice", root.text)
         self.assertIn("Cosa e successo", detail.text)
         for forbidden in ("parsed_count", "fixture", "HAG"):

@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlencode
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -37,6 +37,13 @@ from radar_web.manual_trigger import DailySimTrigger
 from radar_web.models import ApiMessage, DashboardStatus
 from radar_web.run_locator import inspect_runs_root, list_recent_runs, load_run_detail
 from radar_web.scheduler_status import read_scheduler_status
+from radar_web.ui_preferences import (
+    ALLOWED_POST_FIELDS,
+    SUPPORTED_MODES,
+    load_ui_preferences,
+    resolve_ui_language,
+    save_ui_preferences,
+)
 
 
 def create_app(
@@ -65,8 +72,7 @@ def create_app(
         name="static",
     )
 
-    @app.get("/", response_class=HTMLResponse)
-    def index(request: Request) -> Any:
+    def easy_index_response(request: Request) -> Any:
         payload = build_easy_days(dashboard_config.runs_root, limit=30)
         latest = payload.get("latest") if isinstance(payload.get("latest"), dict) else None
         return templates.TemplateResponse(
@@ -76,9 +82,32 @@ def create_app(
                 "payload": payload,
                 "days": payload["days"],
                 "latest": latest,
-                **_localized_context(request, default_locale="it"),
+                **_localized_context(request, dashboard_config=dashboard_config),
             },
         )
+
+    @app.get("/", response_class=HTMLResponse)
+    def index(request: Request) -> Any:
+        return easy_index_response(request)
+
+    @app.get("/easy", response_class=HTMLResponse)
+    def easy(request: Request) -> Any:
+        return easy_index_response(request)
+
+    @app.get("/easy-mode")
+    def easy_mode_alias(request: Request) -> RedirectResponse:
+        return _redirect_with_current_query(request, "/easy")
+
+    @app.get("/dashboard")
+    def dashboard_alias(request: Request) -> RedirectResponse:
+        return _redirect_with_current_query(request, "/expert")
+
+    @app.get("/sources")
+    def sources_alias(request: Request) -> RedirectResponse:
+        runs = list_recent_runs(dashboard_config.runs_root, limit=1)
+        if runs:
+            return _redirect_with_current_query(request, f"/runs/{runs[0].run_id}", fragment="sources")
+        return _redirect_with_current_query(request, "/expert", fragment="recent-runs")
 
     @app.get("/expert", response_class=HTMLResponse)
     def expert(request: Request) -> Any:
@@ -91,7 +120,7 @@ def create_app(
                 "status": status,
                 "latest": status.get("latest_run"),
                 "runs": [run.to_dict() for run in runs],
-                **_localized_context(request),
+                **_localized_context(request, dashboard_config=dashboard_config),
             },
         )
 
@@ -133,6 +162,58 @@ def create_app(
     def api_easy_latest() -> dict[str, Any]:
         return build_easy_latest(dashboard_config.runs_root)
 
+    @app.get("/api/preferences/ui")
+    def api_ui_preferences(request: Request) -> dict[str, Any]:
+        language, language_source = resolve_ui_language(
+            dashboard_config,
+            query_lang=request.query_params.get("lang"),
+            accept_language=request.headers.get("accept-language"),
+        )
+        return {
+            "status": "PASS",
+            "preferences": load_ui_preferences(dashboard_config).to_dict(),
+            "effective_language": language,
+            "language_source": language_source,
+            "path": str(dashboard_config.ui_preferences_path),
+            "path_warnings": dashboard_config.validate_ui_preferences_path(),
+            "allowed_fields": sorted(ALLOWED_POST_FIELDS),
+            "supported_modes": list(SUPPORTED_MODES),
+            "writes": [],
+            "no_scheduler_mutation": True,
+            "no_action_mutation": True,
+        }
+
+    @app.post("/api/preferences/ui")
+    async def api_save_ui_preferences(request: Request) -> JSONResponse:
+        payload = await _json_payload(request)
+        try:
+            preferences = save_ui_preferences(dashboard_config, payload)
+        except ValueError as exc:
+            return JSONResponse(
+                {
+                    "status": "REFUSED",
+                    "message": str(exc),
+                    "path": str(dashboard_config.ui_preferences_path),
+                    "allowed_fields": sorted(ALLOWED_POST_FIELDS),
+                    "writes": [],
+                    "no_scheduler_mutation": True,
+                    "no_action_mutation": True,
+                },
+                status_code=400,
+            )
+        return JSONResponse(
+            {
+                "status": "PASS",
+                "preferences": preferences.to_dict(),
+                "path": str(dashboard_config.ui_preferences_path),
+                "writes": [str(dashboard_config.ui_preferences_path)],
+                "no_scheduler_mutation": True,
+                "no_action_mutation": True,
+                "no_run_mutation": True,
+                "no_source_mutation": True,
+            }
+        )
+
     @app.get("/api/easy/days/{run_id}")
     def api_easy_day_detail(run_id: str) -> dict[str, Any]:
         detail = build_easy_run_detail(dashboard_config.runs_root, run_id)
@@ -148,7 +229,7 @@ def create_app(
 
     @app.get("/actions", response_class=HTMLResponse)
     def actions(request: Request, filter: str = "all") -> Any:
-        localized_context = _localized_context(request)
+        localized_context = _localized_context(request, dashboard_config=dashboard_config)
         payload = build_action_center_payload(dashboard_config, filter_value=filter)
         localized_actions = apply_translation_cache_to_actions(
             payload["actions"],
@@ -311,7 +392,7 @@ def create_app(
             {
                 "detail": detail,
                 "run": detail["run"],
-                **_localized_context(request),
+                **_localized_context(request, dashboard_config=dashboard_config),
             },
         )
 
@@ -332,7 +413,7 @@ def create_app(
             {
                 "detail": detail,
                 "day": detail["day"],
-                **_localized_context(request, default_locale="it"),
+                **_localized_context(request, dashboard_config=dashboard_config),
             },
         )
 
@@ -378,9 +459,13 @@ def read_scheduler_status_placeholder(config: DashboardConfig) -> dict[str, Any]
     return read_scheduler_status(config.scheduler_task_name)
 
 
-def _localized_context(request: Request, *, default_locale: str = "en") -> dict[str, Any]:
-    raw_locale = request.query_params.get("lang")
-    locale = normalize_locale(raw_locale if raw_locale is not None else default_locale)
+def _localized_context(request: Request, *, dashboard_config: DashboardConfig) -> dict[str, Any]:
+    locale, language_source = resolve_ui_language(
+        dashboard_config,
+        query_lang=request.query_params.get("lang"),
+        accept_language=request.headers.get("accept-language"),
+    )
+    ui_preferences = load_ui_preferences(dashboard_config)
 
     def t(key: str, **kwargs: object) -> str:
         return translate(key, locale, **kwargs)
@@ -429,7 +514,11 @@ def _localized_context(request: Request, *, default_locale: str = "en") -> dict[
 
     return {
         "lang": locale,
+        "language_source": language_source,
         "supported_locales": SUPPORTED_LOCALES,
+        "supported_modes": SUPPORTED_MODES,
+        "ui_preferences": ui_preferences.to_dict(),
+        "ui_preferences_path": str(dashboard_config.ui_preferences_path),
         "t": t,
         "url_with_lang": url_with_lang,
         "url_for_locale": url_for_locale,
@@ -443,6 +532,21 @@ def _localized_context(request: Request, *, default_locale: str = "en") -> dict[
         "format_action_reasons": format_action_reasons,
         "format_action_next_step": format_action_next_step,
     }
+
+
+def _redirect_with_current_query(
+    request: Request,
+    path: str,
+    *,
+    fragment: str | None = None,
+) -> RedirectResponse:
+    query = urlencode(dict(request.query_params))
+    target = path
+    if query:
+        target = f"{target}?{query}"
+    if fragment:
+        target = f"{target}#{fragment}"
+    return RedirectResponse(target, status_code=307)
 
 
 def _localize_action_center_fields(

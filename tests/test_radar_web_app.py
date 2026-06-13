@@ -1,10 +1,12 @@
 import json
+from html.parser import HTMLParser
 import subprocess
 import tempfile
 import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from urllib.parse import urlsplit
 
 from fastapi.testclient import TestClient
 
@@ -22,6 +24,23 @@ SCHEDULER_NO_DATA = {
     "interpretation": "NO_DATA",
     "warnings": [],
 }
+
+
+class InternalLinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links = []
+        self.buttons = []
+        self.selects = []
+
+    def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if tag == "a" and values.get("href"):
+            self.links.append(values["href"])
+        if tag == "button":
+            self.buttons.append(values)
+        if tag == "select":
+            self.selects.append(values)
 
 
 class RadarWebAppTests(unittest.TestCase):
@@ -100,7 +119,7 @@ class RadarWebAppTests(unittest.TestCase):
                 self.assertIn("Modalita semplice", html)
                 self.assertIn("Leggi", html)
                 self.assertNotIn("parsed_count", html)
-                expert_html = client.get("/expert").text
+                expert_html = client.get("/expert?lang=en").text
                 self.assertIn("SUGGESTED ONLY - not executed", expert_html)
 
     def test_operator_smoke_covers_run_detail_and_sub_endpoints(self):
@@ -113,12 +132,17 @@ class RadarWebAppTests(unittest.TestCase):
 
                 endpoints = [
                     "/",
+                    "/easy",
+                    "/easy-mode",
                     "/expert",
+                    "/dashboard",
+                    "/sources",
                     "/health",
                     "/api/status",
                     "/api/runs",
                     "/api/easy/days",
                     "/api/easy/latest",
+                    "/api/preferences/ui",
                     f"/api/easy/days/{run_id}",
                     f"/easy/runs/{run_id}",
                     f"/runs/{run_id}",
@@ -133,6 +157,154 @@ class RadarWebAppTests(unittest.TestCase):
                     with self.subTest(endpoint=endpoint):
                         response = client.get(endpoint)
                         self.assertEqual(response.status_code, 200)
+
+    def test_easy_alias_redirect_is_safe(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+                response = client.get("/easy-mode?lang=fr", follow_redirects=False)
+
+        self.assertEqual(response.status_code, 307)
+        self.assertEqual(response.headers["location"], "/easy?lang=fr")
+
+    def test_ui_preferences_language_resolution_and_save_are_local_only(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            bridge = self.create_bridge(root)
+            repo_root.mkdir()
+            config = DashboardConfig(repo_root=repo_root, bridge_root=bridge)
+            preferences_path = bridge / "config" / "ui_preferences.ini"
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+
+                self.assertIn(
+                    '<html lang="fr">',
+                    client.get("/", headers={"accept-language": "fr-FR,fr;q=0.9"}).text,
+                )
+                self.assertIn(
+                    '<html lang="de">',
+                    client.get("/?lang=de", headers={"accept-language": "fr-FR"}).text,
+                )
+                self.assertIn(
+                    '<html lang="it">',
+                    client.get("/", headers={"accept-language": "pt-BR,pt;q=0.9"}).text,
+                )
+
+                before_files = {
+                    path.relative_to(bridge).as_posix()
+                    for path in bridge.rglob("*")
+                    if path.is_file()
+                }
+                saved = client.post(
+                    "/api/preferences/ui",
+                    json={"language": "en", "start_mode": "expert"},
+                )
+                after_files = {
+                    path.relative_to(bridge).as_posix()
+                    for path in bridge.rglob("*")
+                    if path.is_file()
+                }
+                preference_response = client.get("/api/preferences/ui").json()
+                html_after_save = client.get("/").text
+                preferences_file_exists = preferences_path.is_file()
+
+        self.assertEqual(saved.status_code, 200)
+        self.assertTrue(saved.json()["no_scheduler_mutation"])
+        self.assertTrue(saved.json()["no_action_mutation"])
+        self.assertEqual(after_files - before_files, {"config/ui_preferences.ini"})
+        self.assertTrue(preferences_file_exists)
+        with self.assertRaises(ValueError):
+            preferences_path.resolve().relative_to(repo_root.resolve())
+        self.assertEqual(preference_response["preferences"]["language"], "en")
+        self.assertEqual(preference_response["preferences"]["start_mode"], "expert")
+        self.assertEqual(preference_response["effective_language"], "en")
+        self.assertIn('<html lang="en">', html_after_save)
+
+    def test_ui_preferences_reject_operational_or_repo_writes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            bridge = self.create_bridge(root)
+            config = DashboardConfig(repo_root=root / "repo", bridge_root=bridge)
+            config.repo_root.mkdir()
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+                refused = client.post(
+                    "/api/preferences/ui",
+                    json={"language": "it", "scheduler": "mutate"},
+                )
+
+            inside_repo = root / "repo"
+            inside_config = DashboardConfig(repo_root=inside_repo, bridge_root=inside_repo / "bridge")
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                inside_client = TestClient(create_app(inside_config))
+                inside_refused = inside_client.post(
+                    "/api/preferences/ui",
+                    json={"language": "it"},
+                )
+
+        self.assertEqual(refused.status_code, 400)
+        self.assertIn("unsupported_ui_preference_field:scheduler", refused.text)
+        self.assertFalse((bridge / "config" / "ui_preferences.ini").exists())
+        self.assertEqual(inside_refused.status_code, 400)
+        self.assertIn("ui_preferences_inside_repository", inside_refused.text)
+        self.assertFalse((inside_repo / "bridge" / "config" / "ui_preferences.ini").exists())
+
+    def test_ui_navigation_audit_safe_get_links_and_controls(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            run_id = next((bridge / "runs").iterdir()).name
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+                pages = [
+                    "/",
+                    "/easy",
+                    "/easy-mode",
+                    "/expert",
+                    "/actions",
+                    "/sources",
+                    f"/easy/runs/{run_id}",
+                    f"/runs/{run_id}",
+                ]
+                visited = set()
+                excluded_buttons = set()
+                select_names = set()
+                for page in pages:
+                    response = client.get(page)
+                    self.assertEqual(response.status_code, 200)
+                    parser = InternalLinkParser()
+                    parser.feed(response.text)
+                    for attrs in parser.selects:
+                        if attrs.get("aria-label"):
+                            select_names.add(attrs["aria-label"])
+                        if attrs.get("id"):
+                            select_names.add(attrs["id"])
+                    for attrs in parser.buttons:
+                        button_class = attrs.get("class", "")
+                        if "decision-button" in button_class or "prompt-button" in button_class:
+                            excluded_buttons.add(button_class)
+                    for href in parser.links:
+                        target = urlsplit(href)
+                        if target.scheme or target.netloc or href.startswith("#"):
+                            continue
+                        safe_path = target.path or "/"
+                        if safe_path.startswith("/api/actions") and safe_path != "/api/actions":
+                            continue
+                        if safe_path.startswith("/api/daily-sim"):
+                            continue
+                        if safe_path in visited:
+                            continue
+                        visited.add(safe_path)
+                        link_response = client.get(href)
+                        self.assertLess(link_response.status_code, 400, href)
+
+        self.assertIn("language-select", select_names)
+        self.assertIn("start-mode-select", select_names)
+        self.assertTrue(any("decision-button" in value for value in excluded_buttons))
+        self.assertTrue(any("prompt-button" in value for value in excluded_buttons))
 
     def test_action_center_get_is_run_scoped_and_read_only(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -204,7 +376,7 @@ class RadarWebAppTests(unittest.TestCase):
             bridge = self.create_bridge(Path(tmpdir))
             config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
             with patch("radar_web.app.read_scheduler_status", return_value=scheduler):
-                html = TestClient(create_app(config)).get("/expert").text
+                html = TestClient(create_app(config)).get("/expert?lang=en").text
 
         self.assertIn("Manual only / no auto-action", html)
         self.assertIn("2026-06-10 19:01", html)
@@ -220,7 +392,7 @@ class RadarWebAppTests(unittest.TestCase):
             with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
                 client = TestClient(create_app(config))
                 status = client.get("/api/status").json()
-                html = client.get("/expert").text
+                html = client.get("/expert?lang=en").text
 
         self.assertEqual(status["data_completeness_status"], "PASS_WITH_WARNINGS")
         self.assertIn(
@@ -275,7 +447,7 @@ class RadarWebAppTests(unittest.TestCase):
             summary_path.write_text(json.dumps(summary), encoding="utf-8")
             config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
             with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
-                html = TestClient(create_app(config)).get(f"/runs/{run_dir.name}").text
+                html = TestClient(create_app(config)).get(f"/runs/{run_dir.name}?lang=en").text
 
         self.assertIn("operator attention", html)
         self.assertIn("HOLD_FOR_HUMAN_APPROVAL", html)
@@ -407,7 +579,7 @@ class RadarWebAppTests(unittest.TestCase):
             with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
                 client = TestClient(create_app(config))
 
-                html = client.get("/actions").text
+                html = client.get("/actions?lang=en").text
                 self.assertIn("Action Center", html)
                 self.assertIn("Approve prompt", html)
                 self.assertIn("Review Action Center candidate", html)
