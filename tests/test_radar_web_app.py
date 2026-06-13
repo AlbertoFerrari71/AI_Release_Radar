@@ -97,7 +97,11 @@ class RadarWebAppTests(unittest.TestCase):
                 self.assertEqual(len(runs), 1)
                 html = client.get("/").text
                 self.assertIn("AI Release Radar", html)
-                self.assertIn("SUGGESTED ONLY - not executed", html)
+                self.assertIn("Modalita semplice", html)
+                self.assertIn("Leggi", html)
+                self.assertNotIn("parsed_count", html)
+                expert_html = client.get("/expert").text
+                self.assertIn("SUGGESTED ONLY - not executed", expert_html)
 
     def test_operator_smoke_covers_run_detail_and_sub_endpoints(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -109,9 +113,14 @@ class RadarWebAppTests(unittest.TestCase):
 
                 endpoints = [
                     "/",
+                    "/expert",
                     "/health",
                     "/api/status",
                     "/api/runs",
+                    "/api/easy/days",
+                    "/api/easy/latest",
+                    f"/api/easy/days/{run_id}",
+                    f"/easy/runs/{run_id}",
                     f"/runs/{run_id}",
                     f"/api/runs/{run_id}",
                     f"/api/runs/{run_id}/compact",
@@ -195,7 +204,7 @@ class RadarWebAppTests(unittest.TestCase):
             bridge = self.create_bridge(Path(tmpdir))
             config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
             with patch("radar_web.app.read_scheduler_status", return_value=scheduler):
-                html = TestClient(create_app(config)).get("/").text
+                html = TestClient(create_app(config)).get("/expert").text
 
         self.assertIn("Manual only / no auto-action", html)
         self.assertIn("2026-06-10 19:01", html)
@@ -211,7 +220,7 @@ class RadarWebAppTests(unittest.TestCase):
             with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
                 client = TestClient(create_app(config))
                 status = client.get("/api/status").json()
-                html = client.get("/").text
+                html = client.get("/expert").text
 
         self.assertEqual(status["data_completeness_status"], "PASS_WITH_WARNINGS")
         self.assertIn(

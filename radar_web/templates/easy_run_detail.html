@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Release Radar - {{ day.date_label }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>AI Release Radar</h1>
+        <p class="easy-subtitle">Lettura guidata del giorno</p>
+      </div>
+      <div class="topbar-actions">
+        <nav class="locale-switcher" aria-label="{{ t('language.label') }}">
+          {% for locale in supported_locales %}
+          <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
+          {% endfor %}
+        </nav>
+        <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+        <a class="button" href="{{ url_with_lang('/actions') }}">Action Center</a>
+        <a class="button" href="#sources">Sources</a>
+        <a class="button" href="/expert?lang={{ lang }}#recent-runs">Runs / Reports</a>
+      </div>
+    </header>
+
+    <main class="layout easy-layout">
+      <section class="easy-detail-header easy-{{ day.semaphore }}">
+        <div>
+          <div class="easy-status-line">
+            <span class="semaphore-dot" aria-hidden="true"></span>
+            <strong>{{ day.semaphore_label }}</strong>
+          </div>
+          <h2>{{ day.date_label }}</h2>
+          <p>{{ detail.summary }}</p>
+          <span class="easy-run-id">Run {{ day.run_id }}</span>
+        </div>
+        <dl class="easy-counts">
+          <div>
+            <dt>Importanti</dt>
+            <dd>{{ day.important_count }}</dd>
+          </div>
+          <div>
+            <dt>Da monitorare</dt>
+            <dd>{{ day.monitor_count }}</dd>
+          </div>
+          <div>
+            <dt>Fonti da controllare</dt>
+            <dd>{{ day.source_warning_count }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="easy-link-strip" aria-label="Prosegui">
+        <a class="button primary" href="{{ url_with_lang('/actions') }}">Apri Action Center</a>
+        <a class="button" href="{{ url_with_lang(day.expert_url) }}">Vista Expert dello stesso run</a>
+        <a class="button" href="{{ detail.links.compact_report_api }}">Report compatto</a>
+        <a class="button" href="{{ detail.links.source_matrix_api }}">Dettaglio fonti</a>
+      </section>
+
+      <section class="easy-section">
+        <h2>Cosa e successo</h2>
+        <div class="easy-card-grid">
+          {% for card in detail.cards %}
+          <article class="easy-news-card">
+            <div class="easy-news-card-head">
+              <div>
+                <span class="label">Fonte</span>
+                <strong>{{ card.source }}</strong>
+              </div>
+              <span class="easy-importance">{{ card.importance }}</span>
+            </div>
+            <h3>{{ card.title }}</h3>
+            <dl class="easy-card-facts">
+              <div>
+                <dt>Perche conta</dt>
+                <dd>{{ card.why_it_matters }}</dd>
+              </div>
+              <div>
+                <dt>Cosa fare ora</dt>
+                <dd>{{ card.what_to_do }}</dd>
+              </div>
+            </dl>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="easy-section" id="sources">
+        <h2>Fonti da controllare</h2>
+        {% if detail.source_warnings %}
+        <div class="easy-source-list">
+          {% for source in detail.source_warnings %}
+          <article class="easy-source-row">
+            <div>
+              <strong>{{ source.source }}</strong>
+              <span>{{ source.title }}</span>
+            </div>
+            <p>{{ source.why_it_matters }}</p>
+            <p><strong>Ora:</strong> {{ source.what_to_do }}</p>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="easy-muted">Nessuna fonte da controllare manualmente per questo run.</p>
+        {% endif %}
+      </section>
+
+      <section class="easy-section">
+        <h2>Prossimi passi</h2>
+        <ol class="easy-next-steps">
+          {% for step in detail.next_steps %}
+          <li>{{ step }}</li>
+          {% endfor %}
+        </ol>
+      </section>
+    </main>
+  </body>
+</html>

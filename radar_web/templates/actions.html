@@ -18,7 +18,10 @@
           <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
           {% endfor %}
         </nav>
-        <a class="button" href="{{ url_with_lang('/') }}">{{ t("nav.dashboard") }}</a>
+        <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+        <a class="button" href="/expert?lang={{ lang }}#recent-runs">Sources</a>
+        <a class="button" href="/expert?lang={{ lang }}#recent-runs">Runs / Reports</a>
         <a class="button" href="{{ url_with_lang('/api/actions') }}">{{ t("nav.api_actions") }}</a>
         <button class="button primary" id="export-backlog" type="button">{{ t("actions.export_backlog") }}</button>
       </div>

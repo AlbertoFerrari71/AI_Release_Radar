@@ -18,7 +18,11 @@
           <a class="locale-link {% if lang == locale %}active{% endif %}" href="{{ url_for_locale(locale) }}">{{ t("locale." ~ locale) }}</a>
           {% endfor %}
         </nav>
-        <a class="button" href="{{ url_with_lang('/') }}">{{ t("nav.dashboard") }}</a>
+        <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+        <a class="button" href="{{ url_with_lang('/actions') }}">Action Center</a>
+        <a class="button" href="#sources">Sources</a>
+        <a class="button" href="/expert?lang={{ lang }}#recent-runs">Runs / Reports</a>
       </div>
     </header>
 
@@ -90,7 +94,7 @@
 
       <div class="detail-grid">
         <div class="stack">
-          <details class="panel collapsible">
+          <details class="panel collapsible" id="sources">
             <summary>
               <span>{{ t("detail.report_compact") }}</span>
               <span class="summary-meta">{{ detail.compact_report.path }}</span>
