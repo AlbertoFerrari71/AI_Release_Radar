@@ -15,6 +15,7 @@ Fonte primaria: prompt `2390-2440) AI Release Radar — Operator Acceptance Phil
 
 - [INT] Il vecchio concetto di GREEN tecnico resta necessario ma non sufficiente per chiudere modifiche che cambiano l'esperienza operatore. Base: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`; report 2270-2380; report 2385.
 - [INT] Warning governati e documentati sono preferibili a PASS superficiali quando manca evidenza operatore o visuale. Base: prompt 2390-2440; report 2270-2380; report 2385.
+- [F] Dal 2630-R, le future feature devono dichiarare anche il beneficio utente previsto tramite User Benefit Karma e User Benefit Gate. Fonte: `docs/values/2630_USER_BENEFIT_KARMA.md`, `docs/quality/2630_USER_BENEFIT_GATE.md`.
 
 ## Backlog
 

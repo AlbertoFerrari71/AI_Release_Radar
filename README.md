@@ -21,6 +21,16 @@ Non aggiorna automaticamente repository, skill, script, modelli, scheduler o con
 - [F] Per modifiche UI-facing, AI Release Radar distingue Verification Gate e Acceptance Gate: il primo verifica test/smoke/API/diff/safety, il secondo verifica accesso reale, primo utilizzo e navigazione dell'operatore. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
 - [F] Principio guida: `PASS tecnico ≠ PASS operatore`. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
 
+## Product principle
+
+Prima il beneficio, poi l’algoritmo.
+Ogni feature deve ridurre fatica, rischio, tempo o confusione per l’utente.
+La tecnologia è valida solo se migliora una decisione reale, rende più chiaro cosa fare o evita lavoro inutile.
+
+- [F] Questo principio guida Easy Mode, Daily Intelligence Brief, Action Center e ogni futura feature: AI Release Radar deve aumentare chiarezza decisionale, non complessita'. Fonte: `docs/values/2630_USER_BENEFIT_KARMA.md`.
+- [F] Doctrine: `docs/values/2630_USER_BENEFIT_KARMA.md`. Fonte: file indicato.
+- [F] Gate riusabile: `docs/quality/2630_USER_BENEFIT_GATE.md`. Fonte: file indicato.
+
 ## V1 manuale
 
 - [F] La V1 manuale si esegue con `python -m radar.cli real-run --profile manual --output-dir <directory-fuori-repo>`. Fonte: `radar/cli.py`.
