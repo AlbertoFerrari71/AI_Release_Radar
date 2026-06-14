@@ -1,5 +1,11 @@
 # Changelog
 
+## 2630-R) User Benefit Karma Doctrine and Gate
+
+- [F] Aggiunta doctrine `User Benefit Karma` con principio `Prima il beneficio, poi l’algoritmo`. Fonte: `docs/values/2630_USER_BENEFIT_KARMA.md`.
+- [F] Aggiunto `User Benefit Gate` per valutare fatica, rischio, tempo, confusione, decisione reale, chiarezza, lavoro inutile evitato ed evidenza operatore. Fonte: `docs/quality/2630_USER_BENEFIT_GATE.md`.
+- [F] Aggiornati README e AGENTS con regola per dichiarare il beneficio utente nei futuri step non banali. Fonte: `README.md`, `AGENTS.md`.
+
 ## 2460-2600) Daily Intelligence Brief
 
 - [F] Aggiunto generatore deterministic/template-based `daily-brief` per Human Brief, AI Model Packet e Project Impact Map con output Bridge-only. Fonte: `radar/daily_intelligence.py`, `radar/cli.py`.

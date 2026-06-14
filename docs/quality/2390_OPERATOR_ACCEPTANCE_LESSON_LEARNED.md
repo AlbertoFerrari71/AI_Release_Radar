@@ -83,3 +83,9 @@ Fonte primaria: prompt `2390-2440) AI Release Radar — Operator Acceptance Phil
 - [F] Acceptance Gate verifica che una persona riesca davvero a usarlo. Fonte: prompt 2390-2440.
 - [F] Un bug trovato dall'utente e' un test che non avevamo ancora scritto. Fonte: prompt 2390-2440.
 - [F] La qualita' finale non e' solo assenza di errori: e' fiducia operativa. Fonte: prompt 2390-2440.
+
+## 14. Collegamento User Benefit
+
+- [F] Dal 2630-R, AI Release Radar adotta anche la doctrine `Prima il beneficio, poi l’algoritmo`. Fonte: `docs/values/2630_USER_BENEFIT_KARMA.md`.
+- [F] Il User Benefit Gate e' definito in `docs/quality/2630_USER_BENEFIT_GATE.md`. Fonte: `docs/quality/2630_USER_BENEFIT_GATE.md`.
+- [INT] Operator Acceptance verifica se l'utente riesce davvero a usare il prodotto; User Benefit Gate verifica se la feature riduce fatica, rischio, tempo o confusione. Base: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`, `docs/quality/2630_USER_BENEFIT_GATE.md`.

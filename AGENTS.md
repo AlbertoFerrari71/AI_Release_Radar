@@ -13,6 +13,20 @@
 - Usare output deterministici numerati/datati.
 - Non usare file LAST-* o latest-*.
 
+## User Benefit First
+
+Fonte di questa sezione: prompt `2630-R) AI Release Radar - User Benefit Karma Doctrine and User Benefit Gate Retry After 2620 Publish` fornito da Alberto il 2026-06-14.
+
+Prima il beneficio, poi l’algoritmo.
+Ogni feature deve ridurre fatica, rischio, tempo o confusione per l’utente.
+La tecnologia è valida solo se migliora una decisione reale, rende più chiaro cosa fare o evita lavoro inutile.
+
+- [F] Ogni futuro prompt/step Codex non banale deve dichiarare il beneficio utente previsto. Fonte: prompt 2630-R.
+- [F] Per feature non banali, includere una nota User Benefit con: fatica ridotta, rischio ridotto, tempo risparmiato, confusione eliminata, decisione migliorata, lavoro inutile evitato. Fonte: prompt 2630-R.
+- [F] Technical PASS non e' sufficiente quando il beneficio operatore non e' chiaro. Fonte: prompt 2630-R.
+- [F] Doctrine: `docs/values/2630_USER_BENEFIT_KARMA.md`. Fonte: prompt 2630-R.
+- [F] Gate riusabile: `docs/quality/2630_USER_BENEFIT_GATE.md`. Fonte: prompt 2630-R.
+
 ## ASF Pilot Mode
 
 Fonte di questa sezione: istruzioni operative `0020-A) AI Release Radar - ASF Pilot Protocol` fornite da Alberto il 2026-06-09.

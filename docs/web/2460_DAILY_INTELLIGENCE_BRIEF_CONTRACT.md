@@ -57,6 +57,7 @@ python -m radar.cli daily-brief --bridge-root "D:\FG-SAB Dropbox\Alberto Ferrari
 - [F] Easy Mode deve mostrare `Oggi in 30 secondi`, semaforo, novita utili, azioni urgenti, progetti interessati, fonti manual-review e HAG preservato. Fonte: `radar_web/templates/easy_index.html`.
 - [F] Action Center mostra il contesto brief come manual-only. Fonte: `radar_web/templates/actions.html`.
 - [F] La navigazione verso Expert Mode resta disponibile. Fonte: `radar_web/templates/easy_index.html`.
+- [F] Daily Intelligence Brief e' un esempio di User Benefit Karma perche' riduce tempo di lettura e confusione operativa senza introdurre auto-action. Fonte: `docs/values/2630_USER_BENEFIT_KARMA.md`, `docs/quality/2630_USER_BENEFIT_GATE.md`.
 
 ## Output Bridge
 
