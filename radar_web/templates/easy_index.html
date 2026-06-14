@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Release Radar - Easy Mode</title>
-    <link rel="stylesheet" href="/static/style.css?v=2270-2380">
+    <link rel="stylesheet" href="/static/style.css?v=2650-navigation">
     <script src="/static/ui_preferences.js?v=2270-2380" defer></script>
   </head>
   <body>
+    <a class="home-link" href="{{ url_with_lang('/') }}">&larr; {{ t("nav.home") }}</a>
     <header class="topbar">
       <div>
         <h1>AI Release Radar</h1>
@@ -82,10 +83,11 @@
           </div>
         </dl>
         <div class="daily-brief-actions">
-          <a class="button primary" href="{{ url_with_lang('/api/easy/latest/brief') }}">{{ t("daily_brief.read_human") }}</a>
-          <a class="button" href="{{ url_with_lang('/api/easy/latest/model-packet') }}">{{ t("daily_brief.view_model_packet") }}</a>
+          <a class="button primary" href="{{ url_with_lang('/easy/latest/brief') }}">{{ t("daily_brief.read_human") }}</a>
+          <a class="button" href="{{ url_with_lang('/easy/latest/model-packet') }}">{{ t("daily_brief.view_model_packet") }}</a>
           <a class="button" href="{{ url_with_lang('/actions') }}">{{ t("daily_brief.open_action_center") }}</a>
           <a class="button" href="{{ url_with_lang('/expert') }}">{{ t("daily_brief.go_expert") }}</a>
+          <a class="button" href="{{ url_with_lang('/api/easy/latest/brief') }}">{{ t("nav.technical_json") }}</a>
         </div>
       </section>
 

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Release Radar - {{ t("model_packet.title") }}</title>
+    <link rel="stylesheet" href="/static/style.css?v=2650-navigation">
+    <script src="/static/ui_preferences.js?v=2270-2380" defer></script>
+  </head>
+  <body>
+    <a class="home-link" href="{{ url_with_lang('/') }}">&larr; {{ t("nav.home") }}</a>
+    <header class="topbar">
+      <div>
+        <h1>{{ t("model_packet.title") }}</h1>
+        <p class="easy-subtitle"><span class="mode-badge">Easy Mode</span><span>{{ t("model_packet.subtitle") }}</span></p>
+      </div>
+      <div class="topbar-actions">
+        <div class="preference-control">
+          <label class="select-label" for="language-select">{{ t('language.label') }}</label>
+          <select class="ui-select" id="language-select" data-ui-language-select aria-label="{{ t('language.label') }}">
+          {% for locale in supported_locales %}
+            <option value="{{ locale }}" {% if lang == locale %}selected{% endif %}>{{ t("locale." ~ locale) }}</option>
+          {% endfor %}
+          </select>
+        </div>
+        <div class="preference-control">
+          <label class="select-label" for="start-mode-select">Start</label>
+          <select class="ui-select" id="start-mode-select" data-ui-start-mode-select aria-label="Start mode">
+            <option value="easy" {% if ui_preferences.start_mode == "easy" %}selected{% endif %}>Easy Mode</option>
+            <option value="expert" {% if ui_preferences.start_mode == "expert" %}selected{% endif %}>Expert Mode</option>
+          </select>
+        </div>
+        <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang('/actions') }}">{{ t("nav.actions") }}</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+      </div>
+    </header>
+
+    <main class="layout easy-layout">
+      {% if packet %}
+      <section class="human-page-hero easy-gray">
+        <div>
+          <span class="label">{{ t("model_packet.label") }}</span>
+          <h2>{{ t("model_packet.copy_note") }}</h2>
+          <p>{{ t("model_packet.manual_copy_note") }}</p>
+        </div>
+        <dl class="facts compact-facts">
+          <div>
+            <dt>{{ t("human_brief.date") }}</dt>
+            <dd>{{ packet.date }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("detail.run_id") }}</dt>
+            <dd>{{ packet.run_id }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("dashboard.hag_status") }}</dt>
+            <dd>{{ t("daily_brief.hag_preserved") }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("safety.no_llm") }}</dt>
+            <dd>{{ t("model_packet.no_runtime_llm") }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="easy-link-strip" aria-label="{{ t('human_brief.navigation') }}">
+        <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang(human_brief_path) }}">{{ t("human_brief.title") }}</a>
+        <a class="button" href="{{ url_with_lang('/actions') }}">{{ t("nav.actions") }}</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+        <a class="button" href="{{ url_with_lang(json_api_path) }}">{{ t("nav.technical_json") }}</a>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("model_packet.facts") }}</h2>
+        <ul class="item-list">
+          {% for fact in packet.facts %}
+          <li>
+            <span class="item-title">{{ fact.statement }}</span>
+            <span class="item-meta">{{ t("actions.translation_source") }}: {{ fact.source }}</span>
+          </li>
+          {% else %}
+          <li>{{ t("human_brief.empty_list") }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("model_packet.inferences") }}</h2>
+        <ul class="item-list">
+          {% for inference in packet.inferences %}
+          <li>
+            <span class="item-title">{{ inference.statement }}</span>
+            <span class="item-meta">{{ t("model_packet.confidence") }}: {{ inference.confidence }}</span>
+          </li>
+          {% else %}
+          <li>{{ t("human_brief.empty_list") }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("human_brief.project_impacts") }}</h2>
+        <div class="easy-card-grid">
+          {% for impact in packet.project_impacts %}
+          {% if impact.impact_level != "none" %}
+          <article class="easy-news-card">
+            <h3>{{ impact.display_name }}</h3>
+            <p>{{ impact.reason }}</p>
+            <p><strong>{{ t("human_brief.manual_action") }}:</strong> {{ impact.default_action }}</p>
+          </article>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("model_packet.suggested_prompts") }}</h2>
+        <ol class="easy-next-steps">
+          {% for prompt in packet.suggested_prompts %}
+          <li>
+            <strong>{{ prompt.title }}</strong>
+            <span class="badge status-review">{{ t("actions.manual_only_badge") }}</span>
+            <p>{{ prompt.prompt }}</p>
+          </li>
+          {% else %}
+          <li>{{ t("human_brief.empty_list") }}</li>
+          {% endfor %}
+        </ol>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("model_packet.forbidden_actions") }}</h2>
+        <p><span class="badge status-review">{{ t("actions.manual_only_badge") }}</span> {{ t("model_packet.forbidden_note") }}</p>
+        <ul class="item-list">
+          {% for action in packet.forbidden_actions %}
+          <li>{{ action }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("model_packet.technical_json") }}</h2>
+        <p class="section-note">{{ t("model_packet.select_manually") }}</p>
+        <pre class="report technical-json">{{ packet_json }}</pre>
+      </section>
+      {% else %}
+      <section class="human-page-empty">
+        <h2>{{ t("model_packet.no_data") }}</h2>
+        <p>{{ error_message or t("human_brief.no_data_detail") }}</p>
+        <a class="button primary" href="{{ url_with_lang('/') }}">{{ t("nav.back_home") }}</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+      </section>
+      {% endif %}
+    </main>
+  </body>
+</html>

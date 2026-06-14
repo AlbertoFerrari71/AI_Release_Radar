@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Release Radar - {{ t("human_brief.title") }}</title>
+    <link rel="stylesheet" href="/static/style.css?v=2650-navigation">
+    <script src="/static/ui_preferences.js?v=2270-2380" defer></script>
+  </head>
+  <body>
+    <a class="home-link" href="{{ url_with_lang('/') }}">&larr; {{ t("nav.home") }}</a>
+    <header class="topbar">
+      <div>
+        <h1>{{ t("human_brief.title") }}</h1>
+        <p class="easy-subtitle"><span class="mode-badge">Easy Mode</span><span>{{ t("human_brief.subtitle") }}</span></p>
+      </div>
+      <div class="topbar-actions">
+        <div class="preference-control">
+          <label class="select-label" for="language-select">{{ t('language.label') }}</label>
+          <select class="ui-select" id="language-select" data-ui-language-select aria-label="{{ t('language.label') }}">
+          {% for locale in supported_locales %}
+            <option value="{{ locale }}" {% if lang == locale %}selected{% endif %}>{{ t("locale." ~ locale) }}</option>
+          {% endfor %}
+          </select>
+        </div>
+        <div class="preference-control">
+          <label class="select-label" for="start-mode-select">Start</label>
+          <select class="ui-select" id="start-mode-select" data-ui-start-mode-select aria-label="Start mode">
+            <option value="easy" {% if ui_preferences.start_mode == "easy" %}selected{% endif %}>Easy Mode</option>
+            <option value="expert" {% if ui_preferences.start_mode == "expert" %}selected{% endif %}>Expert Mode</option>
+          </select>
+        </div>
+        <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang('/actions') }}">{{ t("nav.actions") }}</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+      </div>
+    </header>
+
+    <main class="layout easy-layout">
+      {% if brief %}
+      <section class="human-page-hero easy-{{ brief.traffic_light.color }}">
+        <div>
+          <span class="label">{{ t("daily_brief.label") }}</span>
+          <h2>{{ t("daily_brief.title") }}</h2>
+          <p class="human-readable-copy">{{ brief.one_sentence_summary }}</p>
+          <p class="human-readable-copy">{{ t("human_brief.manual_only_note") }}</p>
+        </div>
+        <dl class="facts compact-facts">
+          <div>
+            <dt>{{ t("human_brief.date") }}</dt>
+            <dd>{{ brief.date }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("detail.run_id") }}</dt>
+            <dd>{{ brief.run_id }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("daily_brief.traffic_light") }}</dt>
+            <dd><span class="semaphore-dot" aria-hidden="true"></span>{{ brief.traffic_light.label }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("dashboard.hag_status") }}</dt>
+            <dd><span class="badge {{ brief.hag_status.status | status_class }}">{{ format_status(brief.hag_status.status) }}</span></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="easy-link-strip" aria-label="{{ t('human_brief.navigation') }}">
+        <a class="button" href="{{ url_with_lang('/') }}">Easy Mode</a>
+        <a class="button" href="{{ url_with_lang('/actions') }}">{{ t("nav.actions") }}</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+        <a class="button" href="{{ url_with_lang(model_packet_path) }}">{{ t("model_packet.title") }}</a>
+        <a class="button" href="{{ url_with_lang(json_api_path) }}">{{ t("nav.technical_json") }}</a>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("human_brief.top_items") }}</h2>
+        <div class="easy-card-grid">
+          {% for item in brief.top_items %}
+          <article class="easy-news-card">
+            <div class="easy-news-card-head">
+              <div>
+                <span class="label">{{ t("actions.translation_source") }}</span>
+                <strong>{{ item.source }}</strong>
+              </div>
+              <span class="badge {{ item.status | status_class }}">{{ format_status(item.status) }}</span>
+            </div>
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.why_it_matters }}</p>
+            {% if item.evidence_ref %}
+            <p class="section-note">{{ t("human_brief.evidence") }}: {{ item.evidence_ref }}</p>
+            {% endif %}
+          </article>
+          {% else %}
+          <p class="easy-muted">{{ t("human_brief.empty_list") }}</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("human_brief.project_impacts") }}</h2>
+        <div class="easy-card-grid">
+          {% for impact in visible_project_impacts %}
+          <article class="easy-news-card">
+            <h3>{{ impact.display_name }}</h3>
+            <dl class="easy-card-facts">
+              <div>
+                <dt>{{ t("human_brief.impact_level") }}</dt>
+                <dd>{{ format_status(impact.impact_level) }}</dd>
+              </div>
+              <div>
+                <dt>{{ t("human_brief.certainty") }}</dt>
+                <dd>{{ impact.certainty }}</dd>
+              </div>
+              <div>
+                <dt>{{ t("human_brief.reason") }}</dt>
+                <dd>{{ impact.reason }}</dd>
+              </div>
+              <div>
+                <dt>{{ t("human_brief.manual_action") }}</dt>
+                <dd>{{ impact.default_action }}</dd>
+              </div>
+            </dl>
+          </article>
+          {% else %}
+          <p class="easy-muted">{{ t("human_brief.no_project_impacts") }}</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("daily_brief.manual_review_sources") }}</h2>
+        {% if manual_review_sources %}
+        <div class="easy-source-list">
+          {% for source in manual_review_sources %}
+          <article class="easy-source-row">
+            <div>
+              <strong>{{ source.source_id }}</strong>
+              <span>{{ source.title }}</span>
+            </div>
+            <p>{{ t("detail.http_status") }}: {{ source.http_status_code }}; {{ t("detail.follow_up") }}: {{ source.recommended_follow_up }}</p>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="easy-muted">{{ t("human_brief.no_manual_sources") }}</p>
+        {% endif %}
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("human_brief.manual_actions") }}</h2>
+        <ol class="easy-next-steps">
+          {% for action in brief.suggested_manual_actions %}
+          <li>
+            <strong>{{ action.title }}</strong>
+            <span class="badge status-review">{{ t("actions.manual_only_badge") }}</span>
+            <p>{{ action.reason }}</p>
+          </li>
+          {% else %}
+          <li>{{ t("human_brief.empty_list") }}</li>
+          {% endfor %}
+        </ol>
+      </section>
+
+      <section class="easy-section">
+        <h2>{{ t("human_brief.hag_title") }}</h2>
+        <dl class="facts">
+          <div>
+            <dt>HAG</dt>
+            <dd>{{ t("daily_brief.hag_preserved") }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("manual.note") }}</dt>
+            <dd>{{ t("safety.no_auto_action") }}; {{ t("safety.no_llm") }}; {{ t("safety.no_scheduler_mutation") }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("human_brief.forbidden_actions") }}</dt>
+            <dd>{{ brief.forbidden_actions | join(", ") }}</dd>
+          </div>
+        </dl>
+      </section>
+      {% else %}
+      <section class="human-page-empty">
+        <h2>{{ t("daily_brief.no_data") }}</h2>
+        <p>{{ error_message or t("human_brief.no_data_detail") }}</p>
+        <a class="button primary" href="{{ url_with_lang('/') }}">{{ t("nav.back_home") }}</a>
+        <a class="button" href="{{ url_with_lang('/expert') }}">Expert Mode</a>
+      </section>
+      {% endif %}
+    </main>
+  </body>
+</html>

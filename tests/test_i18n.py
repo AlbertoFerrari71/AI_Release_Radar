@@ -191,6 +191,11 @@ class I18nTests(unittest.TestCase):
                     with self.subTest(locale=locale):
                         self.assertEqual(client.get(f"/?lang={locale}").status_code, 200)
                         self.assertEqual(client.get(f"/actions?lang={locale}").status_code, 200)
+                        self.assertEqual(client.get(f"/easy/latest/brief?lang={locale}").status_code, 200)
+                        self.assertEqual(
+                            client.get(f"/easy/latest/model-packet?lang={locale}").status_code,
+                            200,
+                        )
                         self.assertEqual(client.get(f"/runs/{run_id}?lang={locale}").status_code, 200)
 
     def test_no_forbidden_last_or_latest_files(self):

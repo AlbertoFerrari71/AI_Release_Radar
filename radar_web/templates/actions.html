@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ t("actions.page_title") }}</title>
-    <link rel="stylesheet" href="/static/style.css?v=2270-2380">
+    <link rel="stylesheet" href="/static/style.css?v=2650-navigation">
     <script src="/static/ui_preferences.js?v=2270-2380" defer></script>
   </head>
   <body>
+    <a class="home-link" href="{{ url_with_lang('/') }}">&larr; {{ t("nav.home") }}</a>
     <header class="topbar">
       <div>
         <h1>{{ t("actions.title") }}</h1>
@@ -62,7 +63,7 @@
           </div>
         </dl>
         <p class="section-note">{{ t("daily_brief.manual_actions") }}</p>
-        <a class="button" href="{{ url_with_lang('/api/easy/latest/brief') }}">{{ t("daily_brief.read_human") }}</a>
+        <a class="button" href="{{ url_with_lang('/easy/latest/brief') }}">{{ t("daily_brief.read_human") }}</a>
       </section>
       {% endif %}
 

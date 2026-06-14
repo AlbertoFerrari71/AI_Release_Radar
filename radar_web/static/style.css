@@ -38,6 +38,15 @@ a:hover {
   text-decoration: underline;
 }
 
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 28px 0;
+  color: var(--link);
+  font-weight: 750;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -769,6 +778,81 @@ th {
   margin-top: 4px;
 }
 
+.human-page-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 8px;
+}
+
+.human-page-hero > * {
+  min-width: 0;
+}
+
+.human-page-hero.easy-red {
+  border-left-color: var(--fail);
+}
+
+.human-page-hero.easy-yellow {
+  border-left-color: var(--warn);
+}
+
+.human-page-hero.easy-green {
+  border-left-color: var(--pass);
+}
+
+.human-page-hero.easy-gray {
+  border-left-color: var(--no-data);
+}
+
+.human-page-hero h2 {
+  margin: 4px 0 8px;
+  font-size: 24px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.human-page-hero p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.human-page-hero p + p {
+  margin-top: 8px;
+}
+
+.human-readable-copy {
+  max-width: 720px;
+}
+
+.human-page-empty {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.technical-json {
+  max-height: 520px;
+  overflow: auto;
+}
+
+.compact-facts dd {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .easy-hero,
 .easy-detail-header {
   display: flex;
@@ -1111,6 +1195,10 @@ th {
 }
 
 @media (max-width: 620px) {
+  .home-link {
+    margin: 12px 18px 0;
+  }
+
   .topbar {
     align-items: flex-start;
     flex-direction: column;
@@ -1145,7 +1233,9 @@ th {
   }
 
   .layout {
+    max-width: 100%;
     padding: 18px;
+    width: 100%;
   }
 
   .status-grid,
@@ -1176,6 +1266,43 @@ th {
 
   .daily-brief-actions .button {
     width: 100%;
+  }
+
+  .daily-brief-main p {
+    max-width: calc(100vw - 120px);
+    width: calc(100vw - 120px);
+  }
+
+  .human-page-hero {
+    display: block;
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 14px;
+    width: 100%;
+  }
+
+  .human-page-hero > * {
+    max-width: calc(100vw - 78px);
+    width: 100%;
+  }
+
+  .human-page-hero h2 {
+    font-size: 20px;
+    line-height: 1.3;
+    max-width: calc(100vw - 78px);
+    word-break: break-all;
+  }
+
+  .compact-facts dd {
+    font-size: 16px;
+    max-width: calc(100vw - 98px);
+    word-break: break-all;
+  }
+
+  .human-readable-copy {
+    max-width: calc(100vw - 120px);
+    width: calc(100vw - 120px);
   }
 
   .easy-news-card-head {

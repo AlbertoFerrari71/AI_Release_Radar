@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ t("detail.title", run_id=run.run_id) }}</title>
-    <link rel="stylesheet" href="/static/style.css?v=2270-2380">
+    <link rel="stylesheet" href="/static/style.css?v=2650-navigation">
     <script src="/static/ui_preferences.js?v=2270-2380" defer></script>
   </head>
   <body>
+    <a class="home-link" href="{{ url_with_lang('/') }}">&larr; {{ t("nav.home") }}</a>
     <header class="topbar">
       <div>
         <h1>{{ t("dashboard.title") }}</h1>
