@@ -14,6 +14,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from radar.daily_intelligence import build_daily_intelligence_for_bridge
 from radar.news_translation import apply_translation_cache_to_actions
 from radar_web.easy_mode import build_easy_days, build_easy_latest, build_easy_run_detail
 from radar_web.action_center import (
@@ -75,6 +76,7 @@ def create_app(
     def easy_index_response(request: Request) -> Any:
         payload = build_easy_days(dashboard_config.runs_root, limit=30)
         latest = payload.get("latest") if isinstance(payload.get("latest"), dict) else None
+        daily_brief = _daily_brief_or_none(dashboard_config)
         return templates.TemplateResponse(
             request,
             "easy_index.html",
@@ -82,6 +84,7 @@ def create_app(
                 "payload": payload,
                 "days": payload["days"],
                 "latest": latest,
+                "daily_brief": daily_brief,
                 **_localized_context(request, dashboard_config=dashboard_config),
             },
         )
@@ -162,6 +165,18 @@ def create_app(
     def api_easy_latest() -> dict[str, Any]:
         return build_easy_latest(dashboard_config.runs_root)
 
+    @app.get("/api/easy/latest/brief")
+    def api_easy_latest_brief() -> dict[str, Any]:
+        return _daily_intelligence_or_404(dashboard_config, run_id="latest")["human_brief"]
+
+    @app.get("/api/easy/days/{run_id}/brief")
+    def api_easy_day_brief(run_id: str) -> dict[str, Any]:
+        return _daily_intelligence_or_404(dashboard_config, run_id=run_id)["human_brief"]
+
+    @app.get("/api/easy/latest/model-packet")
+    def api_easy_latest_model_packet() -> dict[str, Any]:
+        return _daily_intelligence_or_404(dashboard_config, run_id="latest")["ai_model_packet"]
+
     @app.get("/api/preferences/ui")
     def api_ui_preferences(request: Request) -> dict[str, Any]:
         language, language_source = resolve_ui_language(
@@ -231,6 +246,7 @@ def create_app(
     def actions(request: Request, filter: str = "all") -> Any:
         localized_context = _localized_context(request, dashboard_config=dashboard_config)
         payload = build_action_center_payload(dashboard_config, filter_value=filter)
+        daily_brief = _daily_brief_or_none(dashboard_config)
         localized_actions = apply_translation_cache_to_actions(
             payload["actions"],
             run_id=payload.get("run_id"),
@@ -249,6 +265,7 @@ def create_app(
                 "actions": localized_actions,
                 "filters": payload["filters"],
                 "selected_filter": payload["selected_filter"],
+                "daily_brief": daily_brief,
                 **localized_context,
             },
         )
@@ -457,6 +474,26 @@ def build_status(
 def read_scheduler_status_placeholder(config: DashboardConfig) -> dict[str, Any]:
     """Return read-only scheduler status for the configured task."""
     return read_scheduler_status(config.scheduler_task_name)
+
+
+def _daily_intelligence_or_404(config: DashboardConfig, *, run_id: str) -> dict[str, Any]:
+    try:
+        result = build_daily_intelligence_for_bridge(config.bridge_root, run_id=run_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=ApiMessage(status="NO_DATA", message=str(exc)).to_dict(),
+        ) from exc
+    return result
+
+
+def _daily_brief_or_none(config: DashboardConfig) -> dict[str, Any] | None:
+    try:
+        result = build_daily_intelligence_for_bridge(config.bridge_root, run_id="latest")
+    except ValueError:
+        return None
+    human_brief = result.get("human_brief")
+    return human_brief if isinstance(human_brief, dict) else None
 
 
 def _localized_context(request: Request, *, dashboard_config: DashboardConfig) -> dict[str, Any]:

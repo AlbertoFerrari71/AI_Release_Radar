@@ -229,7 +229,10 @@ class EasyModeTests(unittest.TestCase):
                 detail = client.get(f"/easy/runs/{run_id}")
                 days = client.get("/api/easy/days").json()
                 latest = client.get("/api/easy/latest").json()
+                latest_brief = client.get("/api/easy/latest/brief")
+                latest_packet = client.get("/api/easy/latest/model-packet")
                 api_detail = client.get(f"/api/easy/days/{run_id}")
+                api_brief = client.get(f"/api/easy/days/{run_id}/brief")
                 expert = client.get("/expert")
 
         self.assertEqual(root.status_code, 200)
@@ -237,13 +240,21 @@ class EasyModeTests(unittest.TestCase):
         self.assertEqual(easy_mode.status_code, 200)
         self.assertEqual(detail.status_code, 200)
         self.assertEqual(api_detail.status_code, 200)
+        self.assertEqual(api_brief.status_code, 200)
+        self.assertEqual(latest_brief.status_code, 200)
+        self.assertEqual(latest_packet.status_code, 200)
         self.assertEqual(expert.status_code, 200)
         self.assertEqual(days["latest"]["run_id"], run_id)
         self.assertEqual(latest["run_id"], run_id)
         self.assertIn("Easy Mode", root.text)
+        self.assertIn("Oggi in 30 secondi", root.text)
+        self.assertIn("HAG", root.text)
         self.assertIn("Modalita semplice", root.text)
         self.assertIn("Cosa e successo", detail.text)
-        for forbidden in ("parsed_count", "fixture", "HAG"):
+        self.assertTrue(latest_brief.json()["manual_only"])
+        self.assertTrue(latest_packet.json()["facts"])
+        self.assertTrue(latest_packet.json()["inferences"])
+        for forbidden in ("parsed_count", "fixture"):
             self.assertNotIn(forbidden, root.text)
             self.assertNotIn(forbidden, detail.text)
 
@@ -255,11 +266,14 @@ class EasyModeTests(unittest.TestCase):
             root = client.get("/")
             days = client.get("/api/easy/days").json()
             latest = client.get("/api/easy/latest").json()
+            latest_brief = client.get("/api/easy/latest/brief")
 
         self.assertEqual(root.status_code, 200)
+        self.assertIn("Oggi in 30 secondi", root.text)
         self.assertIn("Nessun giorno disponibile", root.text)
         self.assertEqual(days["count"], 0)
         self.assertEqual(latest["semaphore"], "gray")
+        self.assertEqual(latest_brief.status_code, 404)
 
 
 if __name__ == "__main__":

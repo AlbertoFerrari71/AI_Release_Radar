@@ -11,7 +11,7 @@
     <header class="topbar">
       <div>
         <h1>AI Release Radar</h1>
-        <p class="easy-subtitle"><span class="mode-badge">Easy Mode</span> Modalita semplice per la lettura quotidiana</p>
+        <p class="easy-subtitle"><span class="mode-badge">Easy Mode</span><span>Modalita semplice per la lettura quotidiana</span></p>
       </div>
       <div class="topbar-actions">
         <div class="preference-control">
@@ -42,6 +42,53 @@
     </header>
 
     <main class="layout easy-layout">
+      <section class="daily-brief-hero easy-{{ daily_brief.traffic_light.color if daily_brief else 'gray' }}" aria-label="{{ t('daily_brief.title') }}">
+        <div class="daily-brief-main">
+          <span class="label">{{ t("daily_brief.label") }}</span>
+          <h2>{{ t("daily_brief.title") }}</h2>
+          {% if daily_brief %}
+          <p>{{ daily_brief.one_sentence_summary }}</p>
+          {% else %}
+          <p>{{ t("daily_brief.no_data") }}</p>
+          {% endif %}
+        </div>
+        <dl class="daily-brief-counts">
+          <div>
+            <dt>{{ t("daily_brief.traffic_light") }}</dt>
+            <dd>
+              <span class="semaphore-dot" aria-hidden="true"></span>
+              {{ daily_brief.traffic_light.label if daily_brief else format_status("NO_DATA") }}
+            </dd>
+          </div>
+          <div>
+            <dt>{{ t("daily_brief.useful_news") }}</dt>
+            <dd>{{ daily_brief.useful_item_count if daily_brief else 0 }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("daily_brief.urgent_actions") }}</dt>
+            <dd>{{ daily_brief.urgent_action_count if daily_brief else 0 }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("daily_brief.impacted_projects") }}</dt>
+            <dd>{{ daily_brief.impacted_projects | length if daily_brief else 0 }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("daily_brief.manual_review_sources") }}</dt>
+            <dd>{{ daily_brief.manual_review_source_count if daily_brief else 0 }}</dd>
+          </div>
+          <div>
+            <dt>HAG</dt>
+            <dd>{{ t("daily_brief.hag_preserved") }}</dd>
+          </div>
+        </dl>
+        <div class="daily-brief-actions">
+          <a class="button primary" href="{{ url_with_lang('/api/easy/latest/brief') }}">{{ t("daily_brief.read_human") }}</a>
+          <a class="button" href="{{ url_with_lang('/api/easy/latest/model-packet') }}">{{ t("daily_brief.view_model_packet") }}</a>
+          <a class="button" href="{{ url_with_lang('/actions') }}">{{ t("daily_brief.open_action_center") }}</a>
+          <a class="button" href="{{ url_with_lang('/expert') }}">{{ t("daily_brief.go_expert") }}</a>
+        </div>
+      </section>
+
       <section class="easy-hero">
         <div>
           <span class="label">Easy Mode</span>

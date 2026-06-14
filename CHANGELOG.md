@@ -1,5 +1,15 @@
 # Changelog
 
+## 2460-2600) Daily Intelligence Brief
+
+- [F] Aggiunto generatore deterministic/template-based `daily-brief` per Human Brief, AI Model Packet e Project Impact Map con output Bridge-only. Fonte: `radar/daily_intelligence.py`, `radar/cli.py`.
+- [F] Aggiunta mappa configurabile `config/project_impact_map.json` per AI Software Factory, Codex Skills, AI Release Radar, ASF Blueprint Studio, Family Photo Organizer e Conti Chiari AI. Fonte: `config/project_impact_map.json`.
+- [F] Aggiunti endpoint GET/read-only Easy Mode per brief e model packet. Fonte: `radar_web/app.py`.
+- [F] Aggiornata Easy Mode con sezione `Oggi in 30 secondi` e contesto manual-only in Action Center. Fonte: `radar_web/templates/easy_index.html`, `radar_web/templates/actions.html`.
+- [F] Applicato polish P3 2620: pulsanti Daily Brief impilati su mobile stretto e sigla HAG esplicita nei titoli localizzati. Fonte: `radar_web/static/style.css`, `radar_web/locales/*.json`.
+- [F] Aggiunto Skill Invocation Ledger v0 come schema/validatore stabile con output effettivi nel Bridge. Fonte: `docs/process/2460_SKILL_INVOCATION_LEDGER.md`, `radar/skill_ledger.py`.
+- [F] Nessuna chiamata LLM runtime, nessuna auto-azione, nessuna email/notifica, nessuna scheduler mutation e nessun output runtime versionato introdotti. Fonte: `radar/daily_intelligence.py`, `radar_web/app.py`, `AGENTS.md`.
+
 ## 2390-2440) Operator Acceptance Philosophy and UI Gate Lessons Learned
 
 - [F] Aggiunta lesson learned Operator Acceptance con principio `PASS tecnico ≠ PASS operatore`. Fonte: `docs/quality/2390_OPERATOR_ACCEPTANCE_LESSON_LEARNED.md`.
