@@ -148,6 +148,11 @@ class RadarWebAppTests(unittest.TestCase):
                     "/api/preferences/ui",
                     f"/api/easy/days/{run_id}",
                     f"/api/easy/days/{run_id}/brief",
+                    f"/api/easy/days/{run_id}/model-packet",
+                    "/easy/latest/brief",
+                    "/easy/latest/model-packet",
+                    f"/easy/days/{run_id}/brief",
+                    f"/easy/days/{run_id}/model-packet",
                     f"/easy/runs/{run_id}",
                     f"/runs/{run_id}",
                     f"/api/runs/{run_id}",
@@ -163,6 +168,11 @@ class RadarWebAppTests(unittest.TestCase):
                         self.assertEqual(response.status_code, 200)
                 self.assertEqual(client.post("/api/easy/latest/brief").status_code, 405)
                 self.assertEqual(client.post("/api/easy/latest/model-packet").status_code, 405)
+                self.assertEqual(client.post(f"/api/easy/days/{run_id}/model-packet").status_code, 405)
+                self.assertEqual(client.post("/easy/latest/brief").status_code, 405)
+                self.assertEqual(client.post("/easy/latest/model-packet").status_code, 405)
+                self.assertEqual(client.post(f"/easy/days/{run_id}/brief").status_code, 405)
+                self.assertEqual(client.post(f"/easy/days/{run_id}/model-packet").status_code, 405)
 
     def test_easy_alias_redirect_is_safe(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -272,6 +282,10 @@ class RadarWebAppTests(unittest.TestCase):
                     "/expert",
                     "/actions",
                     "/sources",
+                    "/easy/latest/brief",
+                    "/easy/latest/model-packet",
+                    f"/easy/days/{run_id}/brief",
+                    f"/easy/days/{run_id}/model-packet",
                     f"/easy/runs/{run_id}",
                     f"/runs/{run_id}",
                 ]
@@ -311,6 +325,40 @@ class RadarWebAppTests(unittest.TestCase):
         self.assertIn("start-mode-select", select_names)
         self.assertTrue(any("decision-button" in value for value in excluded_buttons))
         self.assertTrue(any("prompt-button" in value for value in excluded_buttons))
+
+    def test_html_secondary_pages_have_home_link_and_human_ctas_avoid_api(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bridge = self.create_bridge(Path(tmpdir))
+            run_id = next((bridge / "runs").iterdir()).name
+            config = DashboardConfig(repo_root=Path.cwd(), bridge_root=bridge)
+            with patch("radar_web.app.read_scheduler_status", return_value=SCHEDULER_NO_DATA):
+                client = TestClient(create_app(config))
+                root = client.get("/?lang=it")
+                secondary_pages = [
+                    "/easy?lang=it",
+                    "/easy-mode?lang=it",
+                    "/expert?lang=it",
+                    "/actions?lang=it",
+                    f"/easy/runs/{run_id}?lang=it",
+                    f"/runs/{run_id}?lang=it",
+                    "/easy/latest/brief?lang=it",
+                    "/easy/latest/model-packet?lang=it",
+                    f"/easy/days/{run_id}/brief?lang=it",
+                    f"/easy/days/{run_id}/model-packet?lang=it",
+                ]
+                responses = {page: client.get(page) for page in secondary_pages}
+
+        self.assertIn('href="/easy/latest/brief?lang=it"', root.text)
+        self.assertIn('href="/easy/latest/model-packet?lang=it"', root.text)
+        self.assertNotIn('class="button primary" href="/api/easy/latest/brief', root.text)
+        self.assertNotIn('href="/api/easy/latest/model-packet?lang=it">Apri pacchetto modello IA', root.text)
+        self.assertIn("JSON tecnico", root.text)
+        for page, response in responses.items():
+            with self.subTest(page=page):
+                self.assertEqual(response.status_code, 200)
+                self.assertIn('class="home-link"', response.text)
+                self.assertIn('href="/?lang=it"', response.text)
+                self.assertIn("&larr; Home", response.text)
 
     def test_action_center_get_is_run_scoped_and_read_only(self):
         with tempfile.TemporaryDirectory() as tmpdir:

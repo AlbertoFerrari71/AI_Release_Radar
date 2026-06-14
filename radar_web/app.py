@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime
+import json
 from pathlib import Path
 import re
 from typing import Any
@@ -176,6 +177,26 @@ def create_app(
     @app.get("/api/easy/latest/model-packet")
     def api_easy_latest_model_packet() -> dict[str, Any]:
         return _daily_intelligence_or_404(dashboard_config, run_id="latest")["ai_model_packet"]
+
+    @app.get("/api/easy/days/{run_id}/model-packet")
+    def api_easy_day_model_packet(run_id: str) -> dict[str, Any]:
+        return _daily_intelligence_or_404(dashboard_config, run_id=run_id)["ai_model_packet"]
+
+    @app.get("/easy/latest/brief", response_class=HTMLResponse)
+    def easy_latest_brief(request: Request) -> Any:
+        return _human_brief_response(request, dashboard_config, templates, run_id="latest")
+
+    @app.get("/easy/latest/model-packet", response_class=HTMLResponse)
+    def easy_latest_model_packet(request: Request) -> Any:
+        return _model_packet_response(request, dashboard_config, templates, run_id="latest")
+
+    @app.get("/easy/days/{run_id}/brief", response_class=HTMLResponse)
+    def easy_day_brief(request: Request, run_id: str) -> Any:
+        return _human_brief_response(request, dashboard_config, templates, run_id=run_id)
+
+    @app.get("/easy/days/{run_id}/model-packet", response_class=HTMLResponse)
+    def easy_day_model_packet(request: Request, run_id: str) -> Any:
+        return _model_packet_response(request, dashboard_config, templates, run_id=run_id)
 
     @app.get("/api/preferences/ui")
     def api_ui_preferences(request: Request) -> dict[str, Any]:
@@ -494,6 +515,124 @@ def _daily_brief_or_none(config: DashboardConfig) -> dict[str, Any] | None:
         return None
     human_brief = result.get("human_brief")
     return human_brief if isinstance(human_brief, dict) else None
+
+
+def _human_brief_response(
+    request: Request,
+    config: DashboardConfig,
+    templates: Jinja2Templates,
+    *,
+    run_id: str,
+) -> Any:
+    result, error_message = _daily_intelligence_for_html(config, run_id=run_id)
+    brief = result.get("human_brief") if result else None
+    brief_data = brief if isinstance(brief, dict) else None
+    return templates.TemplateResponse(
+        request,
+        "easy_human_brief.html",
+        {
+            "brief": brief_data,
+            "target_run_id": run_id,
+            "error_message": error_message,
+            "manual_review_sources": _manual_review_sources(brief_data),
+            "visible_project_impacts": _visible_project_impacts(brief_data),
+            "model_packet_path": _human_model_packet_path(run_id),
+            "json_api_path": _human_brief_api_path(run_id),
+            **_localized_context(request, dashboard_config=config),
+        },
+        status_code=200 if brief_data else 404,
+    )
+
+
+def _model_packet_response(
+    request: Request,
+    config: DashboardConfig,
+    templates: Jinja2Templates,
+    *,
+    run_id: str,
+) -> Any:
+    result, error_message = _daily_intelligence_for_html(config, run_id=run_id)
+    packet = result.get("ai_model_packet") if result else None
+    packet_data = packet if isinstance(packet, dict) else None
+    return templates.TemplateResponse(
+        request,
+        "easy_model_packet.html",
+        {
+            "packet": packet_data,
+            "target_run_id": run_id,
+            "error_message": error_message,
+            "packet_json": (
+                json.dumps(packet_data, ensure_ascii=False, indent=2, sort_keys=True)
+                if packet_data
+                else ""
+            ),
+            "human_brief_path": _human_brief_path(run_id),
+            "json_api_path": _model_packet_api_path(run_id),
+            **_localized_context(request, dashboard_config=config),
+        },
+        status_code=200 if packet_data else 404,
+    )
+
+
+def _daily_intelligence_for_html(
+    config: DashboardConfig,
+    *,
+    run_id: str,
+) -> tuple[dict[str, Any], None] | tuple[None, str]:
+    try:
+        return build_daily_intelligence_for_bridge(config.bridge_root, run_id=run_id), None
+    except ValueError as exc:
+        return None, str(exc)
+
+
+def _human_brief_path(run_id: str) -> str:
+    if run_id == "latest":
+        return "/easy/latest/brief"
+    return f"/easy/days/{run_id}/brief"
+
+
+def _human_model_packet_path(run_id: str) -> str:
+    if run_id == "latest":
+        return "/easy/latest/model-packet"
+    return f"/easy/days/{run_id}/model-packet"
+
+
+def _human_brief_api_path(run_id: str) -> str:
+    if run_id == "latest":
+        return "/api/easy/latest/brief"
+    return f"/api/easy/days/{run_id}/brief"
+
+
+def _model_packet_api_path(run_id: str) -> str:
+    if run_id == "latest":
+        return "/api/easy/latest/model-packet"
+    return f"/api/easy/days/{run_id}/model-packet"
+
+
+def _manual_review_sources(brief: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not brief:
+        return []
+    sources = brief.get("source_cards")
+    if not isinstance(sources, list):
+        return []
+    return [
+        source
+        for source in sources
+        if isinstance(source, dict) and source.get("manual_review_required")
+    ]
+
+
+def _visible_project_impacts(brief: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not brief:
+        return []
+    impacts = brief.get("project_impacts")
+    if not isinstance(impacts, list):
+        return []
+    return [
+        impact
+        for impact in impacts
+        if isinstance(impact, dict) and impact.get("impact_level") != "none"
+    ]
 
 
 def _localized_context(request: Request, *, dashboard_config: DashboardConfig) -> dict[str, Any]:

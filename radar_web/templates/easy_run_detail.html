@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Release Radar - Easy Mode - {{ day.date_label }}</title>
-    <link rel="stylesheet" href="/static/style.css?v=2270-2380">
+    <link rel="stylesheet" href="/static/style.css?v=2650-navigation">
     <script src="/static/ui_preferences.js?v=2270-2380" defer></script>
   </head>
   <body>
+    <a class="home-link" href="{{ url_with_lang('/') }}">&larr; {{ t("nav.home") }}</a>
     <header class="topbar">
       <div>
         <h1>AI Release Radar</h1>
@@ -66,9 +67,11 @@
 
       <section class="easy-link-strip" aria-label="Prosegui">
         <a class="button primary" href="{{ url_with_lang('/actions') }}">Apri Action Center</a>
+        <a class="button" href="{{ url_with_lang('/easy/days/' ~ day.run_id ~ '/brief') }}">Riepilogo umano</a>
+        <a class="button" href="{{ url_with_lang('/easy/days/' ~ day.run_id ~ '/model-packet') }}">Pacchetto modello IA</a>
         <a class="button" href="{{ url_with_lang(day.expert_url) }}">Vista Expert dello stesso run</a>
-        <a class="button" href="{{ detail.links.compact_report_api }}">Report compatto</a>
-        <a class="button" href="{{ detail.links.source_matrix_api }}">Dettaglio fonti</a>
+        <a class="button" href="{{ detail.links.compact_report_api }}">{{ t("nav.technical_json") }}: Report compatto</a>
+        <a class="button" href="{{ detail.links.source_matrix_api }}">{{ t("nav.technical_json") }}: Dettaglio fonti</a>
       </section>
 
       <section class="easy-section">
