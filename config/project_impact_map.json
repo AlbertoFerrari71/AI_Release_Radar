@@ -1,0 +1,127 @@
+{
+  "impact_scale": [
+    "none",
+    "low",
+    "medium",
+    "high"
+  ],
+  "projects": [
+    {
+      "default_action": "Review ASF workflow impact manually before opening any implementation step.",
+      "display_name": "AI Software Factory",
+      "impact_types": [
+        "codex_workflow",
+        "governance",
+        "release_process",
+        "security"
+      ],
+      "keywords": [
+        "agents.md",
+        "ai software factory",
+        "asf",
+        "codex",
+        "publish runner",
+        "workflow"
+      ],
+      "priority": 1,
+      "project_id": "ai_software_factory"
+    },
+    {
+      "default_action": "Review skill catalog, triggers and validators manually; do not publish automatically.",
+      "display_name": "Codex Skills",
+      "impact_types": [
+        "codex_workflow",
+        "skill_catalog",
+        "validation"
+      ],
+      "keywords": [
+        "codex skills",
+        "skill",
+        "skills",
+        "trigger",
+        "validator"
+      ],
+      "priority": 2,
+      "project_id": "codex_skills"
+    },
+    {
+      "default_action": "Review this radar's local dashboard, Bridge artifacts and safety gates manually.",
+      "display_name": "AI Release Radar",
+      "impact_types": [
+        "dashboard",
+        "local_web_app",
+        "operator_workflow",
+        "source_coverage"
+      ],
+      "keywords": [
+        "action center",
+        "ai release radar",
+        "bridge",
+        "daily brief",
+        "easy mode",
+        "hag",
+        "radar"
+      ],
+      "priority": 3,
+      "project_id": "ai_release_radar"
+    },
+    {
+      "default_action": "Review blueprint or workflow design manually before changing any builder behavior.",
+      "display_name": "ASF Blueprint Studio",
+      "impact_types": [
+        "blueprint",
+        "design_workflow",
+        "operator_ui"
+      ],
+      "keywords": [
+        "asf blueprint",
+        "blueprint studio",
+        "studio",
+        "workflow design"
+      ],
+      "priority": 4,
+      "project_id": "asf_blueprint_studio"
+    },
+    {
+      "default_action": "Run only read-only safety review before considering any photo archive change.",
+      "display_name": "Family Photo Organizer",
+      "impact_types": [
+        "image_vision",
+        "local_files",
+        "privacy",
+        "security"
+      ],
+      "keywords": [
+        "family photo",
+        "image",
+        "local file",
+        "photo",
+        "privacy",
+        "vision"
+      ],
+      "priority": 5,
+      "project_id": "family_photo_organizer"
+    },
+    {
+      "default_action": "Review finance/data workflow impact manually before opening any data-processing task.",
+      "display_name": "Conti Chiari AI",
+      "impact_types": [
+        "data_analysis",
+        "finance_workflow",
+        "privacy",
+        "security"
+      ],
+      "keywords": [
+        "bank",
+        "conti chiari",
+        "csv",
+        "finance",
+        "spreadsheet",
+        "transactions"
+      ],
+      "priority": 6,
+      "project_id": "conti_chiari_ai"
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,5 +1,6 @@
 import inspect
 import io
+import json
 import tempfile
 import unittest
 import unittest.mock
@@ -29,6 +30,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("real-run", parser.format_help())
         self.assertIn("daily-sim", parser.format_help())
         self.assertIn("daily-review-pack", parser.format_help())
+        self.assertIn("daily-brief", parser.format_help())
         self.assertIn("v1-readiness-gate", parser.format_help())
         stdout = io.StringIO()
         with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
@@ -56,6 +58,11 @@ class CliTests(unittest.TestCase):
             parser.parse_args(["daily-review-pack", "--help"])
         self.assertEqual(exc.exception.code, 0)
         self.assertIn("--run-dir", stdout.getvalue())
+        stdout = io.StringIO()
+        with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
+            parser.parse_args(["daily-brief", "--help"])
+        self.assertEqual(exc.exception.code, 0)
+        self.assertIn("--bridge-root", stdout.getvalue())
         stdout = io.StringIO()
         with redirect_stdout(stdout), self.assertRaises(SystemExit) as exc:
             parser.parse_args(["v1-readiness-gate", "--help"])
@@ -370,6 +377,53 @@ class CliTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn("daily review pack completed", stdout.getvalue())
             self.assertIn("No auto-action: confirmed", stdout.getvalue())
+
+    def test_main_daily_brief_with_fixture_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bridge = Path(tmp) / "bridge"
+            run_dir = bridge / "runs" / "0320_0400_daily_sim_20260614_070000"
+            run_dir.mkdir(parents=True)
+            summary = {
+                "status": "PASS",
+                "automation_gate_status": "PASS",
+                "hag_status": "NO_ACTION_REQUIRED",
+                "daily_quality_gate_v2": {
+                    "overall_daily_review_status": "PASS",
+                    "source_coverage_status": "PASS",
+                },
+                "real_run": {
+                    "status": "PASS",
+                    "source_count": 1,
+                    "parsed_count": 1,
+                    "item_count": 0,
+                    "direct_action_count": 0,
+                    "monitor_only_action_count": 0,
+                    "source_diagnostics": [],
+                },
+                "action_triage": {"status": "PASS", "entries": []},
+                "prompt_suggestions": {
+                    "status": "NO_DATA",
+                    "suggestions_count": 0,
+                    "suggestions": [],
+                },
+            }
+            (run_dir / "0350-Daily_Sim_Summary.json").write_text(
+                json.dumps(summary),
+                encoding="utf-8",
+            )
+            (run_dir / "0180-Run_Summary.json").write_text(
+                json.dumps({"schema_version": 1, "result": summary["real_run"]}),
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                code = cli.main(["daily-brief", "--bridge-root", str(bridge)])
+            daily_brief_files = sorted((bridge / "daily_briefs").iterdir())
+
+        self.assertEqual(code, 0)
+        self.assertIn("daily intelligence brief completed", stdout.getvalue())
+        self.assertIn("No LLM: confirmed", stdout.getvalue())
+        self.assertEqual(len(daily_brief_files), 5)
 
     def test_main_v1_readiness_gate_with_mock_returns_zero_for_warning_ready(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -39,6 +39,33 @@
     </header>
 
     <main class="layout">
+      {% if daily_brief %}
+      <section class="panel daily-brief-action-context">
+        <h2>{{ t("daily_brief.action_center_title") }}</h2>
+        <p><span class="badge status-review">{{ t("actions.manual_only_badge") }}</span> {{ daily_brief.one_sentence_summary }}</p>
+        <dl class="facts compact-facts">
+          <div>
+            <dt>{{ t("daily_brief.useful_news") }}</dt>
+            <dd>{{ daily_brief.useful_item_count }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("daily_brief.urgent_actions") }}</dt>
+            <dd>{{ daily_brief.urgent_action_count }}</dd>
+          </div>
+          <div>
+            <dt>{{ t("daily_brief.impacted_projects") }}</dt>
+            <dd>{{ daily_brief.impacted_projects | length }}</dd>
+          </div>
+          <div>
+            <dt>HAG</dt>
+            <dd>{{ t("daily_brief.hag_preserved") }}</dd>
+          </div>
+        </dl>
+        <p class="section-note">{{ t("daily_brief.manual_actions") }}</p>
+        <a class="button" href="{{ url_with_lang('/api/easy/latest/brief') }}">{{ t("daily_brief.read_human") }}</a>
+      </section>
+      {% endif %}
+
       <section class="status-grid" aria-label="{{ t('actions.title') }}">
         <article class="metric primary">
           <span class="label">{{ t("actions.run_id") }}</span>

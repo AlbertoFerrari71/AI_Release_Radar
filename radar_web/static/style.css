@@ -666,14 +666,107 @@ th {
 }
 
 .easy-subtitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 14px;
   font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.easy-subtitle .mode-badge {
+  margin-right: 0;
+}
+
+.easy-subtitle span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .easy-layout {
   max-width: 1180px;
+}
+
+.daily-brief-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 8px;
+}
+
+.daily-brief-hero.easy-red {
+  border-left-color: var(--fail);
+}
+
+.daily-brief-hero.easy-yellow {
+  border-left-color: var(--warn);
+}
+
+.daily-brief-hero.easy-green {
+  border-left-color: var(--pass);
+}
+
+.daily-brief-hero.easy-gray {
+  border-left-color: var(--no-data);
+}
+
+.daily-brief-main {
+  min-width: 0;
+}
+
+.daily-brief-main h2 {
+  margin: 4px 0 8px;
+  font-size: 26px;
+}
+
+.daily-brief-main p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: break-word;
+}
+
+.daily-brief-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.daily-brief-counts div {
+  min-width: 0;
+  padding: 10px;
+  background: var(--surface-soft);
+  border-radius: 6px;
+}
+
+.daily-brief-counts dd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.daily-brief-actions {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.daily-brief-action-context .button {
+  margin-top: 4px;
 }
 
 .easy-hero,
@@ -998,8 +1091,13 @@ th {
   }
 
   .easy-hero,
-  .easy-detail-header {
+  .easy-detail-header,
+  .daily-brief-hero {
     flex-direction: column;
+  }
+
+  .daily-brief-hero {
+    grid-template-columns: 1fr;
   }
 
   .easy-day-card,
@@ -1026,6 +1124,15 @@ th {
 
   .topbar-actions > .button {
     flex: 1 1 100%;
+  }
+
+  .easy-subtitle {
+    display: grid;
+    gap: 6px;
+  }
+
+  .easy-subtitle .mode-badge {
+    width: max-content;
   }
 
   .button-stack {
@@ -1056,6 +1163,19 @@ th {
 
   .easy-counts {
     grid-template-columns: 1fr;
+  }
+
+  .daily-brief-counts {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-brief-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .daily-brief-actions .button {
+    width: 100%;
   }
 
   .easy-news-card-head {

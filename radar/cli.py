@@ -18,6 +18,11 @@ from radar.daily_quality_gate import (
     render_daily_quality_gate_markdown,
 )
 from radar.daily_review_pack import write_daily_review_pack
+from radar.daily_intelligence import (
+    DEFAULT_BRIDGE_ROOT as DEFAULT_DAILY_BRIEF_BRIDGE_ROOT,
+    DEFAULT_PROJECT_IMPACT_MAP_PATH as DEFAULT_DAILY_PROJECT_IMPACT_MAP_PATH,
+    write_daily_intelligence_outputs,
+)
 from radar.hag_report import build_hag_report
 from radar.json_utils import read_json, write_json
 from radar.live_url_check import (
@@ -401,6 +406,26 @@ def run_daily_review_pack(
     )
 
 
+def run_daily_brief(
+    *,
+    bridge_root: str,
+    run_id: str = "latest",
+    output_dir: str | None = None,
+    project_impact_map: str | None = None,
+) -> dict[str, object]:
+    """Generate the Bridge-only Daily Intelligence Brief from an existing run."""
+    return write_daily_intelligence_outputs(
+        bridge_root=bridge_root,
+        run_id=run_id,
+        output_dir=output_dir,
+        project_map_path=(
+            project_impact_map
+            if project_impact_map is not None
+            else DEFAULT_DAILY_PROJECT_IMPACT_MAP_PATH
+        ),
+    )
+
+
 def run_v1_readiness_gate(
     *,
     run_dir: str,
@@ -642,6 +667,28 @@ def build_daily_review_pack_summary(result_data: object) -> str:
         f"JSON: {result_data.get('json_path')}",
         "No auto-action: confirmed",
         "No email: confirmed",
+        "No LLM: confirmed",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def build_daily_brief_summary(result_data: object) -> str:
+    """Build console summary for Daily Intelligence Brief generation."""
+    if not isinstance(result_data, dict):
+        raise ValueError("daily brief result_data must be a dict.")
+    lines = [
+        "AI Release Radar daily intelligence brief completed",
+        f"Status: {result_data.get('status')}",
+        f"Run ID: {result_data.get('run_id')}",
+        f"Date: {result_data.get('date')}",
+        f"Human Brief Markdown: {result_data.get('human_brief_markdown')}",
+        f"Human Brief JSON: {result_data.get('human_brief_json')}",
+        f"AI Model Packet Markdown: {result_data.get('ai_model_packet_markdown')}",
+        f"AI Model Packet JSON: {result_data.get('ai_model_packet_json')}",
+        f"Project Impact Map JSON: {result_data.get('project_impact_map_json')}",
+        "No auto-action: confirmed",
+        "No email: confirmed",
+        "No scheduler mutation: confirmed",
         "No LLM: confirmed",
     ]
     return "\n".join(lines) + "\n"
@@ -905,6 +952,30 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional existing scheduler log to summarize as evidence.",
     )
+    daily_brief = subparsers.add_parser(
+        "daily-brief",
+        help="Generate a Bridge-only Daily Intelligence Brief from an existing run.",
+    )
+    daily_brief.add_argument(
+        "--run-id",
+        default="latest",
+        help="Bridge daily-sim run id to read, or latest. Default: latest.",
+    )
+    daily_brief.add_argument(
+        "--bridge-root",
+        default=str(DEFAULT_DAILY_BRIEF_BRIDGE_ROOT),
+        help="AI Release Radar Bridge root. Default is the local project Bridge.",
+    )
+    daily_brief.add_argument(
+        "--output-dir",
+        default=None,
+        help="Optional explicit outside-repository directory for daily brief outputs.",
+    )
+    daily_brief.add_argument(
+        "--project-impact-map",
+        default=str(DEFAULT_DAILY_PROJECT_IMPACT_MAP_PATH),
+        help="Project Impact Map JSON path for daily brief routing.",
+    )
     v1_gate = subparsers.add_parser(
         "v1-readiness-gate",
         help="Generate the V1 operator readiness gate from existing evidence.",
@@ -1038,6 +1109,15 @@ def main(argv: list[str] | None = None) -> int:
                 scheduler_log=args.scheduler_log,
             )
             sys.stdout.write(build_daily_review_pack_summary(result))
+            return 0
+        if args.command == "daily-brief":
+            result = run_daily_brief(
+                bridge_root=args.bridge_root,
+                run_id=args.run_id,
+                output_dir=args.output_dir,
+                project_impact_map=args.project_impact_map,
+            )
+            sys.stdout.write(build_daily_brief_summary(result))
             return 0
         if args.command == "v1-readiness-gate":
             result = run_v1_readiness_gate(

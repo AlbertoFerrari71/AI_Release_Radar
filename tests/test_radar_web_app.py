@@ -116,6 +116,7 @@ class RadarWebAppTests(unittest.TestCase):
                 self.assertEqual(len(runs), 1)
                 html = client.get("/").text
                 self.assertIn("AI Release Radar", html)
+                self.assertIn("Oggi in 30 secondi", html)
                 self.assertIn("Modalita semplice", html)
                 self.assertIn("Leggi", html)
                 self.assertNotIn("parsed_count", html)
@@ -142,8 +143,11 @@ class RadarWebAppTests(unittest.TestCase):
                     "/api/runs",
                     "/api/easy/days",
                     "/api/easy/latest",
+                    "/api/easy/latest/brief",
+                    "/api/easy/latest/model-packet",
                     "/api/preferences/ui",
                     f"/api/easy/days/{run_id}",
+                    f"/api/easy/days/{run_id}/brief",
                     f"/easy/runs/{run_id}",
                     f"/runs/{run_id}",
                     f"/api/runs/{run_id}",
@@ -157,6 +161,8 @@ class RadarWebAppTests(unittest.TestCase):
                     with self.subTest(endpoint=endpoint):
                         response = client.get(endpoint)
                         self.assertEqual(response.status_code, 200)
+                self.assertEqual(client.post("/api/easy/latest/brief").status_code, 405)
+                self.assertEqual(client.post("/api/easy/latest/model-packet").status_code, 405)
 
     def test_easy_alias_redirect_is_safe(self):
         with tempfile.TemporaryDirectory() as tmpdir:
